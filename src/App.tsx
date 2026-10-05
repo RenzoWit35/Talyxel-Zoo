@@ -14,7 +14,8 @@ import { PostPage } from './pages/PostPage';
 import { ProfilePage } from './pages/ProfilePage';
 
 // The map-heavy pages and the guide load on demand, keeping the first download small.
-const PlannerPage = lazy(() => import('./pages/planner/PlannerPage').then((m) => ({ default: m.PlannerPage })));
+export const loadPlanner = () => import('./pages/planner/PlannerPage');
+const PlannerPage = lazy(() => loadPlanner().then((m) => ({ default: m.PlannerPage })));
 const ZooPage = lazy(() => import('./pages/ZooPage').then((m) => ({ default: m.ZooPage })));
 const GuidePage = lazy(() => import('./pages/GuidePage').then((m) => ({ default: m.GuidePage })));
 

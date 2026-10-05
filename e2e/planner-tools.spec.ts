@@ -43,7 +43,7 @@ test('duplicate, copy and paste shapes, undo and redo moves, and show the shortc
   await page.keyboard.press('?');
   const overlay = page.getByRole('dialog', { name: 'Keyboard shortcuts' });
   await expect(overlay).toContainText('Duplicate');
-  await page.evaluate(() => Promise.all(document.getAnimations().map((a) => a.finished)));
+  await page.evaluate(() => Promise.all(document.getAnimations().map((a) => a.finished.catch(() => undefined))));
   await page.screenshot({ path: 'test-results/screens/shortcuts-desktop.png' });
   await page.keyboard.press('Escape');
   await expect(overlay).toHaveCount(0);

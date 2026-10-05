@@ -21,6 +21,7 @@ test('a visitor signs up, creates a plan and lands in the planner', async ({ pag
   await page.getByRole('button', { name: 'Create & open planner' }).click();
 
   await expect(page).toHaveURL(/\/zoos\/\d+\/edit$/);
-  await page.keyboard.press('Escape'); // first-visit tour
+  await expect(page.getByRole('dialog', { name: 'Add things to your map' })).toBeVisible(); // first-visit tour
+  await page.keyboard.press('Escape');
   await expect(page.getByLabel('Park name')).toHaveValue('Smoke Test Zoo');
 });

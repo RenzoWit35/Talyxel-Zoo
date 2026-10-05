@@ -2,7 +2,7 @@ import { expect, test, type Page } from '@playwright/test';
 import { PASSWORD, uniqueName } from './helpers';
 
 const shot = (name: string) => `test-results/screens/${name}-${test.info().project.name}.png`;
-const settle = (page: Page) => page.evaluate(() => Promise.all(document.getAnimations().map((a) => a.finished)));
+const settle = (page: Page) => page.evaluate(() => Promise.all(document.getAnimations().map((a) => a.finished.catch(() => undefined))));
 
 test('a new builder gets a welcome, a planner tour and a checklist that ticks itself off', async ({ page }) => {
   await page.goto('/register');

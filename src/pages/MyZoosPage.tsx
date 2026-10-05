@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Map, Plus } from 'lucide-react';
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { LIMITS, type ParkType } from '../../shared/constants';
 import { parkMeta } from '../../shared/parks';
@@ -8,6 +8,7 @@ import { api, errorMessage } from '../api/client';
 import { ParkTypePicker } from '../components/ParkType';
 import { EmptyState, Modal, PageLoader } from '../components/ui';
 import { ZooCard } from '../components/ZooCard';
+import { loadPlanner } from '../App';
 
 const SIZES = [
   { label: 'Small', width: 200, height: 150 },
@@ -18,6 +19,10 @@ const SIZES = [
 
 function NewZooDialog({ onClose }: { onClose: () => void }) {
   const navigate = useNavigate();
+  // Fetch the planner's code while the form is being filled in, so "Create" opens it straight away.
+  useEffect(() => {
+    void loadPlanner();
+  }, []);
   const qc = useQueryClient();
   const [parkType, setParkType] = useState<ParkType>('zoo');
   const [title, setTitle] = useState('');

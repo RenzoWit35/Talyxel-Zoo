@@ -15,6 +15,8 @@ async function closeSheet(page: Page) {
   if ((page.viewportSize()?.width ?? 1280) <= 900 && (await sheet.count())) {
     await page.getByRole('button', { name: 'Show details panel' }).click();
     await expect(sheet).toHaveCount(0);
+    // The sheet slides away; clicks during the slide would land on it instead of the map.
+    await expect.poll(() => page.locator('.planner-panel').evaluate((el) => el.getBoundingClientRect().top >= window.innerHeight - 1)).toBe(true);
   }
 }
 

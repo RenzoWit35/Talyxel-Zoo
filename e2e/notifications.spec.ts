@@ -22,7 +22,7 @@ test('the bell shows new likes, comments and followers and clears when opened', 
   await expect(panel).toContainText('liked your post “Which biome for the red pandas?”');
   await expect(panel).toContainText('Temperate, with lots of climbing');
   await expect(bell.locator('.notif-badge')).toHaveCount(0);
-  await panel.evaluate((el) => Promise.all(el.getAnimations().map((a) => a.finished)));
+  await panel.evaluate((el) => Promise.all(el.getAnimations().map((a) => a.finished.catch(() => undefined))));
   await page.screenshot({ path: `test-results/screens/notifications-${test.info().project.name}.png` });
 
   await panel.locator('.notif-item', { hasText: 'commented' }).click();
