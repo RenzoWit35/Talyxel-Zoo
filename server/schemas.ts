@@ -54,7 +54,7 @@ export const zooUpdateInput = z.object({
 const point = z.tuple([z.number().finite(), z.number().finite()]);
 export const points = z
   .array(point)
-  .min(LIMITS.pointsMin, 'A shape needs at least 3 corners')
+  .min(LIMITS.pointsMin, 'A shape needs at least 2 points')
   .max(LIMITS.pointsMax, `A shape can have at most ${LIMITS.pointsMax} corners`);
 
 const color = z.string().regex(/^#[0-9a-fA-F]{6}$/, 'Colours must look like #a1b2c3');

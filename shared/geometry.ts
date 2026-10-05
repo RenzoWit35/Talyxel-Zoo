@@ -21,6 +21,41 @@ export function polygonPerimeter(points: readonly Point[]): number {
   return sum;
 }
 
+/** Length of an open line (a walk route), in map units. */
+export function polylineLength(points: readonly Point[]): number {
+  let sum = 0;
+  for (let i = 1; i < points.length; i++) sum += Math.hypot(points[i][0] - points[i - 1][0], points[i][1] - points[i - 1][1]);
+  return sum;
+}
+
+/** Minutes to walk a distance at a relaxed visitor pace of 4 km/h. */
+export const walkMinutes = (metres: number) => (metres / 4000) * 60;
+
+export function formatDuration(minutes: number): string {
+  if (minutes < 1) return '< 1 min';
+  const total = Math.round(minutes);
+  if (total < 60) return `${total} min`;
+  const m = total % 60;
+  return m ? `${Math.floor(total / 60)} h ${m} min` : `${total / 60} h`;
+}
+
+/** The point halfway along a line, and the direction (degrees) of the segment it sits on — for labels. */
+export function lineMidpoint(points: readonly Point[]): { point: Point; angle: number } {
+  const half = polylineLength(points) / 2;
+  let walked = 0;
+  for (let i = 1; i < points.length; i++) {
+    const [x1, y1] = points[i - 1];
+    const [x2, y2] = points[i];
+    const seg = Math.hypot(x2 - x1, y2 - y1);
+    if (walked + seg >= half && seg > 0) {
+      const t = (half - walked) / seg;
+      return { point: [x1 + (x2 - x1) * t, y1 + (y2 - y1) * t], angle: (Math.atan2(y2 - y1, x2 - x1) * 180) / Math.PI };
+    }
+    walked += seg;
+  }
+  return { point: points[0] ?? [0, 0], angle: 0 };
+}
+
 export function pointInPolygon([x, y]: Point, points: readonly Point[]): boolean {
   let inside = false;
   for (let i = 0, j = points.length - 1; i < points.length; j = i++) {

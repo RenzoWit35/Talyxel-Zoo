@@ -1,10 +1,10 @@
 import { forwardRef } from 'react';
 import { MousePointerClick } from 'lucide-react';
 import { BIOME_LABELS, KIND_META, STATUS_META } from '../../../shared/constants';
-import { formatArea, formatLength, polygonArea, polygonPerimeter } from '../../../shared/geometry';
 import type { Habitat } from '../../../shared/types';
 import { shade } from '../../lib/color';
 import { plural } from '../../lib/format';
+import { shapeFacts } from '../../lib/shapes';
 import { KindIcon } from '../KindIcon';
 
 export function StatusChip({ status }: { status: Habitat['status'] }) {
@@ -51,14 +51,12 @@ export const HoverCard = forwardRef<HTMLDivElement, { habitat: Habitat; hint?: s
           {habitat.biome && <span className="chip">{BIOME_LABELS[habitat.biome]}</span>}
         </div>
         <div className="hover-stats">
-          <span>
-            <small>Area</small>
-            {formatArea(polygonArea(habitat.points))}
-          </span>
-          <span>
-            <small>{habitat.kind === 'habitat' ? 'Barrier' : 'Perimeter'}</small>
-            {formatLength(polygonPerimeter(habitat.points))}
-          </span>
+          {shapeFacts(habitat).map((f) => (
+            <span key={f.label}>
+              <small>{f.label}</small>
+              {f.value}
+            </span>
+          ))}
           <span>
             <small>Photos</small>
             {habitat.photos.length}

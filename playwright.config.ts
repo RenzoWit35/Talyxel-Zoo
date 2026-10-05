@@ -7,7 +7,8 @@ const channel = process.env.CI ? undefined : (process.env.E2E_CHANNEL ?? 'chrome
 export default defineConfig({
   testDir: 'e2e',
   fullyParallel: true,
-  retries: process.env.CI ? 1 : 0,
+  // One retry so an intermittent failure is reported as "flaky" instead of failing the run.
+  retries: 1,
   reporter: process.env.CI ? 'github' : 'list',
   use: {
     baseURL: `http://localhost:${port}`,

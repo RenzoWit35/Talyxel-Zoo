@@ -1,7 +1,7 @@
 import { ImagePlus, Loader2, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { HABITAT_STATUSES, KIND_META, LIMITS, PARK_TYPES, STATUS_META } from '../../../shared/constants';
-import { formatArea, polygonArea } from '../../../shared/geometry';
+import { formatArea, formatLength, polygonArea, polylineLength } from '../../../shared/geometry';
 import { parkMeta } from '../../../shared/parks';
 import { ParkIcon } from '../../components/ParkType';
 import { capitalize, plural } from '../../lib/format';
@@ -11,6 +11,7 @@ const SHORTCUTS: [string, string][] = [
   ['V', 'Select & move'],
   ['P', 'Draw a freeform shape'],
   ['R', 'Draw a rectangle'],
+  ['L', 'Draw a walk route'],
   ['H / Space', 'Pan the map'],
   ['Enter', 'Finish the shape'],
   ['Esc', 'Cancel / deselect'],
@@ -46,6 +47,9 @@ export function ZooPanel({ editor, onDeleteZoo }: { editor: ZooEditor; onDeleteZ
   const species = [...new Set(habitats.filter((x) => meta.featureKinds.includes(x.kind)).map((x) => x.species.trim()).filter(Boolean))];
   const byStatus = HABITAT_STATUSES.map((s) => ({ s, n: habitats.filter((x) => x.status === s).length }));
   const done = byStatus.find((b) => b.s === 'done')!.n;
+  const routeLength = habitats.filter((x) => x.kind === 'route').reduce((sum, x) => sum + polylineLength(x.points), 0);
+  const utilities = habitats.filter((x) => x.kind === 'utility').length;
+  const interests = habitats.filter((x) => x.kind === 'interest').length;
 
   const wNum = Number(w);
   const hNum = Number(h);
@@ -85,6 +89,22 @@ export function ZooPanel({ editor, onDeleteZoo }: { editor: ZooEditor; onDeleteZ
             <strong>{species.length}</strong>
           </div>
         </div>
+        {(routeLength > 0 || utilities > 0 || interests > 0) && (
+          <div className="stat-row">
+            <div>
+              <small>Routes</small>
+              <strong>{formatLength(routeLength)}</strong>
+            </div>
+            <div>
+              <small>Utilities</small>
+              <strong>{utilities}</strong>
+            </div>
+            <div>
+              <small>Of interest</small>
+              <strong>{interests}</strong>
+            </div>
+          </div>
+        )}
         {habitats.length > 0 && (
           <div className="progress-block">
             <div className="row">

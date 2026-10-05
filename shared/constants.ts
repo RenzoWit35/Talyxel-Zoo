@@ -11,11 +11,69 @@ export const HABITAT_KINDS = [
   'shop',
   'zone',
   'facility',
+  'utility',
+  'interest',
+  'route',
   'water',
   'path',
   'scenery',
 ] as const;
 export type HabitatKind = (typeof HABITAT_KINDS)[number];
+
+/** Kinds drawn as an open line (a polyline) instead of a closed area. */
+export const LINE_KINDS: readonly HabitatKind[] = ['route'];
+export const isLineKind = (kind: HabitatKind) => LINE_KINDS.includes(kind);
+/** Fewest points a shape of this kind can have: 2 for a line, 3 corners for an area. */
+export const minPoints = (kind: HabitatKind) => (isLineKind(kind) ? 2 : 3);
+
+export const UTILITY_TYPES = [
+  'Power substation',
+  'Power generator',
+  'Water treatment',
+  'Water pump',
+  'Staff room',
+  'Workshop',
+  'Mechanic workshop',
+  'Vet surgery',
+  'Quarantine',
+  'Research centre',
+  'Trade centre',
+  'Security office',
+  'Janitor closet',
+  'Waste & recycling',
+  'Storage',
+];
+
+export const ROUTE_TYPES = [
+  'Guest walk',
+  'Scenic loop',
+  'Guided tour',
+  'Safari route',
+  'Nature trail',
+  'Keeper route',
+  'Staff route',
+  'Queue line',
+  'Shortcut',
+  'Accessible route',
+  'Evacuation route',
+];
+
+export const INTEREST_TYPES = [
+  'Viewpoint',
+  'Photo spot',
+  'Keeper talk',
+  'Animal show',
+  'Feeding time',
+  'Playground',
+  'Picnic area',
+  'Meeting point',
+  'Information point',
+  'Education centre',
+  'Landmark',
+  'Stage / show',
+  'Fireworks spot',
+  'Entrance',
+];
 
 export const HABITAT_STATUSES = ['idea', 'planned', 'building', 'done'] as const;
 export type HabitatStatus = (typeof HABITAT_STATUSES)[number];
@@ -27,7 +85,17 @@ export const THEMES = ['', 'pirate', 'fairytale', 'western', 'scifi', 'spooky', 
 /** A shape's setting: a biome in zoos, a theme in theme parks. Stored in the habitat's `biome` field. */
 export type Biome = (typeof BIOMES)[number] | (typeof THEMES)[number];
 
-export const KIND_META: Record<HabitatKind, { label: string; noun: string; color: string; hint: string }> = {
+export interface KindMeta {
+  label: string;
+  noun: string;
+  color: string;
+  hint: string;
+  /** Kinds with their own list for the per-shape `species` field (otherwise the park type's list applies to main attractions). */
+  subjectLabel?: string;
+  subjects?: readonly string[];
+}
+
+export const KIND_META: Record<HabitatKind, KindMeta> = {
   habitat: { label: 'Habitat', noun: 'Habitat', color: '#5f9e5c', hint: 'Large animal enclosure' },
   exhibit: { label: 'Exhibit', noun: 'Exhibit', color: '#c79a3c', hint: 'Reptile house, aviary, small animals' },
   coaster: { label: 'Roller coaster', noun: 'Coaster', color: '#c2543f', hint: 'Track layout, station and queue' },
@@ -35,7 +103,31 @@ export const KIND_META: Record<HabitatKind, { label: string; noun: string; color
   water_ride: { label: 'Water ride', noun: 'Water ride', color: '#3f9fb8', hint: 'Log flumes, rapids, splash boats' },
   shop: { label: 'Shop / food', noun: 'Shop', color: '#c79a3c', hint: 'Food, drinks and souvenir stalls' },
   zone: { label: 'Themed area', noun: 'Area', color: '#a9c49a', hint: 'A land like “Pirate Cove” that rides sit inside' },
-  facility: { label: 'Facility', noun: 'Facility', color: '#8a78c4', hint: 'Restrooms, first aid, staff buildings' },
+  facility: { label: 'Facility', noun: 'Facility', color: '#8a78c4', hint: 'Restrooms, first aid, food and other guest services' },
+  utility: {
+    label: 'Utility',
+    noun: 'Utility',
+    color: '#64748b',
+    hint: 'Power, water, staff rooms, workshops and other behind-the-scenes buildings',
+    subjectLabel: 'Utility type',
+    subjects: UTILITY_TYPES,
+  },
+  interest: {
+    label: 'Area of interest',
+    noun: 'Area of interest',
+    color: '#d6517d',
+    hint: 'Viewpoints, keeper talks, photo spots, shows — places worth a visit',
+    subjectLabel: 'What is there',
+    subjects: INTEREST_TYPES,
+  },
+  route: {
+    label: 'Walk route',
+    noun: 'Walk route',
+    color: '#e0a526',
+    hint: 'A walking route or tour, drawn as a line — shows its length and walking time',
+    subjectLabel: 'Route type',
+    subjects: ROUTE_TYPES,
+  },
   water: { label: 'Water', noun: 'Water', color: '#4c98cc', hint: 'Lakes, rivers, pools' },
   path: { label: 'Path / plaza', noun: 'Path', color: '#bfa98a', hint: 'Guest paths, queues and plazas' },
   scenery: { label: 'Scenery', noun: 'Scenery', color: '#93b85c', hint: 'Gardens, forests, decoration' },
@@ -91,7 +183,8 @@ export const AVATAR_COLORS = ['#2f6b47', '#3e7a8c', '#7a5aa6', '#b5643c', '#a845
 export const LIMITS = {
   mapMin: 20,
   mapMax: 2000,
-  pointsMin: 3,
+  /** A line needs 2 points; areas need 3 corners (see minPoints). */
+  pointsMin: 2,
   pointsMax: 300,
   photosPerHabitat: 40,
   uploadBytes: 8 * 1024 * 1024,

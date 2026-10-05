@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { clampedTranslate, formatArea, labelPoint, pointInPolygon, polygonArea, polygonPerimeter, type Point } from '../shared/geometry';
+import { clampedTranslate, formatArea, formatDuration, labelPoint, lineMidpoint, pointInPolygon, polygonArea, polygonPerimeter, polylineLength, walkMinutes, type Point } from '../shared/geometry';
 
 const square: Point[] = [
   [0, 0],
@@ -50,5 +50,22 @@ describe('geometry', () => {
   it('formats areas in m² and hectares', () => {
     expect(formatArea(1234.4)).toBe('1,234 m²');
     expect(formatArea(25_000)).toBe('2.5 ha');
+  });
+
+  it('measures open lines (walk routes) without closing them', () => {
+    expect(polylineLength([[0, 0], [3, 4], [3, 10]])).toBe(11);
+    expect(polylineLength([[0, 0]])).toBe(0);
+  });
+
+  it('estimates walking time at 4 km/h and formats durations', () => {
+    expect(walkMinutes(1000)).toBe(15);
+    expect(formatDuration(0.4)).toBe('< 1 min');
+    expect(formatDuration(15)).toBe('15 min');
+    expect(formatDuration(75)).toBe('1 h 15 min');
+  });
+
+  it('finds the halfway point along a line', () => {
+    expect(lineMidpoint([[0, 0], [10, 0], [10, 10]])).toEqual({ point: [10, 0], angle: 0 });
+    expect(lineMidpoint([[0, 0], [0, 20]]).point).toEqual([0, 10]);
   });
 });

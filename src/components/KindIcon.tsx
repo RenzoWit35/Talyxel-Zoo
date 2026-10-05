@@ -1,4 +1,20 @@
-import { Castle, Droplets, FerrisWheel, PawPrint, Popcorn, RollerCoaster, Route, Store, Trees, Turtle, Waves, type LucideProps } from 'lucide-react';
+import {
+  Castle,
+  Droplets,
+  FerrisWheel,
+  Footprints,
+  MapPin,
+  PawPrint,
+  PlugZap,
+  Popcorn,
+  RollerCoaster,
+  Route,
+  Store,
+  Trees,
+  Turtle,
+  Waves,
+  type LucideProps,
+} from 'lucide-react';
 import type { HabitatKind } from '../../shared/constants';
 
 const ICONS = {
@@ -10,6 +26,9 @@ const ICONS = {
   shop: Popcorn,
   zone: Castle,
   facility: Store,
+  utility: PlugZap,
+  interest: MapPin,
+  route: Footprints,
   water: Droplets,
   path: Route,
   scenery: Trees,

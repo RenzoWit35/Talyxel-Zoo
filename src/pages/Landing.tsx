@@ -16,6 +16,8 @@ const DEMO: ZooShape[] = [
   { kind: 'facility', color: '#8a78c4', points: [[172, 122], [214, 122], [214, 152], [172, 152]] },
   { kind: 'exhibit', color: '#d9733f', points: [[226, 120], [288, 122], [286, 188], [228, 186]] },
   { kind: 'scenery', color: '#93b85c', points: [[172, 162], [214, 162], [214, 190], [172, 190]] },
+  { kind: 'interest', color: '#d6517d', points: [[226, 30], [270, 30], [270, 64], [226, 64]] },
+  { kind: 'route', color: '#e0a526', points: [[20, 100], [96, 100], [120, 112], [150, 100], [230, 100], [250, 50]] },
 ];
 
 const FEATURES = [

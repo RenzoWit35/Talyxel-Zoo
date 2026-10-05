@@ -1,10 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
-import { Calendar, Images, Lock, PenLine, Plus, Ruler, Vote, X } from 'lucide-react';
+import { Calendar, Footprints, Images, Lock, PenLine, Plus, Ruler, Vote, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useParams, useSearchParams } from 'react-router';
-import { BIOME_LABELS, HABITAT_STATUSES, KIND_META, STATUS_META } from '../../shared/constants';
+import { BIOME_LABELS, HABITAT_STATUSES, KIND_META, STATUS_META, type HabitatKind } from '../../shared/constants';
 import { parkMeta } from '../../shared/parks';
-import { formatArea, formatLength, polygonArea, polygonPerimeter } from '../../shared/geometry';
+import { formatArea, formatLength, polygonArea, polylineLength } from '../../shared/geometry';
 import type { Habitat, ZooDetail } from '../../shared/types';
 import { api, ApiError, errorMessage } from '../api/client';
 import { FollowButton } from '../components/FollowButton';
@@ -12,12 +12,14 @@ import { KindIcon } from '../components/KindIcon';
 import { ParkIcon } from '../components/ParkType';
 import { PhotoGrid } from '../components/Lightbox';
 import { StatusChip } from '../components/map/HoverCard';
+import { LayerToggles } from '../components/map/LayerToggles';
 import { MapCanvas } from '../components/map/MapCanvas';
 import { SurveyCard } from '../components/SurveyCard';
 import { NewSurveyDialog } from '../components/SurveyEditor';
 import { Avatar, PageLoader } from '../components/ui';
 import { shade } from '../lib/color';
 import { formatDate, plural } from '../lib/format';
+import { shapeFacts, shapeSize } from '../lib/shapes';
 import { NotFound } from './NotFound';
 
 function HabitatDetails({ habitat, onClose }: { habitat: Habitat; onClose: () => void }) {
@@ -39,14 +41,12 @@ function HabitatDetails({ habitat, onClose }: { habitat: Habitat; onClose: () =>
           {habitat.biome && <span className="chip">{BIOME_LABELS[habitat.biome]}</span>}
         </div>
         <div className="stat-row">
-          <div>
-            <small>Area</small>
-            <strong>{formatArea(polygonArea(habitat.points))}</strong>
-          </div>
-          <div>
-            <small>{habitat.kind === 'habitat' ? 'Barrier' : 'Perimeter'}</small>
-            <strong>{formatLength(polygonPerimeter(habitat.points))}</strong>
-          </div>
+          {shapeFacts(habitat).map((f) => (
+            <div key={f.label}>
+              <small>{f.label}</small>
+              <strong>{f.value}</strong>
+            </div>
+          ))}
           <div>
             <small>Photos</small>
             <strong>{habitat.photos.length}</strong>
@@ -68,6 +68,7 @@ function ZooView({ zoo }: { zoo: ZooDetail }) {
   const [params, setParams] = useSearchParams();
   const { hash } = useLocation();
   const [newSurvey, setNewSurvey] = useState(false);
+  const [hiddenKinds, setHiddenKinds] = useState<Set<HabitatKind>>(() => new Set());
   const mapRef = useRef<HTMLDivElement>(null);
   const surveysRef = useRef<HTMLDivElement>(null);
   const selectedId = Number(params.get('h')) || null;
@@ -85,6 +86,7 @@ function ZooView({ zoo }: { zoo: ZooDetail }) {
       area: animals.reduce((s, h) => s + polygonArea(h.points), 0),
       species: new Set(animals.map((h) => h.species.trim()).filter(Boolean)).size,
       photos: zoo.habitats.reduce((s, h) => s + h.photos.length, 0),
+      routes: zoo.habitats.filter((h) => h.kind === 'route').reduce((s, h) => s + polylineLength(h.points), 0),
     };
   }, [zoo.habitats, meta]);
 
@@ -122,6 +124,11 @@ function ZooView({ zoo }: { zoo: ZooDetail }) {
               {formatArea(counts.area)} {meta.featureAreaLabel}
             </span>
             <span>{plural(counts.species, ...meta.subjectNoun)}</span>
+            {counts.routes > 0 && (
+              <span>
+                <Footprints /> {formatLength(counts.routes)} of walk routes
+              </span>
+            )}
             <span>
               <Images /> {counts.photos}
             </span>
@@ -157,7 +164,8 @@ function ZooView({ zoo }: { zoo: ZooDetail }) {
           habitats={zoo.habitats}
           background={zoo.backgroundUrl ? { url: zoo.backgroundUrl, opacity: zoo.backgroundOpacity } : null}
           selectedId={selectedId}
-          onSelect={select}
+          hiddenKinds={hiddenKinds}
+          onSelect={(id) => select(id)}
         />
         {selected && <HabitatDetails key={selected.id} habitat={selected} onClose={() => select(null)} />}
         <div className="map-legend">
@@ -169,6 +177,7 @@ function ZooView({ zoo }: { zoo: ZooDetail }) {
           ))}
         </div>
       </div>
+      <LayerToggles kinds={meta.kinds} habitats={zoo.habitats} hidden={hiddenKinds} onChange={setHiddenKinds} variant="chips" />
       <p className="subtle map-tip">Hover (or tap) a shape for photos and info · click to open it · scroll or pinch to zoom · drag to pan</p>
 
       <div className="zoo-columns">
@@ -198,7 +207,7 @@ function ZooView({ zoo }: { zoo: ZooDetail }) {
                     {h.species && <span className="species">{h.species}</span>}
                     <div className="row row-wrap" style={{ gap: 5 }}>
                       <StatusChip status={h.status} />
-                      <span className="subtle">{formatArea(polygonArea(h.points))}</span>
+                      <span className="subtle">{shapeSize(h)}</span>
                     </div>
                   </div>
                 </button>

@@ -174,6 +174,46 @@ describe('theme parks', () => {
   });
 });
 
+describe('utilities, walk routes and areas of interest', () => {
+  it('stores walk routes as open lines with at least two points', async () => {
+    const rosa = await signUp(app, 'rosa');
+    const { zoo } = await zooWithHabitat(rosa);
+    const route = await rosa.post(`/api/zoos/${zoo.id}/habitats`, { name: 'Safari walk', kind: 'route', species: 'Guided tour', points: [[10, 50], [90, 50]] });
+    expect(route.status).toBe(201);
+    expect(route.body).toMatchObject({ kind: 'route', points: [[10, 50], [90, 50]], species: 'Guided tour' });
+
+    expect((await rosa.post(`/api/zoos/${zoo.id}/habitats`, { kind: 'route', points: [[10, 50]] })).status).toBe(400);
+    const twoCornerArea = await rosa.post(`/api/zoos/${zoo.id}/habitats`, { kind: 'habitat', points: [[10, 50], [90, 50]] });
+    expect(twoCornerArea.status).toBe(400);
+    expect(twoCornerArea.body.error).toMatch(/3 corners/);
+
+    // Lines and areas don't turn into each other.
+    expect((await rosa.patch(`/api/habitats/${route.body.id}`, { kind: 'habitat' })).status).toBe(400);
+    expect((await rosa.patch(`/api/habitats/${route.body.id}`, { points: [[0, 0]] })).status).toBe(400);
+    const bent = await rosa.patch(`/api/habitats/${route.body.id}`, { points: [[10, 50], [50, 80], [90, 50]] });
+    expect(bent.body.points).toHaveLength(3);
+  });
+
+  it('allows utilities, routes and areas of interest in zoos and theme parks', async () => {
+    const lotte = await signUp(app, 'lotte');
+    for (const parkType of ['zoo', 'theme_park']) {
+      const park = (await lotte.post('/api/zoos', { title: `Park ${parkType}`, parkType, width: 200, height: 100 })).body as ZooDetail;
+      const utility = await lotte.post(`/api/zoos/${park.id}/habitats`, { kind: 'utility', species: 'Power substation', points: square(10, 10, 10) });
+      const interest = await lotte.post(`/api/zoos/${park.id}/habitats`, { kind: 'interest', species: 'Viewpoint', points: square(30, 10, 10) });
+      const route = await lotte.post(`/api/zoos/${park.id}/habitats`, { kind: 'route', points: [[0, 50], [100, 60]] });
+      expect([utility.status, interest.status, route.status]).toEqual([201, 201, 201]);
+    }
+  });
+
+  it('lets a park with only shared shapes switch type', async () => {
+    const rosa = await signUp(app, 'rosa');
+    const plain = (await rosa.post('/api/zoos', { title: 'Grounds', width: 100, height: 100 })).body as ZooDetail;
+    await rosa.post(`/api/zoos/${plain.id}/habitats`, { kind: 'route', points: [[0, 0], [50, 50]] });
+    await rosa.post(`/api/zoos/${plain.id}/habitats`, { kind: 'utility', points: square(60, 60, 10) });
+    expect((await rosa.patch(`/api/zoos/${plain.id}`, { parkType: 'theme_park' })).status).toBe(200);
+  });
+});
+
 describe('publishing with a survey', () => {
   it('hides results until you vote, accepts suggestions and lets the owner close it', async () => {
     const rosa = await signUp(app, 'rosa');

@@ -1,52 +1,84 @@
 import { useId } from 'react';
+import { isLineKind, type HabitatKind } from '../../shared/constants';
 import type { Point } from '../../shared/geometry';
 import type { ZooShape } from '../../shared/types';
 import { shade } from '../lib/color';
-import { drawOrder } from '../lib/shapes';
+import { drawOrder, pointsAttr } from '../lib/shapes';
 
 interface Props {
   width: number;
   height: number;
   shapes: ZooShape[];
   /** Outline one shape and fade the rest. */
-  highlight?: Point[];
+  highlight?: { points: Point[]; kind: HabitatKind };
   className?: string;
+  /** How the map fills its box: crop to fill (default) or show the whole map. */
+  fit?: 'slice' | 'meet';
 }
 
-/** Static top-down preview of a zoo plan. */
-export function ZooThumbnail({ width, height, shapes, highlight, className = 'zoo-thumb' }: Props) {
+/** Static top-down preview of a park plan. */
+export function ZooThumbnail({ width, height, shapes, highlight, className = 'zoo-thumb', fit = 'slice' }: Props) {
   const id = useId().replace(/:/g, '');
-  const grid = Math.max(10, Math.round(Math.max(width, height) / 12 / 10) * 10);
+  const size = Math.max(width, height);
+  const grid = Math.max(10, Math.round(size / 12 / 10) * 10);
+  const fade = highlight ? 0.45 : 1;
   return (
-    <svg className={className} viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <svg className={className} viewBox={`0 0 ${width} ${height}`} preserveAspectRatio={`xMidYMid ${fit}`} aria-hidden="true">
       <defs>
         <pattern id={`g${id}`} width={grid} height={grid} patternUnits="userSpaceOnUse">
-          <path d={`M ${grid} 0 L 0 0 0 ${grid}`} fill="none" stroke="var(--ground-line)" strokeWidth={Math.max(width, height) / 400} />
+          <path d={`M ${grid} 0 L 0 0 0 ${grid}`} fill="none" stroke="var(--ground-line)" strokeWidth={size / 400} />
         </pattern>
       </defs>
       <rect width={width} height={height} fill="var(--ground)" />
       <rect width={width} height={height} fill={`url(#g${id})`} />
-      {[...shapes].sort(drawOrder).map((s, i) => (
-        <polygon
-          key={i}
-          points={s.points.map((p) => p.join(',')).join(' ')}
-          fill={s.color}
-          fillOpacity={(s.kind === 'path' ? 0.75 : 0.85) * (highlight ? 0.45 : 1)}
-          stroke={shade(s.color, -0.35)}
-          strokeWidth={Math.max(width, height) / 250}
-          strokeLinejoin="round"
-        />
-      ))}
-      {highlight && (
-        <polygon
-          points={highlight.map((p) => p.join(',')).join(' ')}
-          fill="none"
-          stroke="#fff"
-          strokeWidth={Math.max(width, height) / 70}
-          strokeLinejoin="round"
-          style={{ filter: 'drop-shadow(0 0 3px rgba(0,0,0,.35))' }}
-        />
+      {[...shapes].sort(drawOrder).map((s, i) =>
+        isLineKind(s.kind) ? (
+          <g key={i} opacity={fade}>
+            <polyline points={pointsAttr(s.points)} fill="none" stroke={shade(s.color, -0.45)} strokeWidth={size / 110} strokeLinejoin="round" strokeLinecap="round" />
+            <polyline
+              points={pointsAttr(s.points)}
+              fill="none"
+              stroke={s.color}
+              strokeWidth={size / 190}
+              strokeLinejoin="round"
+              strokeLinecap="round"
+              strokeDasharray={`${size / 70} ${size / 140}`}
+            />
+          </g>
+        ) : (
+          <polygon
+            key={i}
+            points={pointsAttr(s.points)}
+            fill={s.color}
+            fillOpacity={(s.kind === 'path' ? 0.75 : s.kind === 'interest' ? 0.35 : 0.85) * fade}
+            stroke={shade(s.color, -0.35)}
+            strokeWidth={size / 250}
+            strokeDasharray={s.kind === 'interest' ? `${size / 90} ${size / 160}` : undefined}
+            strokeLinejoin="round"
+          />
+        ),
       )}
+      {highlight &&
+        (isLineKind(highlight.kind) ? (
+          <polyline
+            points={pointsAttr(highlight.points)}
+            fill="none"
+            stroke="#fff"
+            strokeWidth={size / 70}
+            strokeLinejoin="round"
+            strokeLinecap="round"
+            style={{ filter: 'drop-shadow(0 0 3px rgba(0,0,0,.35))' }}
+          />
+        ) : (
+          <polygon
+            points={pointsAttr(highlight.points)}
+            fill="none"
+            stroke="#fff"
+            strokeWidth={size / 70}
+            strokeLinejoin="round"
+            style={{ filter: 'drop-shadow(0 0 3px rgba(0,0,0,.35))' }}
+          />
+        ))}
     </svg>
   );
 }

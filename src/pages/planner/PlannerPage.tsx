@@ -7,6 +7,7 @@ import {
   Globe,
   Hand,
   Hexagon,
+  Layers,
   LayoutGrid,
   Loader2,
   Lock,
@@ -14,18 +15,21 @@ import {
   Map as MapIcon,
   MousePointer2,
   PanelRight,
+  Spline,
   Square,
   Trash2,
   Undo2,
   Vote,
+  X,
 } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { Link, Navigate, useNavigate, useParams } from 'react-router';
-import { KIND_META, type HabitatKind } from '../../../shared/constants';
+import { isLineKind, KIND_META, type HabitatKind } from '../../../shared/constants';
 import { bounds, type Point } from '../../../shared/geometry';
 import { parkMeta } from '../../../shared/parks';
 import type { Habitat, ZooDetail } from '../../../shared/types';
 import { api, ApiError, errorMessage } from '../../api/client';
+import { LayerToggles } from '../../components/map/LayerToggles';
 import { MapCanvas, type Tool } from '../../components/map/MapCanvas';
 import { NewSurveyDialog } from '../../components/SurveyEditor';
 import { useToast } from '../../components/toast';
@@ -35,6 +39,7 @@ import { NotFound } from '../NotFound';
 import { BoardView } from './BoardView';
 import { HabitatPanel } from './HabitatPanel';
 import { PublishDialog } from './PublishDialog';
+import { ShapePalette } from './ShapePalette';
 import { useZooEditor, type SaveState } from './useZooEditor';
 import { ZooPanel } from './ZooPanel';
 
@@ -42,6 +47,7 @@ const TOOLS: { id: Tool; label: string; key: string; icon: React.ReactNode }[] =
   { id: 'select', label: 'Select & move', key: 'V', icon: <MousePointer2 /> },
   { id: 'polygon', label: 'Draw freeform shape', key: 'P', icon: <Hexagon /> },
   { id: 'rect', label: 'Draw rectangle', key: 'R', icon: <Square /> },
+  { id: 'line', label: 'Draw walk route (line)', key: 'L', icon: <Spline /> },
   { id: 'pan', label: 'Pan', key: 'H', icon: <Hand /> },
 ];
 
@@ -98,10 +104,37 @@ function Planner({ initial }: { initial: ZooDetail }) {
   const [publishing, setPublishing] = useState(false);
   const [newSurvey, setNewSurvey] = useState(false);
   const [panelOpen, setPanelOpen] = useState(false);
+  const [hiddenKinds, setHiddenKinds] = useState<Set<HabitatKind>>(() => new Set());
+  const [layersOpen, setLayersOpen] = useState(false);
 
   const selected = zoo.habitats.find((h) => h.id === selectedId) ?? null;
   // If the park type changes, fall back to its main shape type for drawing.
   const kindToDraw = meta.kinds.includes(drawKind) ? drawKind : meta.defaultKind;
+
+  /** Tools and shape types go together: the line tool draws walk routes, the area tools draw everything else. */
+  const pickTool = useCallback(
+    (next: Tool) => {
+      setTool(next);
+      if (next === 'line' && !isLineKind(kindToDraw)) setDrawKind('route');
+      if ((next === 'polygon' || next === 'rect') && isLineKind(kindToDraw)) setDrawKind(meta.defaultKind);
+    },
+    [kindToDraw, meta.defaultKind],
+  );
+
+  const pickKind = (kind: HabitatKind) => {
+    setDrawKind(kind);
+    setTool(isLineKind(kind) ? 'line' : tool === 'rect' ? 'rect' : 'polygon');
+    if (hiddenKinds.has(kind)) {
+      const next = new Set(hiddenKinds);
+      next.delete(kind);
+      setHiddenKinds(next);
+    }
+  };
+
+  // A shape that gets hidden can't stay selected.
+  useEffect(() => {
+    if (selected && hiddenKinds.has(selected.kind)) setSelectedId(null);
+  }, [hiddenKinds, selected]);
 
   const select = useCallback((id: number | null) => {
     setSelectedId(id);
@@ -139,12 +172,12 @@ function Planner({ initial }: { initial: ZooDetail }) {
       if (e.ctrlKey || e.metaKey || e.altKey || view !== 'map') return;
       const key = e.key.toLowerCase();
       const found = TOOLS.find((x) => x.key.toLowerCase() === key);
-      if (found) setTool(found.id);
+      if (found) pickTool(found.id);
       if (key === 's') setSnap((s) => !s);
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [editor, view, select]);
+  }, [editor, view, select, pickTool]);
 
   const addIdea = async (name: string) => {
     try {
@@ -166,7 +199,7 @@ function Planner({ initial }: { initial: ZooDetail }) {
     }
   };
 
-  const drawing = view === 'map' && (tool === 'polygon' || tool === 'rect');
+  const drawing = view === 'map' && (tool === 'polygon' || tool === 'rect' || tool === 'line');
   const ideas = zoo.habitats.filter((h) => h.status === 'idea').map((h) => h.name);
 
   return (
@@ -236,13 +269,23 @@ function Planner({ initial }: { initial: ZooDetail }) {
         {view === 'map' && (
           <div className="planner-tools" role="toolbar" aria-label="Drawing tools">
             {TOOLS.map((t) => (
-              <button key={t.id} className="tool" aria-pressed={tool === t.id} onClick={() => setTool(t.id)} title={`${t.label} (${t.key})`} aria-label={t.label}>
+              <button key={t.id} className="tool" aria-pressed={tool === t.id} onClick={() => pickTool(t.id)} title={`${t.label} (${t.key})`} aria-label={t.label}>
                 {t.icon}
               </button>
             ))}
             <span className="tool-sep" />
             <button className="tool" aria-pressed={snap} onClick={() => setSnap((s) => !s)} title="Snap to grid & corners (S)" aria-label="Snapping">
               <Magnet />
+            </button>
+            <button
+              className={'tool' + (hiddenKinds.size ? ' tool-flag' : '')}
+              aria-pressed={layersOpen}
+              aria-expanded={layersOpen}
+              onClick={() => setLayersOpen((o) => !o)}
+              title="Layers: show or hide shape types"
+              aria-label="Layers"
+            >
+              <Layers />
             </button>
             <button className="tool" onClick={() => {
                 const id = editor.undo();
@@ -268,6 +311,7 @@ function Planner({ initial }: { initial: ZooDetail }) {
                 tool={tool}
                 snap={snap}
                 selectedId={selectedId}
+                hiddenKinds={hiddenKinds}
                 onSelect={select}
                 onChangePoints={onChangePoints}
                 onCreateShape={onCreateShape}
@@ -275,39 +319,55 @@ function Planner({ initial }: { initial: ZooDetail }) {
                 onDraftChange={setDraftPoints}
                 hoverHint="Click to edit"
               />
+              <ShapePalette kinds={meta.kinds} active={drawing ? kindToDraw : null} onPick={pickKind} />
               {drawing && (
                 <div className="draw-hint" onPointerDown={(e) => e.stopPropagation()}>
-                  <label className="row" style={{ gap: 6 }}>
-                    <span className="swatch-dot" style={{ background: KIND_META[kindToDraw].color }} />
-                    <select className="select select-sm" value={kindToDraw} onChange={(e) => setDrawKind(e.target.value as HabitatKind)} aria-label="Shape type">
-                      {meta.kinds.map((k) => (
-                        <option key={k} value={k}>
-                          {KIND_META[k].label}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
+                  <span className="swatch-dot" style={{ background: KIND_META[kindToDraw].color }} />
                   <span>
-                    {tool === 'rect'
-                      ? 'Drag to draw a rectangle.'
-                      : draftPoints === 0
-                        ? 'Click to place the first corner.'
-                        : draftPoints < 3
-                          ? 'Keep clicking to add corners.'
-                          : 'Click the first corner, double-click or press Enter to finish.'}{' '}
+                    <strong>{KIND_META[kindToDraw].label}:</strong>{' '}
+                    {tool === 'line'
+                      ? draftPoints === 0
+                        ? 'Click where the route starts.'
+                        : draftPoints < 2
+                          ? 'Click to add the next point.'
+                          : 'Keep clicking to add points — double-click, click the last point again or press Enter to finish.'
+                      : tool === 'rect'
+                        ? 'Drag to draw a rectangle.'
+                        : draftPoints === 0
+                          ? 'Click to place the first corner.'
+                          : draftPoints < 3
+                            ? 'Keep clicking to add corners.'
+                            : 'Click the first corner, double-click or press Enter to finish.'}{' '}
                     <span className="subtle">Esc cancels · Alt disables snapping</span>
                   </span>
+                  <button className="btn btn-sm draw-hint-done" onClick={() => setTool('select')}>
+                    Done
+                  </button>
+                </div>
+              )}
+              {layersOpen && (
+                <div className="layers-menu card" onPointerDown={(e) => e.stopPropagation()}>
+                  <div className="row">
+                    <strong className="spacer">Layers</strong>
+                    <button className="btn btn-ghost btn-icon btn-sm" onClick={() => setLayersOpen(false)} aria-label="Close layers">
+                      <X />
+                    </button>
+                  </div>
+                  <LayerToggles kinds={meta.kinds} habitats={zoo.habitats} hidden={hiddenKinds} onChange={setHiddenKinds} />
                 </div>
               )}
               {zoo.habitats.length === 0 && !drawing && (
                 <div className="stage-empty">
                   <strong>Your map is empty</strong>
-                  <span>Pick a drawing tool to outline your first {KIND_META[meta.defaultKind].label.toLowerCase()}.</span>
+                  <span>
+                    Pick what to add from the bar above — a {KIND_META[meta.defaultKind].label.toLowerCase()}, a utility, a walk route or an area of interest — or
+                    start with a drawing tool.
+                  </span>
                   <div className="row">
-                    <button className="btn btn-primary btn-sm" onClick={() => setTool('polygon')}>
+                    <button className="btn btn-primary btn-sm" onClick={() => pickTool('polygon')}>
                       <Hexagon /> Freeform
                     </button>
-                    <button className="btn btn-sm" onClick={() => setTool('rect')}>
+                    <button className="btn btn-sm" onClick={() => pickTool('rect')}>
                       <Square /> Rectangle
                     </button>
                   </div>

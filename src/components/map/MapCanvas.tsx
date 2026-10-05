@@ -1,5 +1,6 @@
 import { Maximize, Minus, Plus } from 'lucide-react';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
+import { isLineKind, minPoints, type HabitatKind } from '../../../shared/constants';
 import {
   bounds,
   clampPoint,
@@ -7,17 +8,19 @@ import {
   formatArea,
   formatLength,
   labelPoint,
+  lineMidpoint,
   pointInPolygon,
   polygonArea,
+  polylineLength,
   roundPoint,
   type Point,
 } from '../../../shared/geometry';
 import type { Habitat } from '../../../shared/types';
 import { shade } from '../../lib/color';
-import { drawOrder } from '../../lib/shapes';
+import { drawOrder, pointsAttr } from '../../lib/shapes';
 import { HoverCard } from './HoverCard';
 
-export type Tool = 'select' | 'polygon' | 'rect' | 'pan';
+export type Tool = 'select' | 'polygon' | 'rect' | 'line' | 'pan';
 
 interface Props {
   width: number;
@@ -28,6 +31,8 @@ interface Props {
   tool?: Tool;
   snap?: boolean;
   selectedId?: number | null;
+  /** Shape types switched off in the layers menu; they're neither drawn nor clickable. */
+  hiddenKinds?: ReadonlySet<HabitatKind>;
   onSelect?: (id: number | null) => void;
   /** Called once a drag / nudge / vertex edit finishes, with the habitat's new outline. */
   onChangePoints?: (id: number, points: Point[]) => void;
@@ -54,11 +59,36 @@ const GRID_STEPS = [0.5, 1, 2, 5, 10, 20, 50, 100, 200, 500];
 const SCALE_BAR = [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000];
 const MAX_SCALE = 60;
 const CLICK_SLOP = 4;
+const NO_KINDS: ReadonlySet<HabitatKind> = new Set();
 
 const isTyping = (el: EventTarget | null) =>
   el instanceof HTMLElement && (el.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(el.tagName));
 
-const pointsAttr = (pts: Point[]) => pts.map(([x, y]) => `${x},${y}`).join(' ');
+/** Lucide's map pin, drawn at constant screen size (24 px) with its tip on the anchor point. */
+const PIN_PATH = 'M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0';
+
+/** Small chevrons along a walk route, pointing the way it was drawn. */
+function routeArrows(points: Point[], px: number): Point[][] {
+  const arrows: Point[][] = [];
+  for (let i = 1; i < points.length; i++) {
+    const [x1, y1] = points[i - 1];
+    const [x2, y2] = points[i];
+    const len = Math.hypot(x2 - x1, y2 - y1);
+    if (len / px < 64) continue;
+    const ux = (x2 - x1) / len;
+    const uy = (y2 - y1) / len;
+    const mx = (x1 + x2) / 2;
+    const my = (y1 + y2) / 2;
+    const s = 3.6 * px;
+    arrows.push([
+      [mx + ux * s, my + uy * s],
+      [mx - ux * s - uy * s, my - uy * s + ux * s],
+      [mx - ux * s * 0.35, my - uy * s * 0.35],
+      [mx - ux * s + uy * s, my - uy * s - ux * s],
+    ]);
+  }
+  return arrows;
+}
 
 export function MapCanvas({
   width,
@@ -69,6 +99,7 @@ export function MapCanvas({
   tool = 'select',
   snap = true,
   selectedId = null,
+  hiddenKinds = NO_KINDS,
   onSelect,
   onChangePoints,
   onCreateShape,
@@ -90,6 +121,11 @@ export function MapCanvas({
   const interaction = useRef<Interaction | null>(null);
   const pointers = useRef(new Map<number, { x: number; y: number }>());
   const lastMouse = useRef({ x: 0, y: 0 });
+  const toolRef = useRef(tool);
+  toolRef.current = tool;
+
+  const visible = useMemo(() => (hiddenKinds.size ? habitats.filter((h) => !hiddenKinds.has(h.kind)) : habitats), [habitats, hiddenKinds]);
+  const drawingTool = tool === 'polygon' || tool === 'rect' || tool === 'line';
 
   // ---------- viewport ----------
 
@@ -179,12 +215,12 @@ export function MapCanvas({
           best = q;
         }
       };
-      for (const h of habitats) if (h.id !== opts.excludeId) h.points.forEach(consider);
+      for (const h of visible) if (h.id !== opts.excludeId) h.points.forEach(consider);
       opts.extra?.forEach(consider);
       if (best) return [...(best as Point)] as Point;
       return roundPoint(clampPoint([Math.round(clamped[0] / gridStep) * gridStep, Math.round(clamped[1] / gridStep) * gridStep], width, height));
     },
-    [snap, v.scale, habitats, gridStep, width, height],
+    [snap, v.scale, visible, gridStep, width, height],
   );
 
   // ---------- drawing ----------
@@ -193,7 +229,8 @@ export function MapCanvas({
     (pts: Point[]) => {
       setDraft([]);
       setCursor(null);
-      if (pts.length >= 3 && polygonArea(pts) > 0.5) onCreateShape?.(pts);
+      const ok = toolRef.current === 'line' ? pts.length >= 2 && polylineLength(pts) > 0.5 : pts.length >= 3 && polygonArea(pts) > 0.5;
+      if (ok) onCreateShape?.(pts);
     },
     [onCreateShape],
   );
@@ -211,19 +248,22 @@ export function MapCanvas({
 
   const addDraftPoint = (clientX: number, clientY: number, free: boolean) => {
     const raw = toWorld(clientX, clientY);
-    const p = snapPoint(raw, { extra: draft.slice(0, 1), free });
-    if (draft.length >= 3) {
+    const p = snapPoint(raw, { extra: tool === 'line' ? draft : draft.slice(0, 1), free });
+    const last = draft[draft.length - 1];
+    if (tool === 'line') {
+      // Clicking the last point again (or double-clicking) ends the route.
+      if (last && draft.length >= 2 && Math.hypot(last[0] - p[0], last[1] - p[1]) * v.scale < 10) return finishDraft(draft);
+    } else if (draft.length >= 3) {
       const [fx, fy] = draft[0];
       if (Math.hypot(fx - p[0], fy - p[1]) * v.scale < 10) return finishDraft(draft);
     }
-    const last = draft[draft.length - 1];
     if (last && Math.hypot(last[0] - p[0], last[1] - p[1]) * v.scale < 3) return; // double-click duplicates
     setDraft([...draft, p]);
   };
 
   // ---------- pointer handling ----------
 
-  const habitatById = useMemo(() => new Map(habitats.map((h) => [h.id, h])), [habitats]);
+  const habitatById = useMemo(() => new Map(visible.map((h) => [h.id, h])), [visible]);
 
   const targetInfo = (target: EventTarget) => {
     const el = (target as Element).closest?.('[data-hid], [data-vertex], [data-mid]') as SVGElement | null;
@@ -256,7 +296,7 @@ export function MapCanvas({
     if (e.button === 1 || tool === 'pan' || spaceHeld) return startPan(e, null, null);
     if (!editable) return startPan(e, info.hid ?? null, 'select');
 
-    if (tool === 'polygon') return startPan(e, null, 'draw');
+    if (tool === 'polygon' || tool === 'line') return startPan(e, null, 'draw');
     if (tool === 'rect') {
       const p = snapPoint(toWorld(e.clientX, e.clientY), { free: e.altKey });
       interaction.current = { type: 'rect', pointerId: e.pointerId, start: p };
@@ -328,7 +368,9 @@ export function MapCanvas({
     const it = interaction.current;
 
     if (!it) {
-      if (editable && (tool === 'polygon' || tool === 'rect')) setCursor(snapPoint(toWorld(e.clientX, e.clientY), { extra: draft.slice(0, 1), free: e.altKey }));
+      if (editable && drawingTool) {
+        setCursor(snapPoint(toWorld(e.clientX, e.clientY), { extra: tool === 'line' ? draft : draft.slice(0, 1), free: e.altKey }));
+      }
       if (e.pointerType === 'mouse') {
         const info = targetInfo(e.target);
         const id = info.hid ?? null;
@@ -449,7 +491,7 @@ export function MapCanvas({
     e.preventDefault();
     const info = targetInfo(e.target);
     const selected = selectedId !== null ? habitatById.get(selectedId) : undefined;
-    if (selected && info.vertex !== undefined && selected.points.length > 3) {
+    if (selected && info.vertex !== undefined && selected.points.length > minPoints(selected.kind)) {
       onChangePoints?.(
         selected.id,
         selected.points.filter((_, i) => i !== info.vertex),
@@ -477,7 +519,7 @@ export function MapCanvas({
         else onSelect?.(null);
         return;
       }
-      if (e.key === 'Enter' && s.draft.length >= 3) {
+      if (e.key === 'Enter' && s.draft.length >= (s.tool === 'line' ? 2 : 3)) {
         e.preventDefault();
         finishDraft(s.draft);
         return;
@@ -517,30 +559,26 @@ export function MapCanvas({
 
   const shapes = useMemo(
     () =>
-      habitats
+      visible
         .map((h) => (preview?.id === h.id ? { ...h, points: preview.points } : h))
         .sort((a, b) => {
           if (a.id === selectedId) return 1;
           if (b.id === selectedId) return -1;
           return drawOrder(a, b);
         }),
-    [habitats, preview, selectedId],
+    [visible, preview, selectedId],
   );
   const selected = shapes.find((h) => h.id === selectedId);
+  const selectedIsLine = !!selected && isLineKind(selected.kind);
   // While editing, the selected shape's details live in the side panel, so skip its hover card.
   const showHover = hoveredId !== null && !dragging && !draft.length && !rect && !(editable && (hoveredId === selectedId || tool !== 'select'));
   const hovered = showHover ? habitatById.get(hoveredId) : undefined;
   const px = 1 / v.scale; // one screen pixel in world units
   const scaleBar = SCALE_BAR.find((m) => m * v.scale >= 70) ?? 2000;
+  const drawingLine = tool === 'line';
 
   const cursorClass =
-    tool === 'pan' || spaceHeld || (!editable && dragging)
-      ? dragging
-        ? 'is-grabbing'
-        : 'is-grab'
-      : editable && (tool === 'polygon' || tool === 'rect')
-        ? 'is-crosshair'
-        : '';
+    tool === 'pan' || spaceHeld || (!editable && dragging) ? (dragging ? 'is-grabbing' : 'is-grab') : editable && drawingTool ? 'is-crosshair' : '';
 
   const drawingLabel = (() => {
     if (rect) {
@@ -550,11 +588,15 @@ export function MapCanvas({
     if (draft.length && cursor) {
       const last = draft[draft.length - 1];
       const seg = Math.hypot(cursor[0] - last[0], cursor[1] - last[1]);
+      if (drawingLine) return { at: cursor, text: `${formatLength(seg)} · route ${formatLength(polylineLength([...draft, cursor]))}` };
       const area = draft.length >= 2 ? ` · ${formatArea(polygonArea([...draft, cursor]))}` : '';
       return { at: cursor, text: `${formatLength(seg)}${area}` };
     }
     return null;
   })();
+
+  const shapeClass = (h: Habitat) =>
+    `shape kind-${h.kind} status-${h.status}${h.id === selectedId ? ' selected' : ''}${h.id === hoveredId ? ' hovered' : ''}`;
 
   return (
     <div
@@ -568,7 +610,7 @@ export function MapCanvas({
         setHoveredId(null);
         setCursor(null);
       }}
-      onDoubleClick={() => editable && tool === 'polygon' && draft.length >= 3 && finishDraft(draft)}
+      onDoubleClick={() => editable && draft.length >= (drawingLine ? 2 : 3) && (tool === 'polygon' || drawingLine) && finishDraft(draft)}
       onContextMenu={onContextMenu}
     >
       {size.w > 0 && (
@@ -583,6 +625,9 @@ export function MapCanvas({
             <pattern id="building-stripes" width={10 * px} height={10 * px} patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
               <rect width={4 * px} height={10 * px} fill="rgba(255,255,255,0.35)" />
             </pattern>
+            <pattern id="utility-hatch" width={7 * px} height={7 * px} patternUnits="userSpaceOnUse" patternTransform="rotate(-45)">
+              <rect width={1.4 * px} height={7 * px} fill="rgba(20,28,36,0.28)" />
+            </pattern>
           </defs>
 
           <rect x={0} y={0} width={width} height={height} className="map-ground" />
@@ -592,28 +637,84 @@ export function MapCanvas({
           <rect x={0} y={0} width={width} height={height} className="map-border" vectorEffect="non-scaling-stroke" />
 
           <g className="map-shapes">
-            {shapes.map((h) => (
-              <g
-                key={h.id}
-                data-hid={h.id}
-                className={`shape kind-${h.kind} status-${h.status}${h.id === selectedId ? ' selected' : ''}${h.id === hoveredId ? ' hovered' : ''}`}
-              >
-                <polygon
-                  points={pointsAttr(h.points)}
-                  fill={h.color}
-                  stroke={shade(h.color, -0.38)}
-                  vectorEffect="non-scaling-stroke"
-                  strokeLinejoin="round"
-                />
-                {h.status === 'building' && <polygon points={pointsAttr(h.points)} fill="url(#building-stripes)" pointerEvents="none" />}
-              </g>
-            ))}
+            {shapes.map((h) =>
+              isLineKind(h.kind) ? (
+                <g key={h.id} data-hid={h.id} className={shapeClass(h)}>
+                  <polyline points={pointsAttr(h.points)} className="route-hit" vectorEffect="non-scaling-stroke" />
+                  <polyline points={pointsAttr(h.points)} className="route-casing" stroke={shade(h.color, -0.5)} vectorEffect="non-scaling-stroke" />
+                  <polyline points={pointsAttr(h.points)} className="route-line" stroke={h.color} vectorEffect="non-scaling-stroke" />
+                  {routeArrows(h.points, px).map((a, i) => (
+                    <polygon key={i} points={pointsAttr(a)} className="route-arrow" fill={shade(h.color, -0.55)} pointerEvents="none" />
+                  ))}
+                  <circle cx={h.points[0][0]} cy={h.points[0][1]} r={4.2 * px} className="route-start" stroke={shade(h.color, -0.5)} pointerEvents="none" />
+                  <circle
+                    cx={h.points[h.points.length - 1][0]}
+                    cy={h.points[h.points.length - 1][1]}
+                    r={4.2 * px}
+                    className="route-end"
+                    fill={shade(h.color, -0.5)}
+                    pointerEvents="none"
+                  />
+                </g>
+              ) : (
+                <g key={h.id} data-hid={h.id} className={shapeClass(h)}>
+                  <polygon
+                    points={pointsAttr(h.points)}
+                    fill={h.color}
+                    stroke={shade(h.color, -0.38)}
+                    vectorEffect="non-scaling-stroke"
+                    strokeLinejoin="round"
+                  />
+                  {h.kind === 'utility' && <polygon points={pointsAttr(h.points)} fill="url(#utility-hatch)" pointerEvents="none" />}
+                  {h.status === 'building' && <polygon points={pointsAttr(h.points)} fill="url(#building-stripes)" pointerEvents="none" />}
+                </g>
+              ),
+            )}
           </g>
 
           <g className="map-labels" pointerEvents="none">
             {shapes.map((h) => {
+              if (isLineKind(h.kind)) {
+                if (polylineLength(h.points) / px < 70) return null;
+                const { point, angle } = lineMidpoint(h.points);
+                const upright = angle > 90 || angle < -90 ? angle + 180 : angle;
+                const maxChars = Math.max(4, Math.floor(polylineLength(h.points) / px / 9));
+                const name = h.name.length > maxChars ? `${h.name.slice(0, maxChars - 1)}…` : h.name;
+                return (
+                  <text
+                    key={h.id}
+                    x={point[0]}
+                    y={point[1]}
+                    dy={-9 * px}
+                    fontSize={11 * px}
+                    textAnchor="middle"
+                    className="map-label map-label-route"
+                    transform={`rotate(${upright} ${point[0]} ${point[1]})`}
+                  >
+                    {name}
+                  </text>
+                );
+              }
               const b = bounds(h.points);
               const wPx = b.width * v.scale;
+              if (h.kind === 'interest') {
+                const [ix, iy] = labelPoint(h.points);
+                const showName = wPx >= 46;
+                const name = h.name.length > 22 ? `${h.name.slice(0, 21)}…` : h.name;
+                return (
+                  <g key={h.id}>
+                    <g transform={`translate(${ix - 12 * px} ${iy - 22 * px}) scale(${px})`} className="map-pin">
+                      <path d={PIN_PATH} fill={h.color} stroke="#fff" strokeWidth={1.8} />
+                      <circle cx={12} cy={10} r={3} fill="#fff" />
+                    </g>
+                    {showName && (
+                      <text x={ix} y={iy + 13 * px} fontSize={11.5 * px} textAnchor="middle" className="map-label">
+                        {name}
+                      </text>
+                    )}
+                  </g>
+                );
+              }
               if (wPx < 46 || b.height * v.scale < 18) return null;
               const maxChars = Math.max(4, Math.floor(wPx / 7.2));
               const name = h.name.length > maxChars ? `${h.name.slice(0, maxChars - 1)}…` : h.name;
@@ -647,8 +748,13 @@ export function MapCanvas({
 
           {editable && selected && tool === 'select' && (
             <g className="map-handles">
-              <polygon points={pointsAttr(selected.points)} className="selection-outline" vectorEffect="non-scaling-stroke" pointerEvents="none" />
+              {selectedIsLine ? (
+                <polyline points={pointsAttr(selected.points)} className="selection-outline" vectorEffect="non-scaling-stroke" pointerEvents="none" />
+              ) : (
+                <polygon points={pointsAttr(selected.points)} className="selection-outline" vectorEffect="non-scaling-stroke" pointerEvents="none" />
+              )}
               {selected.points.map((a, i) => {
+                if (selectedIsLine && i === selected.points.length - 1) return null; // lines don't close
                 const b = selected.points[(i + 1) % selected.points.length];
                 if (Math.hypot(b[0] - a[0], b[1] - a[1]) * v.scale < 24) return null;
                 return <circle key={`m${i}`} data-mid={i} cx={(a[0] + b[0]) / 2} cy={(a[1] + b[1]) / 2} r={4 * px} className="handle-mid" />;
@@ -661,17 +767,17 @@ export function MapCanvas({
 
           {draft.length > 0 && (
             <g className="map-draft" pointerEvents="none">
-              {draft.length >= 2 && <polygon points={pointsAttr(cursor ? [...draft, cursor] : draft)} className="draft-fill" />}
-              <polyline points={pointsAttr(cursor ? [...draft, cursor] : draft)} className="draft-line" vectorEffect="non-scaling-stroke" />
-              {draft.map((p, i) => (
-                <circle
-                  key={i}
-                  cx={p[0]}
-                  cy={p[1]}
-                  r={(i === 0 && draft.length >= 3 ? 7 : 4.5) * px}
-                  className={i === 0 && draft.length >= 3 ? 'draft-start' : 'draft-vertex'}
-                />
-              ))}
+              {!drawingLine && draft.length >= 2 && <polygon points={pointsAttr(cursor ? [...draft, cursor] : draft)} className="draft-fill" />}
+              <polyline
+                points={pointsAttr(cursor ? [...draft, cursor] : draft)}
+                className={`draft-line${drawingLine ? ' draft-route' : ''}`}
+                vectorEffect="non-scaling-stroke"
+              />
+              {draft.map((p, i) => {
+                const closing = !drawingLine && i === 0 && draft.length >= 3;
+                const ending = drawingLine && i === draft.length - 1 && draft.length >= 2;
+                return <circle key={i} cx={p[0]} cy={p[1]} r={(closing || ending ? 7 : 4.5) * px} className={closing || ending ? 'draft-start' : 'draft-vertex'} />;
+              })}
             </g>
           )}
           {rect && (
@@ -682,9 +788,7 @@ export function MapCanvas({
               pointerEvents="none"
             />
           )}
-          {editable && cursor && (tool === 'polygon' || tool === 'rect') && !dragging && (
-            <circle cx={cursor[0]} cy={cursor[1]} r={3.5 * px} className="draft-cursor" pointerEvents="none" />
-          )}
+          {editable && cursor && drawingTool && !dragging && <circle cx={cursor[0]} cy={cursor[1]} r={3.5 * px} className="draft-cursor" pointerEvents="none" />}
           {drawingLabel && (
             <text x={drawingLabel.at[0] + 12 * px} y={drawingLabel.at[1] - 10 * px} fontSize={12 * px} className="draft-measure" pointerEvents="none">
               {drawingLabel.text}

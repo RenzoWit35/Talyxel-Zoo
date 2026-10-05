@@ -6,7 +6,7 @@ import { parkMeta } from '../../shared/parks';
 import { all, one, placeholders, run, tx, type DB } from '../db';
 import { recordEvent } from '../events';
 import { badRequest, forbidden, notFound, paramId, parse, requireUser } from '../http';
-import { checkShapeFits } from '../parks';
+import { checkGeometry, checkShapeFits } from '../parks';
 import {
   canView,
   getZooRow,
@@ -224,6 +224,7 @@ export function zooRoutes(db: DB, upload: multer.Multer, uploadDir: string) {
     const meta = parkMeta(zoo.park_type);
     const kind = body.kind ?? meta.defaultKind;
     checkShapeFits(zoo.park_type, kind, body.biome);
+    checkGeometry(kind, body.points);
     const count = one<{ n: number }>(db, 'SELECT COUNT(*) AS n FROM habitats WHERE zoo_id = ?', zoo.id)!.n;
     if (count >= 500) throw badRequest('A park can have at most 500 shapes');
     const color = body.color ?? (kind === meta.defaultKind ? meta.colors[count % meta.colors.length] : KIND_META[kind].color);

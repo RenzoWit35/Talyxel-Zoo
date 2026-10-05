@@ -103,7 +103,7 @@ function FeedEntry({ item }: { item: FeedItem }) {
       {item.type === 'habitat_added' && item.habitat && (
         <div className="feed-habitat">
           <Link to={`/z/${item.zoo.id}?h=${item.habitat.id}`} className="feed-habitat-map">
-            <ZooThumbnail width={item.zoo.width} height={item.zoo.height} shapes={item.zoo.shapes} highlight={item.habitat.points} />
+            <ZooThumbnail width={item.zoo.width} height={item.zoo.height} shapes={item.zoo.shapes} highlight={{ points: item.habitat.points, kind: item.habitat.kind }} />
           </Link>
           <div className="feed-habitat-text">
             <h3>{item.habitat.name}</h3>

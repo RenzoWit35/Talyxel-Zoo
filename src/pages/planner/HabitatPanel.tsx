@@ -1,11 +1,11 @@
 import { ImagePlus, Link2, Loader2, Trash2, X } from 'lucide-react';
 import { useState, type DragEvent } from 'react';
-import { BIOME_LABELS, HABITAT_COLORS, HABITAT_STATUSES, KIND_META, LIMITS, STATUS_META } from '../../../shared/constants';
-import { formatArea, formatLength, polygonArea, polygonPerimeter } from '../../../shared/geometry';
+import { BIOME_LABELS, HABITAT_COLORS, HABITAT_STATUSES, isLineKind, KIND_META, LIMITS, STATUS_META } from '../../../shared/constants';
 import { parkMeta } from '../../../shared/parks';
 import type { Habitat } from '../../../shared/types';
 import { Lightbox } from '../../components/Lightbox';
 import { useToast } from '../../components/toast';
+import { shapeFacts } from '../../lib/shapes';
 import type { ZooEditor } from './useZooEditor';
 
 const ACCEPT = 'image/png,image/jpeg,image/webp,image/gif';
@@ -142,9 +142,16 @@ interface Props {
 
 export function HabitatPanel({ habitat, editor, onClose, onDelete }: Props) {
   const set = (patch: Parameters<ZooEditor['updateHabitat']>[1]) => editor.updateHabitat(habitat.id, patch);
-  const area = polygonArea(habitat.points);
   const meta = parkMeta(editor.zoo.parkType);
+  const kindMeta = KIND_META[habitat.kind];
   const isFeature = meta.featureKinds.includes(habitat.kind);
+  const isLine = isLineKind(habitat.kind);
+  // Walk routes, utilities and areas of interest have their own lists; main attractions use the park's species or ride types.
+  const subjectLabel = kindMeta.subjectLabel ?? (isFeature ? meta.subjectLabel : 'Subtitle');
+  const subjects = kindMeta.subjects ?? (isFeature ? meta.subjects : []);
+  const subjectPlaceholder = kindMeta.subjects ? `e.g. ${kindMeta.subjects[0]}` : isFeature ? meta.subjectPlaceholder : 'Optional — shown under the name';
+  // A line can only switch to another line type, an area to another area type.
+  const kinds = meta.kinds.filter((k) => isLineKind(k) === isLine);
   return (
     <div className="panel-inner">
       <div className="panel-head">
@@ -161,17 +168,17 @@ export function HabitatPanel({ habitat, editor, onClose, onDelete }: Props) {
           <input className="input" value={habitat.name} maxLength={60} onChange={(e) => set({ name: e.target.value })} />
         </label>
         <label className="field">
-          <span>{isFeature ? meta.subjectLabel : 'Subtitle'}</span>
+          <span>{subjectLabel}</span>
           <input
             className="input"
             list="subject-list"
             value={habitat.species}
             maxLength={80}
-            placeholder={isFeature ? meta.subjectPlaceholder : 'Optional — shown under the name'}
+            placeholder={subjectPlaceholder}
             onChange={(e) => set({ species: e.target.value })}
           />
           <datalist id="subject-list">
-            {meta.subjects.map((s) => (
+            {subjects.map((s) => (
               <option key={s} value={s} />
             ))}
           </datalist>
@@ -191,7 +198,7 @@ export function HabitatPanel({ habitat, editor, onClose, onDelete }: Props) {
           <label className="field spacer">
             <span>Type</span>
             <select className="select" value={habitat.kind} onChange={(e) => set({ kind: e.target.value as Habitat['kind'] })}>
-              {meta.kinds.map((k) => (
+              {kinds.map((k) => (
                 <option key={k} value={k}>
                   {KIND_META[k].label}
                 </option>
@@ -234,20 +241,22 @@ export function HabitatPanel({ habitat, editor, onClose, onDelete }: Props) {
 
       <div className="panel-section">
         <div className="stat-row">
+          {shapeFacts(habitat).map((f) => (
+            <div key={f.label}>
+              <small>{f.label}</small>
+              <strong>{f.value}</strong>
+            </div>
+          ))}
           <div>
-            <small>Area</small>
-            <strong>{formatArea(area)}</strong>
-          </div>
-          <div>
-            <small>{habitat.kind === 'habitat' ? 'Barrier' : 'Perimeter'}</small>
-            <strong>{formatLength(polygonPerimeter(habitat.points))}</strong>
-          </div>
-          <div>
-            <small>Corners</small>
+            <small>{isLine ? 'Points' : 'Corners'}</small>
             <strong>{habitat.points.length}</strong>
           </div>
         </div>
-        <p className="subtle">Drag the shape to move it, drag the white dots to reshape, click a small dot to add a corner and right-click a corner to remove it.</p>
+        <p className="subtle">
+          {isLine
+            ? 'Drag the route to move it, drag the white dots to bend it, click a small dot to add a point and right-click a point to remove it. Arrows show the walking direction.'
+            : 'Drag the shape to move it, drag the white dots to reshape, click a small dot to add a corner and right-click a corner to remove it.'}
+        </p>
       </div>
 
       <PhotoManager habitat={habitat} editor={editor} />

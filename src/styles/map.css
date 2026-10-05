@@ -92,6 +92,86 @@
   fill: #2c3a30;
 }
 
+/* areas of interest: a light, dashed area with a pin */
+.shape.kind-interest polygon:first-child {
+  fill-opacity: 0.26;
+  stroke-width: 2.2;
+  stroke-dasharray: 7 4;
+}
+.shape.kind-interest.hovered polygon:first-child,
+.shape.kind-interest.selected polygon:first-child {
+  fill-opacity: 0.4;
+}
+.map-pin {
+  filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.35));
+}
+
+/* utilities: hatched service buildings */
+.shape.kind-utility polygon:first-child {
+  fill-opacity: 0.9;
+  stroke-width: 1.8;
+}
+
+/* walk routes: open lines with a dark casing, dashes and direction arrows */
+.route-hit {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 18;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: stroke;
+  cursor: pointer;
+}
+.is-crosshair .route-hit,
+.is-grab .route-hit,
+.is-grabbing .route-hit {
+  cursor: inherit;
+}
+.route-casing {
+  fill: none;
+  stroke-width: 8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-opacity: 0.85;
+  pointer-events: none;
+}
+.route-line {
+  fill: none;
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 11 5;
+  pointer-events: none;
+}
+.route-start {
+  fill: #fff;
+  stroke-width: 2.4;
+  vector-effect: non-scaling-stroke;
+}
+.route-end {
+  stroke: #fff;
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+}
+.shape.kind-route.status-idea .route-line,
+.shape.kind-route.status-idea .route-casing {
+  stroke-opacity: 0.5;
+}
+.shape.kind-route.hovered .route-casing,
+.shape.kind-route.selected .route-casing {
+  stroke-width: 10;
+  filter: drop-shadow(0 2px 4px rgba(28, 42, 33, 0.35));
+}
+.map-label-route {
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.draft-route {
+  stroke-width: 4;
+  stroke-dasharray: 10 5;
+  stroke-linecap: round;
+}
+
 .selection-outline {
   fill: none;
   stroke: #fff;
