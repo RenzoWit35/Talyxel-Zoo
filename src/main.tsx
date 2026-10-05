@@ -1,5 +1,5 @@
 import '@fontsource-variable/inter';
-import '@fontsource-variable/fraunces';
+import '@fontsource-variable/inter/wght-italic.css';
 import './styles/tokens.css';
 import './styles/base.css';
 import './styles/ui.css';

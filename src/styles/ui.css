@@ -9,7 +9,7 @@
   gap: 7px;
   height: 38px;
   padding: 0 15px;
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   border: 1px solid var(--btn-border);
   background: var(--btn-bg);
   color: var(--btn-fg);
@@ -79,13 +79,13 @@
   height: 32px;
   padding: 0 11px;
   font-size: 0.85rem;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
 }
 .btn-lg {
   height: 46px;
   padding: 0 22px;
   font-size: 1rem;
-  border-radius: 12px;
+  border-radius: var(--radius);
 }
 .btn-icon {
   width: 38px;
@@ -120,7 +120,7 @@
   width: 100%;
   border: 1px solid var(--line-strong);
   background: var(--surface);
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   padding: 9px 12px;
   font-size: 0.94rem;
   transition:
@@ -178,7 +178,7 @@
 .form-error {
   background: var(--danger-soft);
   color: var(--danger);
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   padding: 9px 12px;
   font-size: 0.9rem;
 }
@@ -186,7 +186,7 @@
 .segmented {
   display: inline-flex;
   background: var(--bg-deep);
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   padding: 3px;
   gap: 2px;
 }
@@ -194,7 +194,7 @@
   border: 0;
   background: transparent;
   padding: 6px 11px;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   font-size: 0.84rem;
   font-weight: 560;
   color: var(--ink-2);
@@ -224,7 +224,7 @@
 .card {
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius);
   box-shadow: var(--shadow-sm);
 }
 .card-pad {
@@ -246,7 +246,7 @@
   gap: 5px;
   height: 24px;
   padding: 0 9px;
-  border-radius: 999px;
+  border-radius: var(--radius-xs);
   font-size: 0.76rem;
   font-weight: 600;
   background: var(--bg-deep);
@@ -347,7 +347,7 @@
   align-items: center;
   gap: 7px;
   padding: 7px 12px;
-  border-radius: 9px;
+  border-radius: var(--radius-sm);
   color: var(--ink-2);
   font-weight: 560;
   font-size: 0.92rem;
@@ -375,7 +375,7 @@
   align-items: center;
   gap: 8px;
   padding: 4px 10px 4px 4px;
-  border-radius: 999px;
+  border-radius: var(--radius-sm);
   color: var(--ink);
   font-weight: 560;
   font-size: 0.9rem;
@@ -483,7 +483,7 @@
   padding: 14px 22px 20px;
   border-top: 1px solid var(--line);
   background: var(--surface-2);
-  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  border-radius: 0 0 var(--radius) var(--radius);
 }
 
 @keyframes fade-in {
@@ -511,7 +511,7 @@
 .empty-icon {
   width: 52px;
   height: 52px;
-  border-radius: 16px;
+  border-radius: var(--radius);
   display: grid;
   place-items: center;
   background: var(--brand-soft);
@@ -567,7 +567,7 @@
   background: var(--inverse-bg);
   color: var(--inverse-ink);
   padding: 10px 16px;
-  border-radius: 12px;
+  border-radius: var(--radius);
   box-shadow: var(--shadow-lg);
   font-size: 0.9rem;
   font-weight: 520;
@@ -618,7 +618,7 @@
 .tabs .count {
   font-size: 0.75rem;
   background: var(--bg-deep);
-  border-radius: 999px;
+  border-radius: var(--radius-xs);
   padding: 1px 7px;
   color: var(--ink-2);
 }
@@ -692,7 +692,7 @@
   align-items: center;
   gap: 10px;
   padding: 9px 10px;
-  border-radius: 12px;
+  border-radius: var(--radius);
   color: var(--ink);
   font-size: 0.88rem;
   line-height: 1.4;
@@ -718,7 +718,7 @@
 .notif-thumb {
   width: 42px;
   height: 42px;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   object-fit: cover;
   flex: none;
 }
@@ -734,5 +734,16 @@
     right: 8px;
     top: calc(var(--nav-h) + 6px);
     width: auto;
+  }
+}
+
+/* Narrow phones: keep the logged-out header on one line */
+@media (max-width: 480px) {
+  .nav-inner {
+    gap: 10px;
+    padding: 0 14px;
+  }
+  .nav-login span {
+    display: none;
   }
 }

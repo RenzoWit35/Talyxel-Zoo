@@ -59,8 +59,8 @@ export function Layout() {
             </div>
           ) : (
             <div className="row">
-              <Link to="/login" className="btn btn-ghost btn-sm">
-                <LogIn /> Log in
+              <Link to="/login" className="btn btn-ghost btn-sm nav-login" aria-label="Log in">
+                <LogIn /> <span>Log in</span>
               </Link>
               <Link to="/register" className="btn btn-primary btn-sm">
                 Sign up

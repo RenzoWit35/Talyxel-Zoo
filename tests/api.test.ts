@@ -78,6 +78,12 @@ describe('zoo planning', () => {
     expect((await kai.del(`/api/zoos/${zoo.id}`)).status).toBe(403);
   });
 
+  it('starts new plans at the standard 1,000 × 990 m map', async () => {
+    const rosa = await signUp(app, 'rosa');
+    const zoo = (await rosa.post('/api/zoos', { title: 'Big Park' })).body as ZooDetail;
+    expect([zoo.width, zoo.height]).toEqual([1000, 990]);
+  });
+
   it('refuses to shrink the map below existing shapes', async () => {
     const rosa = await signUp(app, 'rosa');
     const { zoo } = await zooWithHabitat(rosa);

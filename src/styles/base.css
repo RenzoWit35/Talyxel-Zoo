@@ -25,11 +25,10 @@ h2,
 h3,
 h4 {
   font-family: var(--font-display);
-  font-weight: 600;
-  letter-spacing: -0.015em;
+  font-weight: 650;
+  letter-spacing: -0.022em;
   line-height: 1.15;
   margin: 0;
-  font-optical-sizing: auto;
 }
 
 h1 {

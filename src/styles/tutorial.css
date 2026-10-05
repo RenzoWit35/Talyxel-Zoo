@@ -15,7 +15,7 @@
 }
 .gs-progress {
   height: 8px;
-  border-radius: 999px;
+  border-radius: var(--radius-xs);
   background: var(--bg-deep);
   overflow: hidden;
 }
@@ -160,7 +160,7 @@
 .welcome-post {
   width: 220px;
   background: var(--surface);
-  border-radius: 14px;
+  border-radius: var(--radius);
   overflow: hidden;
   box-shadow: var(--shadow-lg);
 }
@@ -243,7 +243,7 @@
 }
 .tour-spot {
   position: absolute;
-  border-radius: 14px;
+  border-radius: var(--radius);
   box-shadow:
     0 0 0 3px var(--accent),
     0 0 0 9999px rgba(20, 30, 24, 0.55);
@@ -387,7 +387,7 @@
 .guide-tip {
   background: var(--brand-soft);
   color: var(--brand-strong);
-  border-radius: 12px;
+  border-radius: var(--radius);
   padding: 12px 14px;
   font-size: 0.92rem;
 }
@@ -401,7 +401,7 @@
   padding: 10px;
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 14px;
+  border-radius: var(--radius);
   align-self: flex-start;
 }
 .guide-palette .palette-chip {
@@ -424,7 +424,7 @@
   background: var(--surface);
   border: 1px solid var(--line);
   border-left: 4px solid var(--c);
-  border-radius: 14px;
+  border-radius: var(--radius);
 }
 .guide-card p {
   font-size: 0.88rem;
@@ -435,7 +435,7 @@
 .guide-card-icon {
   width: 34px;
   height: 34px;
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   background: var(--c);
   color: #fff;
   display: grid;
@@ -468,7 +468,7 @@
     position: static;
     background: var(--surface);
     border: 1px solid var(--line);
-    border-radius: 14px;
+    border-radius: var(--radius);
     padding: 14px 16px;
   }
 }

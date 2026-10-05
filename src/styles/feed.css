@@ -39,7 +39,7 @@
   border: 1px solid var(--line);
   background: var(--surface-2);
   color: var(--ink-3);
-  border-radius: 999px;
+  border-radius: var(--radius-sm);
   height: 42px;
   padding: 0 16px;
   cursor: text;
@@ -69,7 +69,7 @@
 .composer-photo {
   position: relative;
   aspect-ratio: 1;
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   overflow: hidden;
   background: var(--bg-deep);
 }
@@ -105,7 +105,7 @@
 .composer-park {
   max-width: 220px;
   height: 32px;
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   background-color: var(--surface);
 }
 .composer-count {
@@ -184,7 +184,7 @@ a.post-place:hover {
   padding: 8px 10px;
   border: 0;
   background: none;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
   font-size: 0.9rem;
   text-align: left;
@@ -247,7 +247,7 @@ a.post-place:hover {
   gap: 6px;
   max-width: calc(100% - 24px);
   padding: 6px 11px;
-  border-radius: 999px;
+  border-radius: var(--radius-sm);
   background: rgba(20, 30, 24, 0.74);
   color: #fff;
   font-size: 0.8rem;
@@ -292,7 +292,7 @@ a.post-place:hover {
   top: 12px;
   right: 12px;
   padding: 3px 9px;
-  border-radius: 999px;
+  border-radius: var(--radius-xs);
   background: rgba(20, 30, 24, 0.66);
   color: #fff;
   font-size: 0.76rem;
@@ -455,7 +455,7 @@ a.post-place:hover {
   height: 40px;
   border: 0;
   background: none;
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   display: grid;
   place-items: center;
   color: var(--ink);

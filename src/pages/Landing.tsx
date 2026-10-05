@@ -40,7 +40,7 @@ export function Landing() {
             <h1>
               Plan your dream park.
               <br />
-              <em>Let your friends pick what's next.</em>
+              Let your friends pick what's next.
             </h1>
             <p>
               Talyxel Park is a planning board for your zoos and theme parks: sketch every habitat, ride, utility and walk route from above, fill it

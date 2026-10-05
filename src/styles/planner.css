@@ -21,7 +21,7 @@
   letter-spacing: -0.015em;
   border: 1px solid transparent;
   background: transparent;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   padding: 4px 8px;
   min-width: 80px;
   width: min(360px, 30vw);
@@ -76,7 +76,7 @@
 .tool {
   width: 40px;
   height: 40px;
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   border: 0;
   background: transparent;
   color: var(--ink-2);
@@ -126,7 +126,7 @@
   background: var(--inverse-bg);
   color: var(--inverse-ink);
   padding: 7px 8px 7px 12px;
-  border-radius: 12px;
+  border-radius: var(--radius);
   box-shadow: var(--shadow-lg);
   font-size: 0.86rem;
   max-width: calc(100% - 24px);
@@ -139,7 +139,7 @@
   height: 30px;
   padding: 2px 28px 2px 8px;
   font-size: 0.84rem;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   width: auto;
   background-color: var(--surface);
   color: var(--ink);
@@ -151,7 +151,7 @@
   transform: translate(-50%, -50%);
   background: var(--glass);
   padding: 20px 24px;
-  border-radius: 16px;
+  border-radius: var(--radius-lg);
   box-shadow: var(--shadow);
   display: flex;
   flex-direction: column;
@@ -217,7 +217,7 @@
 .stat-row > div {
   background: var(--surface-2);
   border: 1px solid var(--line);
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   padding: 8px 10px;
   min-width: 0;
 }
@@ -244,7 +244,7 @@
 .progress {
   display: flex;
   height: 10px;
-  border-radius: 999px;
+  border-radius: var(--radius-xs);
   overflow: hidden;
   background: var(--bg-deep);
   gap: 2px;
@@ -264,13 +264,13 @@
 }
 .tip {
   background: var(--brand-soft);
-  border-radius: 12px;
+  border-radius: var(--radius);
   padding: 12px 14px;
   font-size: 0.88rem;
   color: var(--brand-strong);
 }
 .bg-preview {
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   overflow: hidden;
   border: 1px solid var(--line);
   max-height: 140px;
@@ -290,7 +290,7 @@ kbd {
   background: var(--surface);
   border: 1px solid var(--line-strong);
   border-bottom-width: 2px;
-  border-radius: 6px;
+  border-radius: var(--radius-xs);
   padding: 1px 6px;
   color: var(--ink);
 }
@@ -301,7 +301,7 @@ kbd {
   gap: 12px;
   padding: 16px;
   border: 1.5px dashed var(--line-strong);
-  border-radius: 12px;
+  border-radius: var(--radius);
   cursor: pointer;
   background: var(--surface-2);
   transition:
@@ -337,7 +337,7 @@ kbd {
   width: 60px;
   height: 44px;
   flex: none;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   overflow: hidden;
   border: 0;
   padding: 0;
@@ -366,7 +366,7 @@ kbd {
 }
 .board-col {
   background: var(--bg);
-  border-radius: 16px;
+  border-radius: var(--radius);
   padding: 10px;
   display: flex;
   flex-direction: column;
@@ -398,7 +398,7 @@ kbd {
 .board-col-head .count {
   font-size: 0.75rem;
   background: var(--surface);
-  border-radius: 999px;
+  border-radius: var(--radius-xs);
   padding: 1px 7px;
   color: var(--ink-2);
   font-weight: 650;
@@ -421,7 +421,7 @@ kbd {
   background: var(--surface);
   border: 1px solid var(--line);
   border-left: 4px solid var(--c);
-  border-radius: 12px;
+  border-radius: var(--radius);
   overflow: hidden;
   cursor: grab;
   padding: 0;
@@ -457,7 +457,7 @@ kbd {
 }
 .board-drop-marker {
   height: 4px;
-  border-radius: 4px;
+  border-radius: var(--radius-xs);
   background: var(--brand);
 }
 .board-empty.active {
@@ -466,7 +466,7 @@ kbd {
 }
 .board-empty {
   border: 1.5px dashed var(--line-strong);
-  border-radius: 12px;
+  border-radius: var(--radius);
   padding: 18px;
   text-align: center;
   color: var(--ink-3);
@@ -511,7 +511,7 @@ kbd {
     z-index: 70;
     border-left: 0;
     border-top: 1px solid var(--line);
-    border-radius: 18px 18px 0 0;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
     box-shadow: var(--shadow-lg);
     transform: translateY(105%);
     transition: transform 0.22s ease-out;
@@ -551,7 +551,7 @@ kbd {
   padding: 6px;
   background: color-mix(in srgb, var(--surface) 94%, transparent);
   border: 1px solid var(--line);
-  border-radius: 14px;
+  border-radius: var(--radius);
   box-shadow: var(--shadow);
   overflow-x: auto;
   scrollbar-width: none;
@@ -575,7 +575,7 @@ kbd {
   flex: none;
   height: 32px;
   padding: 0 11px 0 8px;
-  border-radius: 999px;
+  border-radius: var(--radius-sm);
   border: 1px solid var(--line);
   background: var(--surface);
   color: var(--ink-2);
@@ -650,7 +650,7 @@ kbd {
   align-items: center;
   gap: 9px;
   padding: 6px 6px;
-  border-radius: 9px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
   font-size: 0.88rem;
 }
@@ -664,7 +664,7 @@ kbd {
 .layer-swatch {
   width: 24px;
   height: 24px;
-  border-radius: 7px;
+  border-radius: var(--radius-sm);
   background: var(--c);
   color: #fff;
   display: grid;

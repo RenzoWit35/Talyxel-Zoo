@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Map, Plus } from 'lucide-react';
 import { useEffect, useState, type FormEvent } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
-import { LIMITS, type ParkType } from '../../shared/constants';
+import { LIMITS, STANDARD_MAP, type ParkType } from '../../shared/constants';
 import { parkMeta } from '../../shared/parks';
 import { api, errorMessage } from '../api/client';
 import { ParkTypePicker } from '../components/ParkType';
@@ -11,10 +11,10 @@ import { ZooCard } from '../components/ZooCard';
 import { loadPlanner } from '../App';
 
 const SIZES = [
-  { label: 'Small', width: 200, height: 150 },
-  { label: 'Medium', width: 400, height: 300 },
-  { label: 'Large', width: 800, height: 600 },
-  { label: 'Huge', width: 1500, height: 1000 },
+  { label: 'Small', width: 500, height: 495 },
+  { label: 'Standard', width: STANDARD_MAP.width, height: STANDARD_MAP.height },
+  { label: 'Large', width: 1500, height: 1485 },
+  { label: 'Huge', width: 2000, height: 1980 },
 ];
 
 function NewZooDialog({ onClose }: { onClose: () => void }) {
@@ -27,8 +27,8 @@ function NewZooDialog({ onClose }: { onClose: () => void }) {
   const [parkType, setParkType] = useState<ParkType>('zoo');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [width, setWidth] = useState(400);
-  const [height, setHeight] = useState(300);
+  const [width, setWidth] = useState<number>(STANDARD_MAP.width);
+  const [height, setHeight] = useState<number>(STANDARD_MAP.height);
   const create = useMutation({
     mutationFn: api.createZoo,
     onSuccess: (zoo) => {
@@ -112,7 +112,10 @@ function NewZooDialog({ onClose }: { onClose: () => void }) {
               aria-label="Height in metres"
             />
           </div>
-          <small>Match your {parkMeta(parkType).game} map so areas come out right. You can trace over a screenshot later.</small>
+          <small>
+            Standard is {STANDARD_MAP.width.toLocaleString('en')} × {STANDARD_MAP.height} m. Match your {parkMeta(parkType).game} map so areas come out right; you can
+            trace over a screenshot later.
+          </small>
         </div>
         <button type="submit" hidden />
       </form>

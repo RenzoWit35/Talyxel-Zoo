@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { BIOMES, HABITAT_KINDS, HABITAT_STATUSES, LIMITS, PARK_TYPES, POST_LIMITS, THEMES } from '../shared/constants';
+import { BIOMES, HABITAT_KINDS, HABITAT_STATUSES, LIMITS, PARK_TYPES, POST_LIMITS, STANDARD_MAP, THEMES } from '../shared/constants';
 import { POST_KINDS } from '../shared/types';
 import { STAT_LIMITS } from '../shared/stats';
 
@@ -40,8 +40,8 @@ export const zooCreateInput = z.object({
   parkType: z.enum(PARK_TYPES).default('zoo'),
   title: required('Title', 80),
   description: text(2000).default(''),
-  width: mapSize.default(300),
-  height: mapSize.default(200),
+  width: mapSize.default(STANDARD_MAP.width),
+  height: mapSize.default(STANDARD_MAP.height),
 });
 
 export const zooUpdateInput = z.object({

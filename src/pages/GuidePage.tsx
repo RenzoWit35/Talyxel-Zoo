@@ -142,7 +142,8 @@ export function GuidePage() {
               <span className="subtle">coasters, rides, ride types and themes</span>
             </div>
             <p>
-              Give it a name and a size in metres. Matching your in-game map keeps areas and walking times realistic. You can resize the map later, and you can upload
+              Give it a name and a size in metres — new plans start at the standard 1,000 × 990 m. Matching your in-game map keeps areas and walking times
+              realistic. You can resize the map later, and you can upload
               a top-down screenshot of your park to trace over — set its opacity in the side panel.
             </p>
             <p className="guide-tip">The first time you open the planner, a short tour points out everything. Restart it any time with the question-mark button.</p>

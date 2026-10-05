@@ -2,14 +2,15 @@
   "$description": "Talyxel Park — tokens shared by both themes. W3C design-token format (DTCG); importable as Figma variables or with Tokens Studio. Run `npm run tokens` after changing.",
   "radius": {
     "$type": "dimension",
-    "radius-sm": { "$value": "8px", "$description": "Inputs, small buttons" },
-    "radius": { "$value": "12px", "$description": "Buttons, chips, panels" },
-    "radius-lg": { "$value": "18px", "$description": "Cards and dialogs" }
+    "radius-xs": { "$value": "2px", "$description": "Tags, counts, progress bars, keys" },
+    "radius-sm": { "$value": "4px", "$description": "Controls: buttons, inputs, tool and palette buttons, menu items" },
+    "radius": { "$value": "6px", "$description": "Cards, panels, tiles, popovers" },
+    "radius-lg": { "$value": "8px", "$description": "Dialogs and big map frames" }
   },
   "font": {
     "$type": "fontFamily",
     "font-ui": { "$value": ["Inter Variable", "ui-sans-serif", "system-ui", "-apple-system", "Segoe UI", "sans-serif"], "$description": "Interface text" },
-    "font-display": { "$value": ["Fraunces Variable", "ui-serif", "Georgia", "serif"], "$description": "Headings and big text cards" }
+    "font-display": { "$value": ["Inter Variable", "ui-sans-serif", "system-ui", "-apple-system", "Segoe UI", "sans-serif"], "$description": "Headings and big text cards — the same plain sans as the interface, set heavier" }
   },
   "size": {
     "$type": "dimension",
