@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { BIOMES, HABITAT_KINDS, HABITAT_STATUSES, LIMITS, PARK_TYPES, THEMES } from '../shared/constants';
+import { STAT_LIMITS } from '../shared/stats';
 
 const text = (max: number) => z.string().trim().max(max, `Keep it under ${max} characters`);
 const required = (label: string, max: number) => text(max).min(1, `${label} is required`);
@@ -105,6 +106,17 @@ export const surveyInput = z.object({
     .max(LIMITS.surveyOwnerOptionsMax, `At most ${LIMITS.surveyOwnerOptionsMax} options`)
     .refine((o) => new Set(o.map((s) => s.toLowerCase())).size === o.length, 'Options must be different from each other'),
   allowSuggestions: z.boolean().default(true),
+});
+
+const statsText = (label: string) => required(label, STAT_LIMITS.customText);
+
+export const statsInput = z.object({
+  values: z.record(z.string().max(40), z.number().finite().nullable()).default({}),
+  custom: z
+    .array(z.object({ label: statsText('Stat name'), value: statsText('Stat value') }))
+    .max(STAT_LIMITS.customRows, `At most ${STAT_LIMITS.customRows} extra stats`)
+    .default([]),
+  gameDate: text(STAT_LIMITS.gameDate).default(''),
 });
 
 export const publishInput = z.object({

@@ -15,6 +15,8 @@ import { StatusChip } from '../components/map/HoverCard';
 import { LayerToggles } from '../components/map/LayerToggles';
 import { MapCanvas } from '../components/map/MapCanvas';
 import { SurveyCard } from '../components/SurveyCard';
+import { StatsForm } from '../components/stats/StatsForm';
+import { StatsView } from '../components/stats/StatsView';
 import { NewSurveyDialog } from '../components/SurveyEditor';
 import { Avatar, PageLoader } from '../components/ui';
 import { shade } from '../lib/color';
@@ -69,6 +71,7 @@ function ZooView({ zoo }: { zoo: ZooDetail }) {
   const { hash } = useLocation();
   const [newSurvey, setNewSurvey] = useState(false);
   const [hiddenKinds, setHiddenKinds] = useState<Set<HabitatKind>>(() => new Set());
+  const [statsOpen, setStatsOpen] = useState(false);
   const mapRef = useRef<HTMLDivElement>(null);
   const surveysRef = useRef<HTMLDivElement>(null);
   const selectedId = Number(params.get('h')) || null;
@@ -180,6 +183,8 @@ function ZooView({ zoo }: { zoo: ZooDetail }) {
       <LayerToggles kinds={meta.kinds} habitats={zoo.habitats} hidden={hiddenKinds} onChange={setHiddenKinds} variant="chips" />
       <p className="subtle map-tip">Hover (or tap) a shape for photos and info · click to open it · scroll or pinch to zoom · drag to pan</p>
 
+      <StatsView stats={zoo.stats} parkType={zoo.parkType} isOwner={zoo.isOwner} onEdit={() => setStatsOpen(true)} />
+
       <div className="zoo-columns">
         <section>
           <h2 className="section-title">In this {meta.noun}</h2>
@@ -246,6 +251,7 @@ function ZooView({ zoo }: { zoo: ZooDetail }) {
           )}
         </section>
       </div>
+      {statsOpen && <StatsForm zooId={zoo.id} parkType={zoo.parkType} stats={zoo.stats} onClose={() => setStatsOpen(false)} />}
       {newSurvey && (
         <NewSurveyDialog
           zooId={zoo.id}

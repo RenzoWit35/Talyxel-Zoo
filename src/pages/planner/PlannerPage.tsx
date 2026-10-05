@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import {
   ArrowLeft,
+  ChartColumn,
   Check,
   CloudOff,
   ExternalLink,
@@ -31,6 +32,7 @@ import type { Habitat, ZooDetail } from '../../../shared/types';
 import { api, ApiError, errorMessage } from '../../api/client';
 import { LayerToggles } from '../../components/map/LayerToggles';
 import { MapCanvas, type Tool } from '../../components/map/MapCanvas';
+import { StatsForm } from '../../components/stats/StatsForm';
 import { NewSurveyDialog } from '../../components/SurveyEditor';
 import { useToast } from '../../components/toast';
 import { Modal, PageLoader } from '../../components/ui';
@@ -106,6 +108,7 @@ function Planner({ initial }: { initial: ZooDetail }) {
   const [panelOpen, setPanelOpen] = useState(false);
   const [hiddenKinds, setHiddenKinds] = useState<Set<HabitatKind>>(() => new Set());
   const [layersOpen, setLayersOpen] = useState(false);
+  const [statsOpen, setStatsOpen] = useState(false);
 
   const selected = zoo.habitats.find((h) => h.id === selectedId) ?? null;
   // If the park type changes, fall back to its main shape type for drawing.
@@ -235,6 +238,9 @@ function Planner({ initial }: { initial: ZooDetail }) {
             <LayoutGrid /> <span>Board</span>
           </button>
         </div>
+        <button className="btn btn-sm planner-stats-btn" onClick={() => setStatsOpen(true)} title="Park statistics">
+          <ChartColumn /> <span>Stats</span>
+        </button>
         {zoo.status === 'published' ? (
           <div className="row planner-actions">
             <button className="btn btn-sm" onClick={() => setNewSurvey(true)}>
@@ -399,7 +405,7 @@ function Planner({ initial }: { initial: ZooDetail }) {
               onDelete={() => setConfirmDelete(selected)}
             />
           ) : (
-            <ZooPanel editor={editor} onDeleteZoo={() => setConfirmDeleteZoo(true)} />
+            <ZooPanel editor={editor} onDeleteZoo={() => setConfirmDeleteZoo(true)} onEditStats={() => setStatsOpen(true)} />
           )}
         </aside>
       </div>
@@ -451,6 +457,9 @@ function Planner({ initial }: { initial: ZooDetail }) {
         </Modal>
       )}
       {publishing && <PublishDialog editor={editor} onClose={() => setPublishing(false)} />}
+      {statsOpen && (
+        <StatsForm zooId={zoo.id} parkType={zoo.parkType} stats={zoo.stats} onClose={() => setStatsOpen(false)} onSaved={editor.setStats} />
+      )}
       {newSurvey && (
         <NewSurveyDialog zooId={zoo.id} title={zoo.title} ideas={ideas} examples={meta.optionExamples} onClose={() => setNewSurvey(false)} />
       )}

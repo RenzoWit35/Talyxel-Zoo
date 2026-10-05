@@ -3,7 +3,9 @@ import type {
   FeedPage,
   Habitat,
   Me,
+  ParkStats,
   Profile,
+  StatsInput,
   Survey,
   UserListItem,
   ZooDetail,
@@ -85,6 +87,7 @@ export const api = {
     return put<ZooDetail>(`/zoos/${id}/background`, form);
   },
   removeBackground: (id: number) => del<ZooDetail>(`/zoos/${id}/background`),
+  saveStats: (id: number, body: StatsInput) => put<ParkStats>(`/zoos/${id}/stats`, body),
   publish: (id: number, survey?: SurveyDraft) => post<ZooDetail>(`/zoos/${id}/publish`, { survey }),
   unpublish: (id: number) => post<ZooDetail>(`/zoos/${id}/unpublish`),
 

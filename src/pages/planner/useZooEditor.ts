@@ -2,7 +2,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { KIND_META, type HabitatKind, type HabitatStatus, type ParkType } from '../../../shared/constants';
 import type { Point } from '../../../shared/geometry';
-import type { Habitat, ZooDetail } from '../../../shared/types';
+import type { Habitat, ParkStats, ZooDetail } from '../../../shared/types';
 import { api, ApiError, type HabitatInput, type SurveyDraft } from '../../api/client';
 import { useToast } from '../../components/toast';
 
@@ -182,6 +182,7 @@ export function useZooEditor(initial: ZooDetail) {
     [flush, track],
   );
   const unpublish = useCallback(async () => applyZoo(await track(api.unpublish(zooRef.current.id))), [track]);
+  const setStats = useCallback((stats: ParkStats) => setZoo((z) => ({ ...z, stats })), []);
 
   const saveBoard = useCallback(
     async (columns: Record<HabitatStatus, number[]>) => {
@@ -238,6 +239,7 @@ export function useZooEditor(initial: ZooDetail) {
     removeBackground,
     publish,
     unpublish,
+    setStats,
     saveBoard,
   };
 }

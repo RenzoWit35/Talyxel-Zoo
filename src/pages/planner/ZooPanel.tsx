@@ -1,9 +1,10 @@
-import { ImagePlus, Loader2, Trash2 } from 'lucide-react';
+import { ChartColumn, ImagePlus, Loader2, PenLine, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { HABITAT_STATUSES, KIND_META, LIMITS, PARK_TYPES, STATUS_META } from '../../../shared/constants';
 import { formatArea, formatLength, polygonArea, polylineLength } from '../../../shared/geometry';
 import { parkMeta } from '../../../shared/parks';
 import { ParkIcon } from '../../components/ParkType';
+import { StatsSummary } from '../../components/stats/StatsView';
 import { capitalize, plural } from '../../lib/format';
 import type { ZooEditor } from './useZooEditor';
 
@@ -22,7 +23,7 @@ const SHORTCUTS: [string, string][] = [
   ['Ctrl Z', 'Undo shape edits'],
 ];
 
-export function ZooPanel({ editor, onDeleteZoo }: { editor: ZooEditor; onDeleteZoo: () => void }) {
+export function ZooPanel({ editor, onDeleteZoo, onEditStats }: { editor: ZooEditor; onDeleteZoo: () => void; onEditStats: () => void }) {
   const { zoo } = editor;
   const meta = parkMeta(zoo.parkType);
   const [w, setW] = useState(String(zoo.width));
@@ -142,6 +143,27 @@ export function ZooPanel({ editor, onDeleteZoo }: { editor: ZooEditor; onDeleteZ
             <strong>Start drawing.</strong> Pick the <b>freeform</b> or <b>rectangle</b> tool on the left and outline your first {KIND_META[meta.defaultKind].label.toLowerCase()}. Shapes snap
             to the grid and to each other’s corners so neighbours line up.
           </div>
+        )}
+      </div>
+
+      <div className="panel-section">
+        <div className="panel-section-head">
+          <h4>Park statistics</h4>
+          {zoo.stats && (
+            <button className="btn btn-ghost btn-sm" onClick={onEditStats}>
+              <PenLine /> Update
+            </button>
+          )}
+        </div>
+        {zoo.stats ? (
+          <StatsSummary stats={zoo.stats} parkType={zoo.parkType} />
+        ) : (
+          <>
+            <p className="subtle">Copy guests, ratings and money from {meta.game} to show how your {meta.noun} is doing.</p>
+            <button className="btn btn-sm" onClick={onEditStats}>
+              <ChartColumn /> Add stats
+            </button>
+          </>
         )}
       </div>
 

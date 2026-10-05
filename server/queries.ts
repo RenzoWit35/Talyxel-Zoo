@@ -1,6 +1,6 @@
 import type { Biome, HabitatKind, HabitatStatus, ParkType } from '../shared/constants';
 import type { Point } from '../shared/geometry';
-import type { Habitat, Photo, Survey, UserListItem, UserSummary, ZooDetail, ZooStatus, ZooSummary } from '../shared/types';
+import type { Habitat, ParkStats, Photo, StatsCustomRow, Survey, UserListItem, UserSummary, ZooDetail, ZooStatus, ZooSummary } from '../shared/types';
 import { all, one, placeholders, type DB } from './db';
 
 // ---------- users ----------
@@ -116,6 +116,13 @@ export function loadZooSummaries(db: DB, zoos: ZooRow[]): ZooSummary[] {
     ...ids,
   );
   const open = new Set(openSurveys.map((s) => s.zoo_id));
+  const latestStats = all<{ zoo_id: number; data: string }>(
+    db,
+    `SELECT zoo_id, data FROM zoo_stats WHERE id IN
+       (SELECT MAX(id) FROM zoo_stats WHERE zoo_id IN (${placeholders(ids.length)}) GROUP BY zoo_id)`,
+    ...ids,
+  );
+  const guestsByZoo = new Map(latestStats.map((s) => [s.zoo_id, (JSON.parse(s.data) as StatsData).values.guests ?? null]));
   const photoByZoo = new Map(photos.map((p) => [p.zoo_id, p]));
   return zoos.map((z) => {
     const own = habitats.filter((h) => h.zoo_id === z.id);
@@ -135,8 +142,36 @@ export function loadZooSummaries(db: DB, zoos: ZooRow[]): ZooSummary[] {
       coverUrl: photoByZoo.get(z.id)?.cover ?? null,
       hasOpenSurvey: open.has(z.id),
       shapes: own.map((h) => ({ points: JSON.parse(h.points) as Point[], color: h.color, kind: h.kind })),
+      guests: guestsByZoo.get(z.id) ?? null,
     };
   });
+}
+
+// ---------- in-game stats ----------
+
+export interface StatsData {
+  values: Record<string, number>;
+  custom: StatsCustomRow[];
+  gameDate: string;
+}
+
+/** The latest stats snapshot, plus the values of the one before it (an earlier day) to show change. */
+export function loadStats(db: DB, zooId: number): ParkStats | null {
+  const [latest, previous] = all<{ data: string; updated_at: string }>(
+    db,
+    'SELECT data, updated_at FROM zoo_stats WHERE zoo_id = ? ORDER BY id DESC LIMIT 2',
+    zooId,
+  );
+  if (!latest) return null;
+  const data = JSON.parse(latest.data) as StatsData;
+  return {
+    values: data.values,
+    custom: data.custom,
+    gameDate: data.gameDate,
+    updatedAt: latest.updated_at,
+    previous: previous ? (JSON.parse(previous.data) as StatsData).values : null,
+    previousAt: previous?.updated_at ?? null,
+  };
 }
 
 // ---------- habitats & photos ----------
@@ -315,6 +350,7 @@ export function loadZooDetail(db: DB, zoo: ZooRow, viewerId: number | undefined)
     isOwner: viewerId === zoo.owner_id,
     habitats: habitatRows.map((h) => toHabitat(h, photos.get(h.id) ?? [])),
     surveys: loadSurveys(db, zoo, viewerId),
+    stats: loadStats(db, zoo.id),
   };
 }
 

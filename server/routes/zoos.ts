@@ -3,6 +3,7 @@ import type multer from 'multer';
 import { KIND_META, PARK_TYPES, type HabitatKind, type ParkType } from '../../shared/constants';
 import { bounds, clampPoint, roundPoint, type Point } from '../../shared/geometry';
 import { parkMeta } from '../../shared/parks';
+import { STAT_RANGE, statFields } from '../../shared/stats';
 import { all, one, placeholders, run, tx, type DB } from '../db';
 import { recordEvent } from '../events';
 import { badRequest, forbidden, notFound, paramId, parse, requireUser } from '../http';
@@ -11,14 +12,16 @@ import {
   canView,
   getZooRow,
   loadHabitat,
+  loadStats,
   loadSurveys,
   loadZooDetail,
   loadZooSummaries,
   touchZoo,
   ZOO_SELECT,
+  type StatsData,
   type ZooRow,
 } from '../queries';
-import { boardInput, habitatCreateInput, publishInput, surveyInput, zooCreateInput, zooUpdateInput } from '../schemas';
+import { boardInput, habitatCreateInput, publishInput, statsInput, surveyInput, zooCreateInput, zooUpdateInput } from '../schemas';
 import { acceptUploads, discardUploads, removeStoredFiles } from '../uploads';
 
 /** Clamp points into the map and round them to 10 cm so stored geometry stays tidy. */
@@ -279,6 +282,34 @@ export function zooRoutes(db: DB, upload: multer.Multer, uploadDir: string) {
       touchZoo(db, zoo.id);
     });
     res.json(loadZooDetail(db, getZooRow(db, zoo.id)!, me.id).habitats);
+  });
+
+  // In-game stats typed in by the owner. Saving again on the same (UTC) day updates that day's snapshot.
+  r.put('/:id/stats', (req, res) => {
+    const me = requireUser(req);
+    const zoo = ownZoo(me.id, paramId(req));
+    const body = parse(statsInput, req.body);
+    const fields = new Map(statFields(zoo.park_type).map((f) => [f.key, f]));
+    const values: Record<string, number> = {};
+    for (const [key, value] of Object.entries(body.values)) {
+      const field = fields.get(key);
+      if (!field) throw badRequest(`“${key}” isn't a stat for a ${parkMeta(zoo.park_type).noun}`);
+      if (value === null) continue;
+      const range = STAT_RANGE[field.type];
+      if (range.integer && !Number.isInteger(value)) throw badRequest(`${field.label} must be a whole number`);
+      if (value < range.min || value > range.max) throw badRequest(`${field.label} must be between ${range.min.toLocaleString('en')} and ${range.max.toLocaleString('en')}`);
+      values[key] = value;
+    }
+    const data: StatsData = { values, custom: body.custom, gameDate: body.gameDate };
+    const latest = one<{ id: number; created_at: string }>(db, 'SELECT id, created_at FROM zoo_stats WHERE zoo_id = ? ORDER BY id DESC LIMIT 1', zoo.id);
+    const today = new Date().toISOString().slice(0, 10);
+    if (latest && latest.created_at.slice(0, 10) === today) {
+      run(db, "UPDATE zoo_stats SET data = ?, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE id = ?", JSON.stringify(data), latest.id);
+    } else {
+      run(db, 'INSERT INTO zoo_stats (zoo_id, data) VALUES (?, ?)', zoo.id, JSON.stringify(data));
+    }
+    touchZoo(db, zoo.id);
+    res.json(loadStats(db, zoo.id));
   });
 
   r.post('/:id/surveys', (req, res) => {

@@ -135,6 +135,17 @@ const MIGRATIONS: string[] = [
   `
   ALTER TABLE zoos ADD COLUMN park_type TEXT NOT NULL DEFAULT 'zoo' CHECK (park_type IN ('zoo', 'theme_park'));
   `,
+  // v3: in-game statistics, entered by hand. One snapshot per day so earlier days show the change.
+  `
+  CREATE TABLE zoo_stats (
+    id INTEGER PRIMARY KEY,
+    zoo_id INTEGER NOT NULL REFERENCES zoos(id) ON DELETE CASCADE,
+    data TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT ${NOW},
+    updated_at TEXT NOT NULL DEFAULT ${NOW}
+  );
+  CREATE INDEX zoo_stats_zoo ON zoo_stats(zoo_id, id);
+  `,
 ];
 
 export function openDb(file: string): DB {

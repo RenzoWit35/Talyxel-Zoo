@@ -1,4 +1,4 @@
-import { Images, Lock, PenLine, Vote } from 'lucide-react';
+import { Images, Lock, PenLine, Users, Vote } from 'lucide-react';
 import { Link } from 'react-router';
 import type { ZooSummary } from '../../shared/types';
 import { plural, timeAgo } from '../lib/format';
@@ -46,6 +46,11 @@ export function ZooCard({ zoo, editable, showOwner = true }: Props) {
           )}
           <span className="spacer" />
           <span>{plural(zoo.habitatCount, 'area')}</span>
+          {zoo.guests !== null && (
+            <span className="row" style={{ gap: 4 }} title="Guests (in-game)">
+              <Users size={14} /> {zoo.guests.toLocaleString('en')}
+            </span>
+          )}
           {zoo.photoCount > 0 && (
             <span className="row" style={{ gap: 4 }}>
               <Images size={14} /> {zoo.photoCount}
