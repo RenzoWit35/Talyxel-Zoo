@@ -311,8 +311,18 @@ describe('social', () => {
     expect(items.map((i) => i.type)).toEqual(['photos_added', 'habitat_added', 'zoo_published']);
     expect(items[0].photos).toHaveLength(2); // both uploads merged into one entry
     expect(items[1].habitat?.name).toBe('Elephants');
-    expect(items[2].survey).toMatchObject({ question: 'What next?', optionCount: 2 });
+    expect(items[2].survey).toMatchObject({ question: 'What next?', isOpen: true, myVoteOptionId: null, resultsVisible: false });
+    expect(items[2].survey?.options.map((o) => [o.label, o.votes])).toEqual([
+      ['Bears', null],
+      ['Wolves', null],
+    ]);
     expect(items[2].zoo?.shapes).toHaveLength(2);
+
+    // Voting from the feed shows the tally on the next load.
+    await kai.post(`/api/surveys/${items[2].survey!.id}/vote`, { optionId: items[2].survey!.options[1].id });
+    const voted = (await feedOf())[2].survey!;
+    expect(voted).toMatchObject({ totalVotes: 1, resultsVisible: true, myVoteOptionId: voted.options[1].id });
+    expect(voted.options.map((o) => o.votes)).toEqual([0, 1]);
 
     // Unpublishing hides everything from followers again.
     await rosa.post(`/api/zoos/${zoo.id}/unpublish`);

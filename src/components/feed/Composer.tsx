@@ -1,7 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ImagePlus, Megaphone, MessageCircleQuestion, X } from 'lucide-react';
+import { CircleHelp, ImagePlus, Megaphone, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
-import { useSearchParams } from 'react-router';
 import { LIMITS, POST_LIMITS } from '../../../shared/constants';
 import type { PostKind } from '../../../shared/types';
 import { api, errorMessage } from '../../api/client';
@@ -12,49 +11,32 @@ import { Avatar } from '../ui';
 const ACCEPT = 'image/png,image/jpeg,image/webp,image/gif';
 
 const COPY: Record<PostKind, { placeholder: string; button: string }> = {
-  update: { placeholder: 'What did you build today? Share screenshots, progress or a finished area…', button: 'Share update' },
+  update: { placeholder: 'What did you build today? A short first line becomes the title — add screenshots below.', button: 'Share update' },
   question: { placeholder: 'Ask your followers — e.g. “Which coaster should go next to the lake?”', button: 'Ask question' },
 };
 
-/** "Share an update or ask a question" box at the top of the feed. */
-export function Composer() {
+/** The "Share an update" box at the top of the Social feed; posting or closing it calls onClose. */
+export function Composer({ onClose }: { onClose: () => void }) {
   const { me } = useMe();
   const qc = useQueryClient();
   const toast = useToast();
-  const [params, setParams] = useSearchParams();
-  const [open, setOpen] = useState(() => params.get('compose') === '1');
   const [kind, setKind] = useState<PostKind>('update');
   const [body, setBody] = useState('');
   const [files, setFiles] = useState<File[]>([]);
   const [zooId, setZooId] = useState<number | ''>('');
   const [error, setError] = useState('');
   const textRef = useRef<HTMLTextAreaElement>(null);
-  const parks = useQuery({ queryKey: ['zoos', 'mine'], queryFn: api.myZoos, enabled: open });
+  const parks = useQuery({ queryKey: ['zoos', 'mine'], queryFn: api.myZoos });
   const published = (parks.data ?? []).filter((z) => z.status === 'published');
-
-  // Opened from a "Write a post" link: drop the parameter so a reload doesn't reopen it.
-  useEffect(() => {
-    if (params.get('compose') !== '1') return;
-    setOpen(true);
-    setParams({}, { replace: true });
-  }, [params, setParams]);
 
   // Focus the text as soon as the box opens, however it was opened.
   useEffect(() => {
-    if (open) textRef.current?.focus();
-  }, [open]);
+    textRef.current?.focus();
+  }, []);
 
   const previews = useMemo(() => files.map((f) => URL.createObjectURL(f)), [files]);
   useEffect(() => () => previews.forEach((u) => URL.revokeObjectURL(u)), [previews]);
 
-  const reset = () => {
-    setOpen(false);
-    setKind('update');
-    setBody('');
-    setFiles([]);
-    setZooId('');
-    setError('');
-  };
 
   const create = useMutation({
     mutationFn: api.createPost,
@@ -64,16 +46,10 @@ export function Composer() {
       void qc.invalidateQueries({ queryKey: ['posts'] });
       void qc.invalidateQueries({ queryKey: ['profile'] });
       void qc.invalidateQueries({ queryKey: ['onboarding'] });
-      reset();
+      onClose();
     },
     onError: (err) => setError(errorMessage(err)),
   });
-
-  const start = (k: PostKind) => {
-    setKind(k);
-    setOpen(true);
-    textRef.current?.focus();
-  };
 
   const addFiles = (list: FileList | null) => {
     const picked = [...(list ?? [])].filter((f) => ACCEPT.includes(f.type));
@@ -94,25 +70,8 @@ export function Composer() {
 
   if (!me) return null;
 
-  if (!open) {
-    return (
-      <div className="composer card composer-closed">
-        <Avatar user={me} size={40} />
-        <button className="composer-prompt" onClick={() => start('update')}>
-          Share an update or ask a question…
-        </button>
-        <button className="btn btn-ghost btn-icon" aria-label="Share photos" title="Share photos" onClick={() => start('update')}>
-          <ImagePlus />
-        </button>
-        <button className="btn btn-ghost btn-icon" aria-label="Ask a question" title="Ask a question" onClick={() => start('question')}>
-          <MessageCircleQuestion />
-        </button>
-      </div>
-    );
-  }
-
   return (
-    <form className="composer card" onSubmit={submit} aria-label="New post">
+    <form className="composer card" onSubmit={submit} aria-label="New post" onKeyDown={(e) => e.key === 'Escape' && onClose()}>
       <div className="composer-top">
         <Avatar user={me} size={40} />
         <div className="segmented" role="radiogroup" aria-label="Post type">
@@ -120,11 +79,11 @@ export function Composer() {
             <Megaphone /> Update
           </button>
           <button type="button" role="radio" aria-checked={kind === 'question'} aria-pressed={kind === 'question'} onClick={() => setKind('question')}>
-            <MessageCircleQuestion /> Question
+            <CircleHelp /> Question
           </button>
         </div>
         <span className="spacer" />
-        <button type="button" className="btn btn-ghost btn-icon btn-sm" aria-label="Close" onClick={reset}>
+        <button type="button" className="btn btn-ghost btn-icon btn-sm" aria-label="Close" onClick={onClose}>
           <X />
         </button>
       </div>

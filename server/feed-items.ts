@@ -1,7 +1,7 @@
 import type { Point } from '../shared/geometry';
 import type { Comment, FeedEventType, FeedItem, FeedPost, Photo, PostKind, UserSummary } from '../shared/types';
 import { all, one, placeholders, type DB } from './db';
-import { loadPhotos, loadZooSummaries, toUserSummary, ZOO_SELECT, type HabitatRow, type ZooRow } from './queries';
+import { loadPhotos, loadSurveys, loadZooSummaries, toUserSummary, ZOO_SELECT, type HabitatRow, type ZooRow } from './queries';
 
 export interface EventRow {
   id: number;
@@ -106,6 +106,7 @@ export function buildFeedItems(db: DB, rows: EventRow[], viewerId: number | unde
     ? all<ZooRow>(db, `${ZOO_SELECT} WHERE z.status = 'published' AND z.id IN (${placeholders(zooIds.length)})`, ...zooIds)
     : [];
   const zooById = new Map(loadZooSummaries(db, zoos).map((z) => [z.id, z]));
+  const zooRowById = new Map(zoos.map((z) => [z.id, z]));
 
   const habitatIds = [...new Set(rows.flatMap((e) => (e.habitat_id ? [e.habitat_id] : [])))];
   const habitats = habitatIds.length
@@ -114,18 +115,13 @@ export function buildFeedItems(db: DB, rows: EventRow[], viewerId: number | unde
   const habitatById = new Map(habitats.map((h) => [h.id, h]));
   const photosByHabitat = loadPhotos(db, habitatIds);
 
-  const surveyIds = [...new Set(rows.flatMap((e) => (e.survey_id ? [e.survey_id] : [])))];
-  const surveys = surveyIds.length
-    ? all<{ id: number; question: string; is_open: number; votes: number; options: number }>(
-        db,
-        `SELECT s.id, s.question, s.is_open,
-           (SELECT COUNT(*) FROM survey_votes v WHERE v.survey_id = s.id) AS votes,
-           (SELECT COUNT(*) FROM survey_options o WHERE o.survey_id = s.id) AS options
-         FROM surveys s WHERE s.id IN (${placeholders(surveyIds.length)})`,
-        ...surveyIds,
-      )
-    : [];
-  const surveyById = new Map(surveys.map((s) => [s.id, s]));
+  // Whole surveys (options, tally, the viewer's vote) so people can vote right in the card.
+  const surveyById = new Map(
+    rows.flatMap((e) => {
+      const zoo = e.survey_id && e.zoo_id ? zooRowById.get(e.zoo_id) : undefined;
+      return zoo ? loadSurveys(db, zoo, viewerId, e.survey_id!).map((s) => [s.id, s] as const) : [];
+    }),
+  );
 
   const ids = placeholders(eventIds.length);
   const likeCounts = new Map(
@@ -207,7 +203,7 @@ export function buildFeedItems(db: DB, rows: EventRow[], viewerId: number | unde
           }
         : null,
       photos,
-      survey: s ? { id: s.id, question: s.question, isOpen: !!s.is_open, totalVotes: s.votes, optionCount: s.options } : null,
+      survey: s ?? null,
       post,
       likes: likeCounts.get(e.id) ?? 0,
       liked: likedByMe.has(e.id),

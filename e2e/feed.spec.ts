@@ -12,7 +12,7 @@ test('builders share updates and questions; followers like, answer and open the 
   // Rosa shares an update with two screenshots…
   await rosa.loginPage(page);
   await page.goto('/social');
-  await page.getByRole('button', { name: 'Share an update or ask a question…' }).click();
+  await page.getByRole('button', { name: 'Share an update' }).first().click();
   await page.getByLabel('Your update').fill('Finished the savanna overlook today!');
   await page.locator('.composer input[type=file]').setInputFiles([
     { name: 'a.png', mimeType: 'image/png', buffer: paintPostcard('grassland', 11) },
@@ -22,14 +22,16 @@ test('builders share updates and questions; followers like, answer and open the 
   await page.getByRole('button', { name: 'Share update' }).click();
   const update = page.locator('.post-card', { hasText: 'Finished the savanna overlook today!' });
   await expect(update).toBeVisible();
-  await expect(update.locator('.media-slide')).toHaveCount(2);
+  await expect(update.locator('.post-media-photo')).toHaveCount(2);
+  await expect(update.locator('.post-title')).toHaveText('Finished the savanna overlook today!');
 
   // …and asks a question.
-  await page.getByRole('button', { name: 'Ask a question', exact: true }).click();
+  await page.getByRole('button', { name: 'Share an update' }).first().click();
+  await page.getByRole('radio', { name: 'Question' }).click();
   await page.getByLabel('Your question').fill('Should the giraffes get a second barn?');
   await page.getByRole('button', { name: 'Ask question' }).click();
   const question = page.locator('.post-card.is-question').first();
-  await expect(question.locator('.media-text.tone-question')).toContainText('Should the giraffes get a second barn?');
+  await expect(question.locator('.post-title')).toHaveText('Should the giraffes get a second barn?');
 
   // Kai sees both, double-clicks to like the update and answers the question.
   const kaiPage = await browser.newPage();
@@ -37,7 +39,7 @@ test('builders share updates and questions; followers like, answer and open the 
   await kaiPage.goto('/social');
   const kaiUpdate = kaiPage.locator('.post-card', { hasText: 'Finished the savanna overlook today!' });
   await expect(kaiUpdate).toBeVisible();
-  await kaiUpdate.locator('.media-track').dblclick();
+  await kaiUpdate.locator('.post-media').dblclick();
   await expect(kaiUpdate.getByRole('button', { name: 'Unlike' })).toHaveAttribute('aria-pressed', 'true');
   await expect(kaiUpdate.locator('.post-likes')).toContainText('1 like');
 
@@ -46,6 +48,14 @@ test('builders share updates and questions; followers like, answer and open the 
   await kaiQuestion.getByRole('button', { name: 'Post', exact: true }).click();
   await expect(kaiQuestion.locator('.comment')).toContainText('Yes — and a shaded feeding platform');
   await kaiPage.screenshot({ path: screenshot('feed'), fullPage: true });
+
+  // The Questions filter shows only questions.
+  await kaiPage.getByRole('tab', { name: 'Questions' }).click();
+  await expect(kaiPage).toHaveURL(/filter=questions/);
+  await expect(kaiPage.locator('.post-card')).toHaveCount(1);
+  await expect(kaiPage.locator('.post-card.is-question')).toHaveCount(1);
+  await kaiPage.getByRole('tab', { name: 'For you' }).click();
+  await expect(kaiPage.locator('.post-card')).toHaveCount(2);
 
   // The timestamp opens the post on its own page with every comment.
   await kaiQuestion.locator('.post-time').click();
@@ -73,10 +83,18 @@ test('park activity shows as a card with the top-down map', async ({ page, baseU
 
   await lotte.loginPage(page);
   await page.goto('/social');
-  const card = page.locator('.post-card', { hasText: 'published a new theme park plan' });
-  await expect(card.locator('.media-map')).toBeVisible();
-  await expect(card.locator('.media-map-tag')).toHaveText('Thunder Peak');
-  await expect(card.locator('.feed-survey')).toContainText('Which ride next?');
+  const card = page.locator('.post-card', { hasText: 'Published a new theme park plan' });
+  await expect(card.locator('.post-media-map')).toBeVisible();
+  await expect(card.locator('.post-place-pill')).toHaveText('Thunder Peak');
+  await expect(card.locator('.post-progress')).toHaveText('0% built');
+
+  // The survey can be answered right in the card.
+  const poll = card.locator('.feed-poll');
+  await expect(poll).toContainText('Which ride next?');
+  await poll.getByRole('button', { name: /Drop tower/ }).click();
+  await expect(poll.getByRole('button', { name: /Drop tower/ })).toHaveAttribute('aria-pressed', 'true');
+  await expect(poll.getByRole('button', { name: /Drop tower/ })).toContainText('100%');
+  await expect(poll).toContainText('1 vote');
   await card.getByRole('button', { name: 'Like' }).click();
   await expect(card.getByRole('button', { name: 'Unlike' })).toBeVisible();
 });

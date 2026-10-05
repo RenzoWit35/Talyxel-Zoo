@@ -188,7 +188,8 @@ export interface FeedItem {
   zoo: ZooSummary | null;
   habitat: Pick<Habitat, 'id' | 'name' | 'species' | 'kind' | 'status' | 'color' | 'description' | 'points'> | null;
   photos: Photo[];
-  survey: { id: number; question: string; isOpen: boolean; totalVotes: number; optionCount: number } | null;
+  /** A survey started with the park, to vote on right in the card. */
+  survey: Survey | null;
   post: FeedPost | null;
   likes: number;
   liked: boolean;

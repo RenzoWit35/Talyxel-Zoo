@@ -2,6 +2,7 @@ import type { HabitatStatus, ParkType } from '../../shared/constants';
 import type {
   Comment,
   FeedItem,
+  FeedFilter,
   FeedPage,
   Habitat,
   LikeState,
@@ -119,7 +120,7 @@ export const api = {
   setSurveyOpen: (surveyId: number, isOpen: boolean) => patch<Survey>(`/surveys/${surveyId}`, { isOpen }),
   deleteSurvey: (surveyId: number) => del<{ ok: true }>(`/surveys/${surveyId}`),
 
-  feed: (before?: number) => get<FeedPage>(`/feed${before ? `?before=${before}` : ''}`),
+  feed: (before?: number, filter: FeedFilter = 'all') => get<FeedPage>(`/feed?filter=${filter}${before ? `&before=${before}` : ''}`),
 
   createPost: (body: { kind: PostKind; body: string; zooId?: number | null; photos: File[] }) => {
     const form = new FormData();

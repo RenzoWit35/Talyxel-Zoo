@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Heart, Map as MapIcon, MessageCircle, MessageCircleQuestion, MoreHorizontal, Send, Trash2, Vote, X } from 'lucide-react';
+import { CircleHelp, Ellipsis, Heart, Map as MapIcon, MessageCircle, Send, Trash2, X } from 'lucide-react';
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { KIND_META, POST_LIMITS } from '../../../shared/constants';
@@ -8,38 +8,34 @@ import type { Comment, FeedItem } from '../../../shared/types';
 import { api, ApiError } from '../../api/client';
 import { useMe } from '../../auth';
 import { plural, timeAgo } from '../../lib/format';
-import { ParkIcon } from '../ParkType';
 import { useToast } from '../toast';
 import { Avatar, Modal, UserLink } from '../ui';
-import { MediaCarousel, type Slide } from './MediaCarousel';
+import { FeedPoll } from './FeedPoll';
+import { PostMedia } from './PostMedia';
 
-/** Text-only posts up to this length become a big text card; longer ones are just a caption. */
-const TEXT_CARD_MAX = 220;
+/** A post's first line becomes its title when it's short enough to read as one. */
+const TITLE_MAX = 90;
 
-function slidesFor(item: FeedItem): Slide[] {
-  const map: Slide | null = item.zoo
-    ? { type: 'map', zoo: item.zoo, highlight: item.habitat ? { points: item.habitat.points, kind: item.habitat.kind } : undefined }
-    : null;
-  const photos: Slide[] = item.photos.map((photo) => ({ type: 'photo', photo }));
-  switch (item.type) {
-    case 'post_created': {
-      const p = item.post!;
-      const slides: Slide[] = p.photos.map((photo) => ({ type: 'photo', photo }));
-      if (map) slides.push(map);
-      if (!slides.length && p.body && p.body.length <= TEXT_CARD_MAX) slides.push({ type: 'text', text: p.body, tone: p.kind });
-      return slides;
-    }
-    case 'habitat_added':
-      return [...(map ? [map] : []), ...photos];
-    case 'photos_added':
-      return [...photos, ...(map ? [map] : [])];
-    default:
-      return map ? [map] : [];
-  }
+/** Splits a post into a title (a short first line, or a short post as a whole) and the rest. */
+export function splitPost(body: string): { title: string; text: string } {
+  const text = body.trim();
+  const [first, ...rest] = text.split('\n');
+  if (rest.length && first.trim().length <= TITLE_MAX) return { title: first.trim(), text: rest.join('\n').trim() };
+  if (text.length <= TITLE_MAX) return { title: text, text: '' };
+  return { title: '', text };
 }
 
-/** What happened, in words, for park activity (posts use their own text). */
-function activityText(item: FeedItem): ReactNode {
+/** What the media frame shows: the post's or shape's photos, or else the park map. */
+function mediaFor(item: FeedItem) {
+  const photos = item.post ? item.post.photos : item.type === 'habitat_added' ? [] : item.photos;
+  const highlight = item.habitat ? { points: item.habitat.points, kind: item.habitat.kind } : undefined;
+  const place = item.zoo ? (item.habitat ? `${item.habitat.name} · ${item.zoo.title}` : item.zoo.title) : undefined;
+  const placeTo = item.zoo ? (item.habitat ? `/z/${item.zoo.id}?h=${item.habitat.id}` : `/z/${item.zoo.id}`) : undefined;
+  return { photos, highlight, place, placeTo };
+}
+
+/** What happened, as the card's title and text, for park activity (posts use their own words). */
+function activityText(item: FeedItem): { title: ReactNode; text: string } {
   const zoo = item.zoo;
   const shape = item.habitat && (
     <Link to={`/z/${zoo?.id}?h=${item.habitat.id}`} className="strong-link">
@@ -53,68 +49,53 @@ function activityText(item: FeedItem): ReactNode {
   );
   switch (item.type) {
     case 'zoo_published':
-      return (
-        <>
-          published a new {zoo ? parkMeta(zoo.parkType).noun : 'park'} plan: {park}
-          {zoo?.description && <span className="post-desc">{zoo.description}</span>}
-        </>
-      );
+      return { title: <>Published a new {zoo ? parkMeta(zoo.parkType).noun : 'park'} plan: {park}</>, text: zoo?.description ?? '' };
     case 'habitat_added':
-      return (
-        <>
-          added {KIND_META[item.habitat?.kind ?? 'habitat'].label.toLowerCase()} {shape}
-          {item.habitat?.species && <em className="species-inline"> · {item.habitat.species}</em>} to {park}
-          {item.habitat?.description && <span className="post-desc">{item.habitat.description}</span>}
-        </>
-      );
+      return {
+        title: (
+          <>
+            Added {KIND_META[item.habitat?.kind ?? 'habitat'].label.toLowerCase()} {shape}
+            {item.habitat?.species && <span className="species-inline"> ({item.habitat.species})</span>} to {park}
+          </>
+        ),
+        text: item.habitat?.description ?? '',
+      };
     case 'photos_added':
-      return (
-        <>
-          added {plural(item.photos.length, 'photo')} to {shape} in {park}
-        </>
-      );
+      return {
+        title: (
+          <>
+            Added {plural(item.photos.length, 'photo')} to {shape} in {park}
+          </>
+        ),
+        text: '',
+      };
     case 'survey_created':
-      return <>wants your opinion on {park}</>;
+      return { title: <>Wants your opinion on {park}</>, text: '' };
     default:
-      return null;
+      return { title: null, text: '' };
   }
 }
 
-function SurveyCallout({ item }: { item: FeedItem }) {
-  if (!item.survey || !item.zoo) return null;
-  return (
-    <Link to={`/z/${item.zoo.id}#surveys`} className="feed-survey">
-      <Vote />
-      <div className="spacer">
-        <strong>{item.survey.question}</strong>
-        <span className="subtle">
-          {plural(item.survey.optionCount, 'option')} · {plural(item.survey.totalVotes, 'vote')}
-          {!item.survey.isOpen && ' · closed'}
-        </span>
-      </div>
-      {item.survey.isOpen && <span className="btn btn-sm btn-accent">Vote</span>}
-    </Link>
-  );
-}
-
-/** Caption that clamps long text to a few lines with a "more" toggle. */
-function Caption({ item, showBody }: { item: FeedItem; showBody: boolean }) {
+/** Title and text above the media. Long text clamps to a few lines with a "more" toggle. */
+function PostText({ item }: { item: FeedItem }) {
   const [open, setOpen] = useState(false);
-  const body = item.post ? (showBody ? item.post.body : '') : null;
-  const long = (body?.length ?? 0) > 160 || (body?.split('\n').length ?? 0) > 3;
-  if (item.post && !body) return null;
+  const { title, text } = item.post ? splitPost(item.post.body) : activityText(item);
+  const long = text.length > 280 || text.split('\n').length > 4;
+  if (!title && !text) return null;
   return (
-    <p className={`post-caption${long && !open ? ' clamped' : ''}`}>
-      <UserLink user={item.actor}>
-        <strong>{item.actor.displayName}</strong>
-      </UserLink>{' '}
-      {item.post ? <span className="post-body">{body}</span> : activityText(item)}
-      {long && !open && (
-        <button className="link-button" onClick={() => setOpen(true)}>
-          more
-        </button>
+    <div className="post-text">
+      {title && <h2 className={`post-title${item.post ? '' : ' is-activity'}`}>{title}</h2>}
+      {text && (
+        <p className={`post-body${long && !open ? ' clamped' : ''}`}>
+          {text}
+          {long && !open && (
+            <button className="link-button" onClick={() => setOpen(true)}>
+              more
+            </button>
+          )}
+        </p>
       )}
-    </p>
+    </div>
   );
 }
 
@@ -122,15 +103,15 @@ function CommentLine({ comment, onDelete }: { comment: Comment; onDelete?: () =>
   return (
     <div className="comment">
       <Link to={`/u/${comment.author.username}`} className="comment-avatar" aria-hidden="true" tabIndex={-1}>
-        <Avatar user={comment.author} size={26} />
+        <Avatar user={comment.author} size={28} />
       </Link>
-      <p className="spacer">
-        <UserLink user={comment.author}>
-          <strong>{comment.author.displayName}</strong>
-        </UserLink>{' '}
-        <span className="post-body">{comment.body}</span>
-        <span className="comment-time"> · {timeAgo(comment.createdAt)}</span>
-      </p>
+      <div className="comment-bubble">
+        <span className="comment-head">
+          <UserLink user={comment.author} />
+          <span className="comment-time">{timeAgo(comment.createdAt)}</span>
+        </span>
+        <p className="comment-body">{comment.body}</p>
+      </div>
       {onDelete && comment.canDelete && (
         <button className="btn btn-ghost btn-icon btn-sm comment-delete" aria-label="Delete comment" onClick={onDelete}>
           <X />
@@ -147,7 +128,7 @@ interface Props {
   onDeleted?: () => void;
 }
 
-/** One Instagram-style card: header, square media, actions, likes, caption, comments and a comment box. */
+/** One post: author, title and text, photos or the park map, a survey, likes, comments and a comment box. */
 export function PostCard({ item, full = false, onDeleted }: Props) {
   const { me } = useMe();
   const qc = useQueryClient();
@@ -236,53 +217,35 @@ export function PostCard({ item, full = false, onDeleted }: Props) {
     }
   };
 
-  const slides = slidesFor(item);
-  const textCard = slides.length === 1 && slides[0].type === 'text';
+  const media = mediaFor(item);
   const isQuestion = item.post?.kind === 'question';
-  // Our own like may not be in the server's list yet (or may have just been taken back).
-  const likers = [
-    ...(like.liked && me && !item.likedBy.some((u) => u.id === me.id) ? [me] : []),
-    ...item.likedBy.filter((u) => like.liked || u.id !== me?.id),
-  ].slice(0, 3);
-  const firstLiker = likers.find((u) => u.id !== me?.id) ?? likers[0];
   const shownComments = full ? comments : comments.slice(-3);
+  const noun = isQuestion ? 'answer' : 'comment';
 
   return (
     <article className={`post-card card${isQuestion ? ' is-question' : ''}`} aria-label={`Post by ${item.actor.displayName}`}>
       <header className="post-head">
         <Link to={`/u/${item.actor.username}`} className="post-avatar" aria-hidden="true" tabIndex={-1}>
-          <Avatar user={item.actor} size={36} />
+          <Avatar user={item.actor} size={40} />
         </Link>
         <div className="spacer post-who">
-          <div className="post-who-line">
-            <UserLink user={item.actor}>
-              <strong>{item.actor.displayName}</strong>
-            </UserLink>
-            <span className="subtle">
-              {' '}
-              ·{' '}
-              <Link to={`/p/${item.id}`} className="post-time">
-                <time dateTime={item.createdAt}>{timeAgo(item.createdAt)}</time>
-              </Link>
-            </span>
-          </div>
-          {item.zoo ? (
-            <Link to={`/z/${item.zoo.id}`} className="post-place">
-              <ParkIcon type={item.zoo.parkType} size={12} /> {item.zoo.title}
+          <UserLink user={item.actor} />
+          <span className="post-meta">
+            @{item.actor.username} ·{' '}
+            <Link to={`/p/${item.id}`} className="post-time">
+              <time dateTime={item.createdAt}>{timeAgo(item.createdAt)}</time>
             </Link>
-          ) : (
-            isQuestion && <span className="post-place">Asked the community</span>
-          )}
-        </div>
-        {isQuestion && (
-          <span className="chip chip-question">
-            <MessageCircleQuestion /> Question
+            {isQuestion && (
+              <span className="post-kind">
+                <CircleHelp aria-hidden="true" /> Question
+              </span>
+            )}
           </span>
-        )}
+        </div>
         {item.canDelete && (
           <div className="post-menu">
-            <button className="btn btn-ghost btn-icon btn-sm" aria-label="Post options" aria-expanded={menuOpen} onClick={() => setMenuOpen((o) => !o)}>
-              <MoreHorizontal />
+            <button className="icon-action" aria-label="Post options" aria-expanded={menuOpen} onClick={() => setMenuOpen((o) => !o)}>
+              <Ellipsis />
             </button>
             {menuOpen && (
               <div className="menu card" role="menu" onMouseLeave={() => setMenuOpen(false)}>
@@ -302,71 +265,55 @@ export function PostCard({ item, full = false, onDeleted }: Props) {
         )}
       </header>
 
-      {slides.length > 0 && <MediaCarousel slides={slides} onDoubleTap={() => setLiked(true)} label={`Media from ${item.actor.displayName}`} />}
+      <PostText item={item} />
+      <PostMedia {...media} zoo={item.zoo} onDoubleTap={() => setLiked(true)} label={`Pictures from ${item.actor.displayName}`} />
+      {item.survey && item.zoo && <FeedPoll survey={item.survey} parkType={item.zoo.parkType} from={`/p/${item.id}`} />}
 
-      <div className="post-body-wrap">
-        <div className="post-actions">
-          <button
-            className={`icon-action like${like.liked ? ' on' : ''}`}
-            aria-pressed={like.liked}
-            aria-label={like.liked ? 'Unlike' : 'Like'}
-            onClick={() => setLiked(!like.liked)}
-          >
-            <Heart />
-          </button>
-          <button className="icon-action" aria-label="Comment" onClick={() => (me ? inputRef.current?.focus() : needLogin())}>
-            <MessageCircle />
-          </button>
-          <button className="icon-action" aria-label="Copy link" onClick={copyLink}>
-            <Send />
-          </button>
-          <span className="spacer" />
-          {item.zoo && (
-            <Link to={`/z/${item.zoo.id}`} className="icon-action" aria-label="Open park" title="Open park">
-              <MapIcon />
-            </Link>
-          )}
-        </div>
-
-        {like.likes > 0 && (
-          <div className="post-likes">
-            {likers.length > 0 && (
-              <span className="avatar-stack" aria-hidden="true">
-                {likers.map((u) => (
-                  <Avatar key={u.id} user={u} size={20} />
-                ))}
-              </span>
-            )}
-            {firstLiker && like.likes > 1 ? (
-              <span>
-                Liked by <strong>{firstLiker.id === me?.id ? 'you' : firstLiker.displayName}</strong> and <strong>{plural(like.likes - 1, 'other')}</strong>
-              </span>
-            ) : (
-              <strong>{plural(like.likes, 'like')}</strong>
-            )}
-          </div>
-        )}
-
-        <Caption item={item} showBody={!textCard} />
-        <SurveyCallout item={item} />
-
-        {!full && commentCount > shownComments.length && (
-          <Link to={`/p/${item.id}`} className="post-more-comments">
-            View all {plural(commentCount, isQuestion ? 'answer' : 'comment')}
+      <div className="post-actions">
+        <button
+          className={`icon-action like${like.liked ? ' on' : ''}`}
+          aria-pressed={like.liked}
+          aria-label={like.liked ? 'Unlike' : 'Like'}
+          onClick={() => setLiked(!like.liked)}
+        >
+          <Heart />
+        </button>
+        <span className="post-count post-likes" title={plural(like.likes, 'like')}>
+          {like.likes}
+          <span className="sr-only"> {like.likes === 1 ? 'like' : 'likes'}</span>
+        </span>
+        <button className="icon-action" aria-label={isQuestion ? 'Answer' : 'Comment'} onClick={() => (me ? inputRef.current?.focus() : needLogin())}>
+          <MessageCircle />
+        </button>
+        <span className="post-count">{plural(commentCount, noun)}</span>
+        <button className="icon-action" aria-label="Copy link" title="Copy link" onClick={copyLink}>
+          <Send />
+        </button>
+        <span className="spacer" />
+        {item.zoo && (
+          <Link to={`/z/${item.zoo.id}`} className="icon-action" aria-label="Open park" title="Open park">
+            <MapIcon />
           </Link>
         )}
-        {shownComments.length > 0 && (
-          <div className="post-comments">
-            {shownComments.map((c) => (
-              <CommentLine key={c.id} comment={c} onDelete={full ? () => void removeComment(c) : undefined} />
-            ))}
-          </div>
-        )}
-        {full && comments.length === 0 && <p className="subtle">{isQuestion ? 'No answers yet — be the first.' : 'No comments yet.'}</p>}
       </div>
+
+      {!full && commentCount > shownComments.length && (
+        <Link to={`/p/${item.id}`} className="post-more-comments">
+          View all {plural(commentCount, noun)}
+        </Link>
+      )}
+      {shownComments.length > 0 && (
+        <div className="post-comments">
+          {shownComments.map((c) => (
+            <CommentLine key={c.id} comment={c} onDelete={full ? () => void removeComment(c) : undefined} />
+          ))}
+        </div>
+      )}
+      {full && comments.length === 0 && <p className="subtle">{isQuestion ? 'No answers yet — be the first.' : 'No comments yet.'}</p>}
 
       {me ? (
         <form className="comment-form" onSubmit={submitComment}>
+          <Avatar user={me} size={28} />
           <input
             ref={inputRef}
             className="comment-input"

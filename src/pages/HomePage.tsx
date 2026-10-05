@@ -28,14 +28,13 @@ import { WelcomeDialog } from '../components/tutorial/WelcomeDialog';
 import { Avatar, PageLoader } from '../components/ui';
 import { ZooThumbnail } from '../components/ZooThumbnail';
 import { timeAgo } from '../lib/format';
+import { parkProgress } from '../lib/parks';
 
 function greeting(date: Date) {
   const h = date.getHours();
   return h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
 }
 
-/** How much of the plan is built: shapes marked done out of all shapes. */
-export const parkProgress = (z: Pick<ZooSummary, 'habitatCount' | 'doneCount'>) => (z.habitatCount ? Math.round((z.doneCount / z.habitatCount) * 100) : 0);
 
 function ProjectCard({ zoo }: { zoo: ZooSummary }) {
   const progress = parkProgress(zoo);

@@ -163,8 +163,8 @@ function PostsTab({ profile }: { profile: Profile }) {
 
 export function ProfilePage() {
   const { username = '' } = useParams();
-  const [tab, setTab] = useState<Tab>('posts');
   const [params, setParams] = useSearchParams();
+  const [tab, setTab] = useState<Tab>(() => (params.get('tab') === 'followers' || params.get('tab') === 'following' ? (params.get('tab') as Tab) : 'posts'));
   const [editing, setEditing] = useState(false);
   const profile = useQuery({ queryKey: ['profile', username], queryFn: () => api.profile(username) });
   const isMe = profile.data?.isMe;

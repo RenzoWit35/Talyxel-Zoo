@@ -13,10 +13,12 @@ interface Props {
   size?: 'sm' | 'md';
   /** Keep the label to one word (for narrow sidebars). */
   short?: boolean;
+  /** A small outlined pill without an icon. */
+  plain?: boolean;
 }
 
 /** Follow / unfollow toggle. Mutual follows are shown as "Friends". */
-export function FollowButton({ username, isFollowing, followsYou, size = 'md', short }: Props) {
+export function FollowButton({ username, isFollowing, followsYou, size = 'md', short, plain }: Props) {
   const { me } = useMe();
   const navigate = useNavigate();
   const toast = useToast();
@@ -39,7 +41,7 @@ export function FollowButton({ username, isFollowing, followsYou, size = 'md', s
   });
 
   if (me?.username.toLowerCase() === username.toLowerCase()) return null;
-  const cls = `btn ${size === 'sm' ? 'btn-sm' : ''} ${following ? '' : 'btn-primary'}`;
+  const cls = plain ? `btn btn-xs follow-plain${following ? ' is-following' : ''}` : `btn ${size === 'sm' ? 'btn-sm' : ''} ${following ? '' : 'btn-primary'}`;
   const label = following ? (followsYou ? 'Friends' : 'Following') : followsYou && !short ? 'Follow back' : 'Follow';
 
   return (
@@ -49,7 +51,7 @@ export function FollowButton({ username, isFollowing, followsYou, size = 'md', s
       onClick={() => (me ? mutation.mutate(!following) : navigate('/login'))}
       title={following ? 'Click to unfollow' : undefined}
     >
-      {following ? <UserCheck /> : <UserPlus />}
+      {!plain && (following ? <UserCheck /> : <UserPlus />)}
       {label}
     </button>
   );
