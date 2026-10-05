@@ -100,6 +100,20 @@ describe('posts', () => {
     expect((await rosa.del(`/api/activity/${published.id}`)).status).toBe(400);
   });
 
+  it('counts posts and published parks on profiles', async () => {
+    const rosa = await signUp(app, 'rosa');
+    const kai = await signUp(app, 'kai');
+    await rosa.post('/api/posts', { kind: 'update', body: 'One' });
+    await rosa.post('/api/posts', { kind: 'question', body: 'Two?' });
+    await publishedPark(rosa);
+    await rosa.post('/api/zoos', { title: 'Draft', width: 100, height: 100 });
+
+    const seenByKai = (await kai.get('/api/users/rosa')).body;
+    expect(seenByKai).toMatchObject({ postCount: 2 });
+    expect(seenByKai.zoos).toHaveLength(1);
+    expect((await rosa.get('/api/users/rosa')).body.zoos).toHaveLength(2); // you see your own drafts
+  });
+
   it('lists a builder’s posts newest first and serves single posts to anyone', async () => {
     const rosa = await signUp(app, 'rosa');
     await rosa.post('/api/posts', { kind: 'update', body: 'First' });

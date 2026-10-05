@@ -1,19 +1,20 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Map, PenLine, Users } from 'lucide-react';
+import { Grid3x3, Heart, Images, Map, MessageCircle, MessageCircleQuestion, PenLine, Plus, Users } from 'lucide-react';
 import { useState } from 'react';
-import { useParams } from 'react-router';
+import { Link, useParams } from 'react-router';
 import { AVATAR_COLORS } from '../../shared/constants';
-import type { Me, Profile } from '../../shared/types';
+import type { FeedItem, Me, Profile } from '../../shared/types';
 import { api, ApiError, errorMessage } from '../api/client';
 import { FollowButton } from '../components/FollowButton';
+import { ParkMapCard } from '../components/ParkMapCard';
 import { useToast } from '../components/toast';
 import { Avatar, EmptyState, Modal, PageLoader } from '../components/ui';
 import { UserRow } from '../components/UserRow';
-import { ZooCard } from '../components/ZooCard';
+import { ZooThumbnail } from '../components/ZooThumbnail';
 import { formatDate } from '../lib/format';
 import { NotFound } from './NotFound';
 
-type Tab = 'zoos' | 'followers' | 'following';
+type Tab = 'posts' | 'followers' | 'following';
 
 function EditProfileDialog({ profile, onClose }: { profile: Profile; onClose: () => void }) {
   const qc = useQueryClient();
@@ -87,7 +88,7 @@ function PeopleTab({ username, kind }: { username: string; kind: 'followers' | '
   if (!list.data?.length)
     return (
       <EmptyState icon={<Users />} title={kind === 'followers' ? 'No followers yet' : 'Not following anyone yet'}>
-        {kind === 'followers' ? 'Publish a park to get noticed.' : 'Find builders on the People page.'}
+        {kind === 'followers' ? 'Publish a park or share an update to get noticed.' : 'Find builders on the People page.'}
       </EmptyState>
     );
   return (
@@ -99,9 +100,69 @@ function PeopleTab({ username, kind }: { username: string; kind: 'followers' | '
   );
 }
 
+/** A square in the posts grid: the first photo, the linked park's map, or the text. */
+function PostTile({ item }: { item: FeedItem }) {
+  const post = item.post!;
+  const cover = post.photos[0];
+  return (
+    <Link to={`/p/${item.id}`} className="post-tile" aria-label={`${post.kind === 'question' ? 'Question' : 'Update'}: ${post.body || 'photos'}`}>
+      {cover ? (
+        <img src={cover.url} alt="" loading="lazy" />
+      ) : item.zoo ? (
+        <ZooThumbnail width={item.zoo.width} height={item.zoo.height} shapes={item.zoo.shapes} className="post-tile-map" />
+      ) : (
+        <span className={`post-tile-text tone-${post.kind}`}>
+          <span>{post.body}</span>
+        </span>
+      )}
+      {post.kind === 'question' ? (
+        <MessageCircleQuestion className="post-tile-flag" aria-hidden="true" />
+      ) : (
+        post.photos.length > 1 && <Images className="post-tile-flag" aria-hidden="true" />
+      )}
+      <span className="post-tile-hover" aria-hidden="true">
+        <span>
+          <Heart /> {item.likes}
+        </span>
+        <span>
+          <MessageCircle /> {item.commentCount}
+        </span>
+      </span>
+    </Link>
+  );
+}
+
+function PostsTab({ profile }: { profile: Profile }) {
+  const posts = useQuery({ queryKey: ['posts', profile.username], queryFn: () => api.userPosts(profile.username) });
+  if (posts.isPending) return <PageLoader />;
+  if (!posts.data?.length)
+    return (
+      <EmptyState
+        icon={<Grid3x3 />}
+        title="No posts yet"
+        action={
+          profile.isMe ? (
+            <Link to="/" className="btn btn-primary">
+              <Plus /> Share your first update
+            </Link>
+          ) : undefined
+        }
+      >
+        {profile.isMe ? 'Updates and questions you share show up here.' : `${profile.displayName} hasn't shared anything yet.`}
+      </EmptyState>
+    );
+  return (
+    <div className="post-grid">
+      {posts.data.map((item) => (
+        <PostTile key={item.id} item={item} />
+      ))}
+    </div>
+  );
+}
+
 export function ProfilePage() {
   const { username = '' } = useParams();
-  const [tab, setTab] = useState<Tab>('zoos');
+  const [tab, setTab] = useState<Tab>('posts');
   const [editing, setEditing] = useState(false);
   const profile = useQuery({ queryKey: ['profile', username], queryFn: () => api.profile(username) });
 
@@ -109,13 +170,14 @@ export function ProfilePage() {
   if (profile.error) return profile.error instanceof ApiError && profile.error.status === 404 ? <NotFound what="builder" /> : <div className="page">{errorMessage(profile.error)}</div>;
   const p = profile.data;
   const friends = p.isFollowing && p.followsYou;
+  const published = p.zoos.filter((z) => z.status === 'published').length;
 
   return (
-    <div className="page">
+    <div className="page profile-page">
       <section className="profile-head card">
         <div className="profile-banner" style={{ background: `linear-gradient(120deg, ${p.avatarColor}, #9fcf8a)` }} />
         <div className="profile-body">
-          <Avatar user={p} size={88} />
+          <Avatar user={p} size={96} />
           <div className="profile-text">
             <div className="row row-wrap" style={{ gap: 8 }}>
               <h1>{p.displayName}</h1>
@@ -125,17 +187,6 @@ export function ProfilePage() {
               @{p.username} · building since {formatDate(p.createdAt)}
             </span>
             {p.bio && <p className="profile-bio">{p.bio}</p>}
-            <div className="profile-stats">
-              <button onClick={() => setTab('zoos')}>
-                <strong>{p.zoos.filter((z) => z.status === 'published').length}</strong> published
-              </button>
-              <button onClick={() => setTab('followers')}>
-                <strong>{p.followers}</strong> {p.followers === 1 ? 'follower' : 'followers'}
-              </button>
-              <button onClick={() => setTab('following')}>
-                <strong>{p.following}</strong> following
-              </button>
-            </div>
           </div>
           <div className="profile-actions">
             {p.isMe ? (
@@ -147,11 +198,51 @@ export function ProfilePage() {
             )}
           </div>
         </div>
+        <div className="profile-counts">
+          <button onClick={() => setTab('posts')}>
+            <strong>{p.postCount.toLocaleString('en')}</strong> {p.postCount === 1 ? 'post' : 'posts'}
+          </button>
+          <a href="#parks">
+            <strong>{published.toLocaleString('en')}</strong> {published === 1 ? 'park' : 'parks'}
+          </a>
+          <button onClick={() => setTab('followers')}>
+            <strong>{p.followers.toLocaleString('en')}</strong> {p.followers === 1 ? 'follower' : 'followers'}
+          </button>
+          <button onClick={() => setTab('following')}>
+            <strong>{p.following.toLocaleString('en')}</strong> following
+          </button>
+        </div>
       </section>
 
-      <div className="tabs" role="tablist">
-        <button role="tab" aria-selected={tab === 'zoos'} onClick={() => setTab('zoos')}>
-          Zoos <span className="count">{p.zoos.length}</span>
+      <section id="parks" className="profile-parks" aria-labelledby="parks-title">
+        <div className="profile-section-head">
+          <h2 id="parks-title">Parks</h2>
+          <span className="subtle">Seen from above — open one to explore the map</span>
+          <span className="spacer" />
+          {p.isMe && (
+            <Link to="/zoos?new=1" className="btn btn-sm">
+              <Plus /> New plan
+            </Link>
+          )}
+        </div>
+        {p.zoos.length ? (
+          <div className="park-map-grid">
+            {p.zoos.map((z) => (
+              <ParkMapCard key={z.id} zoo={z} editable={p.isMe} />
+            ))}
+          </div>
+        ) : (
+          <div className="card">
+            <EmptyState icon={<Map />} title={p.isMe ? 'Plan your first park' : 'No published parks yet'}>
+              {p.isMe ? 'Draw your zoo or theme park from above — it shows up here as a map.' : `${p.displayName} hasn't published a park yet.`}
+            </EmptyState>
+          </div>
+        )}
+      </section>
+
+      <div className="tabs profile-tabs" role="tablist">
+        <button role="tab" aria-selected={tab === 'posts'} onClick={() => setTab('posts')}>
+          <Grid3x3 size={16} /> Posts <span className="count">{p.postCount}</span>
         </button>
         <button role="tab" aria-selected={tab === 'followers'} onClick={() => setTab('followers')}>
           Followers <span className="count">{p.followers}</span>
@@ -161,19 +252,7 @@ export function ProfilePage() {
         </button>
       </div>
 
-      {tab === 'zoos' &&
-        (p.zoos.length ? (
-          <div className="grid-cards">
-            {p.zoos.map((z) => (
-              <ZooCard key={z.id} zoo={z} editable={p.isMe} showOwner={false} />
-            ))}
-          </div>
-        ) : (
-          <EmptyState icon={<Map />} title="No published parks yet">
-            {p.isMe ? 'Create a plan from My parks and publish it to show it here.' : `${p.displayName} hasn't published a park yet.`}
-          </EmptyState>
-        ))}
-      {tab !== 'zoos' && <PeopleTab username={p.username} kind={tab} />}
+      {tab === 'posts' ? <PostsTab profile={p} /> : <PeopleTab username={p.username} kind={tab} />}
       {editing && <EditProfileDialog profile={p} onClose={() => setEditing(false)} />}
     </div>
   );

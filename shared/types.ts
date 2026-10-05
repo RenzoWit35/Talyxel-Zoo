@@ -25,6 +25,8 @@ export interface Profile extends UserSummary {
   createdAt: string;
   followers: number;
   following: number;
+  /** Posts (updates and questions) they've shared. */
+  postCount: number;
   isMe: boolean;
   isFollowing: boolean;
   followsYou: boolean;

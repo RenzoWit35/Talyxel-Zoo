@@ -49,10 +49,12 @@ export function userRoutes(db: DB) {
     const user = findUser(req.params.username);
     const viewer = req.user?.id;
     const isMe = viewer === user.id;
-    const counts = one<{ followers: number; following: number }>(
+    const counts = one<{ followers: number; following: number; posts: number }>(
       db,
       `SELECT (SELECT COUNT(*) FROM follows WHERE followee_id = ?) AS followers,
-              (SELECT COUNT(*) FROM follows WHERE follower_id = ?) AS following`,
+              (SELECT COUNT(*) FROM follows WHERE follower_id = ?) AS following,
+              (SELECT COUNT(*) FROM posts WHERE user_id = ?) AS posts`,
+      user.id,
       user.id,
       user.id,
     )!;
@@ -70,6 +72,7 @@ export function userRoutes(db: DB) {
       createdAt: user.created_at,
       followers: counts.followers,
       following: counts.following,
+      postCount: counts.posts,
       isMe,
       isFollowing: rel(viewer, user.id),
       followsYou: viewer ? rel(user.id, viewer) : false,
