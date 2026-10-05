@@ -1,9 +1,13 @@
 import type { HabitatStatus, ParkType } from '../../shared/constants';
 import type {
+  Comment,
+  FeedItem,
   FeedPage,
   Habitat,
+  LikeState,
   Me,
   ParkStats,
+  PostKind,
   Profile,
   StatsInput,
   Survey,
@@ -114,6 +118,23 @@ export const api = {
   deleteSurvey: (surveyId: number) => del<{ ok: true }>(`/surveys/${surveyId}`),
 
   feed: (before?: number) => get<FeedPage>(`/feed${before ? `?before=${before}` : ''}`),
+
+  createPost: (body: { kind: PostKind; body: string; zooId?: number | null; photos: File[] }) => {
+    const form = new FormData();
+    form.append('kind', body.kind);
+    form.append('body', body.body);
+    if (body.zooId) form.append('zooId', String(body.zooId));
+    for (const f of body.photos) form.append('photos', f);
+    return post<FeedItem>('/posts', form);
+  },
+  activity: (id: number) => get<FeedItem>(`/activity/${id}`),
+  deleteActivity: (id: number) => del<{ ok: true }>(`/activity/${id}`),
+  like: (id: number) => put<LikeState>(`/activity/${id}/like`),
+  unlike: (id: number) => del<LikeState>(`/activity/${id}/like`),
+  comments: (id: number) => get<Comment[]>(`/activity/${id}/comments`),
+  addComment: (id: number, body: string) => post<Comment>(`/activity/${id}/comments`, { body }),
+  deleteComment: (id: number) => del<{ ok: true }>(`/comments/${id}`),
+  userPosts: (username: string) => get<FeedItem[]>(`/users/${enc(username)}/posts`),
 };
 
 export function errorMessage(err: unknown): string {

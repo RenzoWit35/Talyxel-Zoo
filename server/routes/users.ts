@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import type { Profile } from '../../shared/types';
 import { all, one, run, type DB } from '../db';
+import { buildFeedItems, EVENT_SELECT, VISIBLE, type EventRow } from '../feed-items';
 import { badRequest, notFound, requireUser } from '../http';
 import { listUsers, loadZooSummaries, toUserSummary, ZOO_SELECT, type UserRow, type ZooRow } from '../queries';
 
@@ -75,6 +76,17 @@ export function userRoutes(db: DB) {
       zoos: loadZooSummaries(db, zoos),
     };
     res.json(profile);
+  });
+
+  // A builder's own posts (not park activity), newest first — the grid on their profile.
+  r.get('/:username/posts', (req, res) => {
+    const user = findUser(req.params.username);
+    const rows = all<EventRow>(
+      db,
+      `${EVENT_SELECT} WHERE e.actor_id = ? AND e.type = 'post_created' AND ${VISIBLE} ORDER BY e.id DESC LIMIT 90`,
+      user.id,
+    );
+    res.json(buildFeedItems(db, rows, req.user?.id));
   });
 
   r.get('/:username/followers', (req, res) => {

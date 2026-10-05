@@ -1,5 +1,6 @@
 import { z } from 'zod';
-import { BIOMES, HABITAT_KINDS, HABITAT_STATUSES, LIMITS, PARK_TYPES, THEMES } from '../shared/constants';
+import { BIOMES, HABITAT_KINDS, HABITAT_STATUSES, LIMITS, PARK_TYPES, POST_LIMITS, THEMES } from '../shared/constants';
+import { POST_KINDS } from '../shared/types';
 import { STAT_LIMITS } from '../shared/stats';
 
 const text = (max: number) => z.string().trim().max(max, `Keep it under ${max} characters`);
@@ -122,6 +123,15 @@ export const statsInput = z.object({
 export const publishInput = z.object({
   survey: surveyInput.optional(),
 });
+
+/** Posts arrive as multipart form fields (strings) or JSON. */
+export const postInput = z.object({
+  kind: z.enum(POST_KINDS, 'Choose update or question'),
+  body: text(POST_LIMITS.body).default(''),
+  zooId: z.preprocess((v) => (v === '' || v === null || v === undefined ? undefined : v), z.coerce.number().int().positive().optional()),
+});
+
+export const commentInput = z.object({ body: required('Comment', POST_LIMITS.comment) });
 
 export const voteInput = z.object({ optionId: z.number().int().positive() });
 export const suggestionInput = z.object({ label: required('Suggestion', 80) });

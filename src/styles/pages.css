@@ -332,107 +332,6 @@
   flex-direction: column;
   gap: 16px;
 }
-.feed-item {
-  padding: 18px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-.feed-head {
-  display: flex;
-  gap: 12px;
-  align-items: flex-start;
-}
-.feed-head p {
-  line-height: 1.4;
-}
-.feed-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 10px;
-  display: grid;
-  place-items: center;
-  flex: none;
-  background: var(--brand-soft);
-  color: var(--brand);
-}
-.feed-icon svg {
-  width: 17px;
-  height: 17px;
-}
-.feed-icon-photos_added {
-  background: #e4eef8;
-  color: var(--info);
-}
-.feed-icon-survey_created,
-.feed-icon-zoo_published {
-  background: var(--accent-soft);
-  color: #b4621f;
-}
-.feed-zoo {
-  display: grid;
-  grid-template-columns: 220px 1fr;
-  gap: 16px;
-  color: inherit;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  overflow: hidden;
-  background: var(--surface-2);
-}
-.feed-zoo:hover {
-  text-decoration: none;
-  border-color: var(--line-strong);
-}
-.feed-map {
-  width: 100%;
-  height: 100%;
-  min-height: 140px;
-  display: block;
-}
-.feed-zoo-text {
-  padding: 14px 16px 14px 0;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.feed-zoo-text p {
-  font-size: 0.9rem;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-.feed-habitat {
-  display: grid;
-  grid-template-columns: 180px 1fr;
-  gap: 16px;
-  align-items: start;
-}
-.feed-habitat-map {
-  display: block;
-  border-radius: 12px;
-  overflow: hidden;
-  aspect-ratio: 4 / 3;
-  border: 1px solid var(--line);
-}
-.feed-habitat-map svg {
-  width: 100%;
-  height: 100%;
-  display: block;
-}
-.feed-habitat-text {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  min-width: 0;
-}
-.feed-habitat-text .species {
-  margin-top: -2px;
-}
-.feed-habitat-text p {
-  font-size: 0.9rem;
-}
 .feed-survey {
   display: flex;
   align-items: center;
@@ -494,18 +393,6 @@
   }
   .feed-side {
     position: static;
-  }
-}
-@media (max-width: 640px) {
-  .feed-zoo,
-  .feed-habitat {
-    grid-template-columns: 1fr;
-  }
-  .feed-zoo-text {
-    padding: 0 14px 14px;
-  }
-  .feed-map {
-    aspect-ratio: 16 / 9;
   }
 }
 

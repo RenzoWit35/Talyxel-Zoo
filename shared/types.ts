@@ -149,17 +149,57 @@ export interface ZooDetail {
   stats: ParkStats | null;
 }
 
-export type FeedEventType = 'zoo_published' | 'habitat_added' | 'photos_added' | 'survey_created';
+export type FeedEventType = 'zoo_published' | 'habitat_added' | 'photos_added' | 'survey_created' | 'post_created';
 
+export const POST_KINDS = ['update', 'question'] as const;
+export type PostKind = (typeof POST_KINDS)[number];
+
+/** Something a builder wrote themselves: an update (often with screenshots) or a question for their followers. */
+export interface FeedPost {
+  id: number;
+  kind: PostKind;
+  body: string;
+  photos: Photo[];
+}
+
+export interface Comment {
+  id: number;
+  body: string;
+  createdAt: string;
+  author: UserSummary;
+  /** The viewer wrote it, or it's on the viewer's own post. */
+  canDelete: boolean;
+}
+
+/**
+ * One card in the feed: a builder's own post, or something that happened in a published park.
+ * Every item can be liked and commented on; its id is what /p/:id links to.
+ */
 export interface FeedItem {
   id: number;
   type: FeedEventType;
   createdAt: string;
   actor: UserSummary;
-  zoo: ZooSummary;
+  /** The park it's about; null for posts without a park (or whose park is no longer public). */
+  zoo: ZooSummary | null;
   habitat: Pick<Habitat, 'id' | 'name' | 'species' | 'kind' | 'status' | 'color' | 'description' | 'points'> | null;
   photos: Photo[];
   survey: { id: number; question: string; isOpen: boolean; totalVotes: number; optionCount: number } | null;
+  post: FeedPost | null;
+  likes: number;
+  liked: boolean;
+  /** A few of the people who liked it, most recent first. */
+  likedBy: UserSummary[];
+  commentCount: number;
+  /** The latest two in lists, all of them on a post's own page (oldest first). */
+  comments: Comment[];
+  /** The viewer can delete it (their own post). */
+  canDelete: boolean;
+}
+
+export interface LikeState {
+  likes: number;
+  liked: boolean;
 }
 
 export interface FeedPage {

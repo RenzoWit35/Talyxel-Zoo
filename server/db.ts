@@ -146,6 +146,63 @@ const MIGRATIONS: string[] = [
   );
   CREATE INDEX zoo_stats_zoo ON zoo_stats(zoo_id, id);
   `,
+  // v4: posts (updates and questions), likes and comments. A post is a feed event too, and a post
+  // doesn't need a park, so events.zoo_id becomes optional — SQLite needs a table rebuild for that.
+  `
+  CREATE TABLE posts (
+    id INTEGER PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    kind TEXT NOT NULL CHECK (kind IN ('update', 'question')),
+    body TEXT NOT NULL DEFAULT '',
+    zoo_id INTEGER REFERENCES zoos(id) ON DELETE SET NULL,
+    created_at TEXT NOT NULL DEFAULT ${NOW}
+  );
+  CREATE INDEX posts_user ON posts(user_id, id);
+
+  CREATE TABLE post_photos (
+    id INTEGER PRIMARY KEY,
+    post_id INTEGER NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
+    url TEXT NOT NULL,
+    position INTEGER NOT NULL DEFAULT 0
+  );
+  CREATE INDEX post_photos_post ON post_photos(post_id, position);
+
+  CREATE TABLE events_v4 (
+    id INTEGER PRIMARY KEY,
+    actor_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    type TEXT NOT NULL,
+    zoo_id INTEGER REFERENCES zoos(id) ON DELETE CASCADE,
+    habitat_id INTEGER REFERENCES habitats(id) ON DELETE CASCADE,
+    survey_id INTEGER REFERENCES surveys(id) ON DELETE CASCADE,
+    post_id INTEGER REFERENCES posts(id) ON DELETE CASCADE,
+    data TEXT NOT NULL DEFAULT '{}',
+    created_at TEXT NOT NULL DEFAULT ${NOW}
+  );
+  INSERT INTO events_v4 (id, actor_id, type, zoo_id, habitat_id, survey_id, data, created_at)
+    SELECT id, actor_id, type, zoo_id, habitat_id, survey_id, data, created_at FROM events;
+  DROP TABLE events;
+  ALTER TABLE events_v4 RENAME TO events;
+  CREATE INDEX events_actor ON events(actor_id, id);
+  CREATE INDEX events_zoo ON events(zoo_id);
+  CREATE INDEX events_post ON events(post_id);
+
+  CREATE TABLE likes (
+    event_id INTEGER NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    created_at TEXT NOT NULL DEFAULT ${NOW},
+    PRIMARY KEY (event_id, user_id)
+  );
+  CREATE INDEX likes_user ON likes(user_id);
+
+  CREATE TABLE comments (
+    id INTEGER PRIMARY KEY,
+    event_id INTEGER NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    body TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT ${NOW}
+  );
+  CREATE INDEX comments_event ON comments(event_id, id);
+  `,
 ];
 
 export function openDb(file: string): DB {

@@ -178,6 +178,8 @@ export const HABITAT_COLORS = [
   '#3f9fb8',
 ];
 
+export const POST_LIMITS = { photos: 10, body: 2200, comment: 1000 } as const;
+
 export const AVATAR_COLORS = ['#2f6b47', '#3e7a8c', '#7a5aa6', '#b5643c', '#a8455a', '#5d6b2f', '#2f5c8a', '#8a6a2f'];
 
 export const LIMITS = {

@@ -303,7 +303,7 @@ describe('social', () => {
     expect(items[0].photos).toHaveLength(2); // both uploads merged into one entry
     expect(items[1].habitat?.name).toBe('Elephants');
     expect(items[2].survey).toMatchObject({ question: 'What next?', optionCount: 2 });
-    expect(items[2].zoo.shapes).toHaveLength(2);
+    expect(items[2].zoo?.shapes).toHaveLength(2);
 
     // Unpublishing hides everything from followers again.
     await rosa.post(`/api/zoos/${zoo.id}/unpublish`);

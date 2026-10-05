@@ -11,6 +11,7 @@ import { MyZoosPage } from './pages/MyZoosPage';
 import { NotFound } from './pages/NotFound';
 import { PeoplePage } from './pages/PeoplePage';
 import { PlannerPage } from './pages/planner/PlannerPage';
+import { PostPage } from './pages/PostPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { ZooPage } from './pages/ZooPage';
 
@@ -66,6 +67,7 @@ export function App() {
           />
           <Route path="z/:id" element={<ZooPage />} />
           <Route path="u/:username" element={<ProfilePage />} />
+          <Route path="p/:id" element={<PostPage />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>
