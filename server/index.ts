@@ -20,6 +20,7 @@ const app = createApp({
   uploadDir: path.join(dataDir, 'uploads'),
   staticDir: path.resolve('dist'),
   trustProxy: parseTrustProxy(process.env.TRUST_PROXY),
+  authRateLimit: Number(process.env.AUTH_RATE_LIMIT) || undefined,
 });
 
 const cleanSessions = () => run(db, "DELETE FROM sessions WHERE expires_at < strftime('%Y-%m-%dT%H:%M:%fZ', 'now')");

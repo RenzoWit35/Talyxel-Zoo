@@ -14,9 +14,9 @@ interface CredentialRow {
 // Verified against when the username doesn't exist, so both paths cost the same time.
 const DUMMY_HASH = hashPassword('not-a-real-password');
 
-export function authRoutes(db: DB) {
+export function authRoutes(db: DB, maxAttempts = 30) {
   const r = Router();
-  const limiter = rateLimit({ windowMs: 10 * 60_000, max: 30 });
+  const limiter = rateLimit({ windowMs: 10 * 60_000, max: maxAttempts });
 
   const loadMe = (id: number): Me => {
     const u = one<{ id: number; username: string; display_name: string; avatar_color: string; bio: string }>(

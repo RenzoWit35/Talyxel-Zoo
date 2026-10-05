@@ -198,7 +198,9 @@ export function MapCanvas({
     [onCreateShape],
   );
 
-  useEffect(() => onDraftChange?.(draft.length), [draft.length, onDraftChange]);
+  useEffect(() => {
+    onDraftChange?.(draft.length);
+  }, [draft.length, onDraftChange]);
 
   useEffect(() => {
     // switching tools abandons any half-drawn shape

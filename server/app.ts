@@ -19,6 +19,8 @@ export interface AppOptions {
   /** Built client (vite build output). Served with an SPA fallback when it exists. */
   staticDir?: string;
   trustProxy?: boolean | string | number;
+  /** Login/register attempts allowed per IP per 10 minutes. */
+  authRateLimit?: number;
 }
 
 const CSP = [
@@ -33,7 +35,7 @@ const CSP = [
   "form-action 'self'",
 ].join('; ');
 
-export function createApp({ db, uploadDir, staticDir, trustProxy = 'loopback' }: AppOptions) {
+export function createApp({ db, uploadDir, staticDir, trustProxy = 'loopback', authRateLimit = 30 }: AppOptions) {
   const app = express();
   const upload = createUploader(uploadDir);
 
@@ -63,7 +65,7 @@ export function createApp({ db, uploadDir, staticDir, trustProxy = 'loopback' }:
   api.use(cookieParser());
   api.use(sessionMiddleware(db));
   api.use(csrfGuard);
-  api.use('/auth', authRoutes(db));
+  api.use('/auth', authRoutes(db, authRateLimit));
   api.use('/users', userRoutes(db));
   api.use('/zoos', zooRoutes(db, upload, uploadDir));
   api.use('/surveys', surveyRoutes(db));

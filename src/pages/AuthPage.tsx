@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { Link, Navigate, useLocation, useNavigate } from 'react-router';
+import { Link, Navigate, useLocation } from 'react-router';
 import { errorMessage } from '../api/client';
 import { useAuthActions, useMe } from '../auth';
 import { LogoMark } from '../components/ui';
@@ -7,7 +7,6 @@ import { LogoMark } from '../components/ui';
 export function AuthPage({ mode }: { mode: 'login' | 'register' }) {
   const { me } = useMe();
   const { login, register } = useAuthActions();
-  const navigate = useNavigate();
   const location = useLocation();
   const from = (location.state as { from?: string } | null)?.from ?? '/';
   const [username, setUsername] = useState('');
@@ -15,13 +14,13 @@ export function AuthPage({ mode }: { mode: 'login' | 'register' }) {
   const [displayName, setDisplayName] = useState('');
   const mutation = mode === 'login' ? login : register;
 
-  if (me) return <Navigate to={from} replace />;
+  // Signing in stores `me`, which re-renders this page; send the user on from here so there's one redirect.
+  if (me) return <Navigate to={mode === 'register' && register.isSuccess ? '/zoos' : from} replace />;
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
-    const done = { onSuccess: () => navigate(mode === 'register' ? '/zoos' : from, { replace: true }) };
-    if (mode === 'login') login.mutate({ username, password }, done);
-    else register.mutate({ username, password, displayName: displayName || undefined }, done);
+    if (mode === 'login') login.mutate({ username, password });
+    else register.mutate({ username, password, displayName: displayName || undefined });
   };
 
   return (
