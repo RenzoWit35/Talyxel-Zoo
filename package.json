@@ -2,21 +2,24 @@
   "name": "talyxel-park",
   "version": "0.1.0",
   "private": true,
-  "description": "Plan your Planet Zoo builds top-down, publish them with a survey and follow your friends' zoos.",
+  "description": "Plan your Planet Zoo and Planet Coaster parks from above, share updates and questions, and follow your friends' builds.",
   "type": "module",
   "engines": {
     "node": ">=22.22.0"
   },
   "scripts": {
+    "predev": "npm run tokens",
     "dev": "concurrently -k -n api,web -c green,cyan \"npm:dev:server\" \"npm:dev:client\"",
     "dev:server": "tsx watch server/index.ts",
     "dev:client": "vite",
+    "prebuild": "npm run tokens",
     "build": "vite build",
     "start": "tsx server/index.ts",
     "seed": "tsx server/seed.ts",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run",
-    "e2e": "playwright test"
+    "e2e": "playwright test",
+    "tokens": "tsx scripts/tokens.ts"
   },
   "dependencies": {
     "@fontsource-variable/fraunces": "^5.3.0",

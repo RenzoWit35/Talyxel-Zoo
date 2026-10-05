@@ -71,7 +71,7 @@
   height: 14px;
 }
 .stat-change.up {
-  color: #2e7d4a;
+  color: var(--positive);
 }
 .stat-change.down {
   color: var(--danger);
@@ -173,7 +173,7 @@
 }
 .input-adorned:focus-within {
   border-color: var(--brand);
-  box-shadow: 0 0 0 3px rgba(47, 107, 71, 0.15);
+  box-shadow: 0 0 0 3px var(--focus-ring);
 }
 .input-adorned .input {
   border: 0;

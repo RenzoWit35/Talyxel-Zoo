@@ -1,0 +1,18 @@
+{
+  "$description": "Talyxel Park — tokens shared by both themes. W3C design-token format (DTCG); importable as Figma variables or with Tokens Studio. Run `npm run tokens` after changing.",
+  "radius": {
+    "$type": "dimension",
+    "radius-sm": { "$value": "8px", "$description": "Inputs, small buttons" },
+    "radius": { "$value": "12px", "$description": "Buttons, chips, panels" },
+    "radius-lg": { "$value": "18px", "$description": "Cards and dialogs" }
+  },
+  "font": {
+    "$type": "fontFamily",
+    "font-ui": { "$value": ["Inter Variable", "ui-sans-serif", "system-ui", "-apple-system", "Segoe UI", "sans-serif"], "$description": "Interface text" },
+    "font-display": { "$value": ["Fraunces Variable", "ui-serif", "Georgia", "serif"], "$description": "Headings and big text cards" }
+  },
+  "size": {
+    "$type": "dimension",
+    "nav-h": { "$value": "60px", "$description": "Height of the top navigation" }
+  }
+}

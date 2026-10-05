@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode } from 'react';
+import { lazy, useEffect, type ReactNode } from 'react';
 import { Navigate, Route, Routes, useLocation } from 'react-router';
 import { useMe } from './auth';
 import { Layout } from './components/Layout';
@@ -6,15 +6,17 @@ import { PageLoader } from './components/ui';
 import { AuthPage } from './pages/AuthPage';
 import { ExplorePage } from './pages/ExplorePage';
 import { FeedPage } from './pages/FeedPage';
-import { GuidePage } from './pages/GuidePage';
 import { Landing } from './pages/Landing';
 import { MyZoosPage } from './pages/MyZoosPage';
 import { NotFound } from './pages/NotFound';
 import { PeoplePage } from './pages/PeoplePage';
-import { PlannerPage } from './pages/planner/PlannerPage';
 import { PostPage } from './pages/PostPage';
 import { ProfilePage } from './pages/ProfilePage';
-import { ZooPage } from './pages/ZooPage';
+
+// The map-heavy pages and the guide load on demand, keeping the first download small.
+const PlannerPage = lazy(() => import('./pages/planner/PlannerPage').then((m) => ({ default: m.PlannerPage })));
+const ZooPage = lazy(() => import('./pages/ZooPage').then((m) => ({ default: m.ZooPage })));
+const GuidePage = lazy(() => import('./pages/GuidePage').then((m) => ({ default: m.GuidePage })));
 
 function RequireAuth({ children }: { children: ReactNode }) {
   const { me, loading } = useMe();

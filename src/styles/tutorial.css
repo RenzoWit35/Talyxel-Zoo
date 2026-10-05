@@ -128,7 +128,7 @@
   place-items: center;
   padding: 22px;
   background:
-    radial-gradient(circle at 1px 1px, rgba(28, 42, 33, 0.1) 1px, transparent 0) 0 0 / 16px 16px,
+    radial-gradient(circle at 1px 1px, var(--dots) 1px, transparent 0) 0 0 / 16px 16px,
     linear-gradient(160deg, var(--brand-soft), var(--bg-deep));
   border-bottom: 1px solid var(--line);
 }
@@ -182,7 +182,7 @@
   color: var(--ink);
 }
 .welcome-post-bar svg.liked {
-  color: var(--heart, #e2445c);
+  color: var(--heart);
   fill: currentColor;
 }
 .welcome-stats {

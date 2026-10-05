@@ -123,8 +123,8 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  background: var(--ink);
-  color: #eef1ea;
+  background: var(--inverse-bg);
+  color: var(--inverse-ink);
   padding: 7px 8px 7px 12px;
   border-radius: 12px;
   box-shadow: var(--shadow-lg);
@@ -133,7 +133,7 @@
   z-index: 5;
 }
 .draw-hint .subtle {
-  color: #a5b1a9;
+  color: var(--inverse-muted);
 }
 .select-sm {
   height: 30px;
@@ -141,7 +141,7 @@
   font-size: 0.84rem;
   border-radius: 8px;
   width: auto;
-  background-color: rgba(255, 255, 255, 0.95);
+  background-color: var(--surface);
   color: var(--ink);
 }
 .stage-empty {
@@ -149,7 +149,7 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: rgba(255, 255, 255, 0.94);
+  background: var(--glass);
   padding: 20px 24px;
   border-radius: 16px;
   box-shadow: var(--shadow);

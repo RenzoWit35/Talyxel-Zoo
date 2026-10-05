@@ -4,7 +4,7 @@
   height: 100%;
   overflow: hidden;
   background:
-    radial-gradient(circle at 1px 1px, rgba(28, 42, 33, 0.09) 1px, transparent 0) 0 0 / 18px 18px,
+    radial-gradient(circle at 1px 1px, var(--dots) 1px, transparent 0) 0 0 / 18px 18px,
     var(--bg-deep);
   touch-action: none;
   user-select: none;
@@ -28,7 +28,7 @@
 }
 .map-border {
   fill: none;
-  stroke: rgba(54, 79, 40, 0.45);
+  stroke: var(--map-border);
   stroke-width: 1.5;
 }
 
@@ -261,7 +261,7 @@
   font-weight: 650;
   color: var(--ink-2);
   pointer-events: none;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.7);
+  text-shadow: 0 1px 0 var(--bg-deep);
 }
 .map-scale span {
   display: block;
@@ -346,7 +346,7 @@
   justify-content: center;
   gap: 6px;
   height: 92px;
-  color: rgba(255, 255, 255, 0.92);
+  color: rgba(255, 255, 255, 0.92); /* same in both themes */
   font-size: 0.8rem;
   font-weight: 600;
 }

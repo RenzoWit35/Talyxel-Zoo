@@ -1,5 +1,6 @@
 import '@fontsource-variable/inter';
 import '@fontsource-variable/fraunces';
+import './styles/tokens.css';
 import './styles/base.css';
 import './styles/ui.css';
 import './styles/pages.css';

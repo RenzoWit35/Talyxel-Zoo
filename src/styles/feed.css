@@ -310,8 +310,8 @@ a.post-place:hover {
   border: 0;
   display: grid;
   place-items: center;
-  background: rgba(255, 255, 255, 0.92);
-  color: var(--ink);
+  background: rgba(255, 255, 255, 0.92); /* same in both themes */
+  color: #1c2a21; /* same in both themes */
   box-shadow: var(--shadow);
   cursor: pointer;
 }
@@ -412,12 +412,12 @@ a.post-place:hover {
     linear-gradient(var(--ground-line) 1px, transparent 1px) 0 0 / 28px 28px,
     linear-gradient(90deg, var(--ground-line) 1px, transparent 1px) 0 0 / 28px 28px,
     var(--ground);
-  color: #1d2b1f;
+  color: var(--ground-ink);
 }
 .media-text.tone-question {
   background:
     repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.035) 0 2px, transparent 2px 22px),
-    radial-gradient(120% 90% at 50% 0%, #3b7d55 0%, var(--brand) 55%, var(--brand-strong) 100%);
+    radial-gradient(120% 90% at 50% 0%, #3b7d55 0%, #2f6b47 55%, #23543a 100%); /* same in both themes */
   color: #f6f2e6;
   box-shadow: inset 0 0 0 10px rgba(255, 255, 255, 0.06);
 }
@@ -475,7 +475,7 @@ a.post-place:hover {
   transform: scale(0.88);
 }
 .icon-action.like.on {
-  color: var(--heart, #e2445c);
+  color: var(--heart);
 }
 .icon-action.like.on svg {
   fill: currentColor;

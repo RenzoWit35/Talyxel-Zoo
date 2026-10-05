@@ -1,8 +1,10 @@
 import { BookOpen, Compass, LogIn, LogOut, Map, Rss, Users } from 'lucide-react';
+import { Suspense } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router';
 import { useAuthActions, useMe } from '../auth';
 import { NotificationBell } from './NotificationBell';
-import { Avatar, LogoMark } from './ui';
+import { ThemeToggle } from './ThemeToggle';
+import { Avatar, LogoMark, PageLoader } from './ui';
 
 export function Layout() {
   const { me } = useMe();
@@ -38,6 +40,7 @@ export function Layout() {
             ))}
           </nav>
           <span className="spacer" />
+          <ThemeToggle />
           {me ? (
             <div className="nav-user">
               <NotificationBell />
@@ -67,7 +70,9 @@ export function Layout() {
         </div>
       </header>
       <main className={`app-main${fullBleed ? ' app-main-full' : ''}`}>
-        <Outlet />
+        <Suspense fallback={<PageLoader />}>
+          <Outlet />
+        </Suspense>
       </main>
       {!fullBleed && (
         <nav className="mobile-tabs" aria-label="Main">
