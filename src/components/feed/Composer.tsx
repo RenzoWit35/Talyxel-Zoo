@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ImagePlus, Megaphone, MessageCircleQuestion, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
+import { useSearchParams } from 'react-router';
 import { LIMITS, POST_LIMITS } from '../../../shared/constants';
 import type { PostKind } from '../../../shared/types';
 import { api, errorMessage } from '../../api/client';
@@ -20,7 +21,8 @@ export function Composer() {
   const { me } = useMe();
   const qc = useQueryClient();
   const toast = useToast();
-  const [open, setOpen] = useState(false);
+  const [params, setParams] = useSearchParams();
+  const [open, setOpen] = useState(() => params.get('compose') === '1');
   const [kind, setKind] = useState<PostKind>('update');
   const [body, setBody] = useState('');
   const [files, setFiles] = useState<File[]>([]);
@@ -29,6 +31,18 @@ export function Composer() {
   const textRef = useRef<HTMLTextAreaElement>(null);
   const parks = useQuery({ queryKey: ['zoos', 'mine'], queryFn: api.myZoos, enabled: open });
   const published = (parks.data ?? []).filter((z) => z.status === 'published');
+
+  // Opened from a "Write a post" link: drop the parameter so a reload doesn't reopen it.
+  useEffect(() => {
+    if (params.get('compose') !== '1') return;
+    setOpen(true);
+    setParams({}, { replace: true });
+  }, [params, setParams]);
+
+  // Focus the text as soon as the box opens, however it was opened.
+  useEffect(() => {
+    if (open) textRef.current?.focus();
+  }, [open]);
 
   const previews = useMemo(() => files.map((f) => URL.createObjectURL(f)), [files]);
   useEffect(() => () => previews.forEach((u) => URL.revokeObjectURL(u)), [previews]);
@@ -58,7 +72,7 @@ export function Composer() {
   const start = (k: PostKind) => {
     setKind(k);
     setOpen(true);
-    setTimeout(() => textRef.current?.focus(), 0);
+    textRef.current?.focus();
   };
 
   const addFiles = (list: FileList | null) => {

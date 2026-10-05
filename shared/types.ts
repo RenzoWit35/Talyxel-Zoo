@@ -232,6 +232,17 @@ export interface NotificationsPage {
   unread: number;
 }
 
+export const ONBOARDING_STEPS = ['park', 'shape', 'mapDetails', 'stats', 'publish', 'follow', 'post', 'profile'] as const;
+export type OnboardingStep = (typeof ONBOARDING_STEPS)[number];
+
+/** Progress on the getting-started checklist for new builders. */
+export interface Onboarding {
+  steps: Record<OnboardingStep, boolean>;
+  dismissed: boolean;
+  /** The builder's most recently edited park, for "open the planner" links. */
+  parkId: number | null;
+}
+
 export interface ApiErrorBody {
   error: string;
 }

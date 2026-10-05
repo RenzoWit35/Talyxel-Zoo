@@ -1,4 +1,4 @@
-import { Compass, LogIn, LogOut, Map, Rss, Users } from 'lucide-react';
+import { BookOpen, Compass, LogIn, LogOut, Map, Rss, Users } from 'lucide-react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router';
 import { useAuthActions, useMe } from '../auth';
 import { NotificationBell } from './NotificationBell';
@@ -16,6 +16,7 @@ export function Layout() {
     { to: '/explore', label: 'Explore', icon: <Compass /> },
     ...(me ? [{ to: '/zoos', label: 'My parks', icon: <Map /> }] : []),
     { to: '/people', label: 'People', icon: <Users /> },
+    { to: '/guide', label: 'Guide', icon: <BookOpen /> },
   ];
 
   return (

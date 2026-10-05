@@ -1,10 +1,12 @@
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { ArrowRight, Map, Plus, Rss, Sparkles } from 'lucide-react';
-import { Link } from 'react-router';
+import { Link, useSearchParams } from 'react-router';
 import { api } from '../api/client';
 import { useMe } from '../auth';
 import { Composer } from '../components/feed/Composer';
 import { PostCard } from '../components/feed/PostCard';
+import { GettingStarted } from '../components/tutorial/GettingStarted';
+import { WelcomeDialog } from '../components/tutorial/WelcomeDialog';
 import { EmptyState, PageLoader, Spinner } from '../components/ui';
 import { UserRow } from '../components/UserRow';
 import { ZooThumbnail } from '../components/ZooThumbnail';
@@ -12,6 +14,7 @@ import { plural } from '../lib/format';
 
 export function FeedPage() {
   const { me } = useMe();
+  const [params, setParams] = useSearchParams();
   const feed = useInfiniteQuery({
     queryKey: ['feed'],
     queryFn: ({ pageParam }) => api.feed(pageParam),
@@ -29,6 +32,7 @@ export function FeedPage() {
           <h1>Hi {me?.displayName.split(' ')[0]}</h1>
           <p className="muted">Updates, questions and new builds from you and the people you follow.</p>
         </div>
+        <GettingStarted />
         <Composer />
         {feed.isPending ? (
           <PageLoader />
@@ -116,6 +120,7 @@ export function FeedPage() {
           </div>
         )}
       </aside>
+      {params.get('welcome') === '1' && <WelcomeDialog onClose={() => setParams({}, { replace: true })} />}
     </div>
   );
 }

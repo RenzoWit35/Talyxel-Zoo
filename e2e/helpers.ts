@@ -29,6 +29,8 @@ export async function apiUser(baseURL: string, prefix = 'user', displayName?: st
     loginPage: async (page: Page) => {
       const { cookies } = await api.storageState();
       await page.context().addCookies(cookies);
+      // These tests aren't about the first-visit planner tour; e2e/tutorial.spec.ts is.
+      await page.addInitScript(() => localStorage.setItem('talyxel.tour.planner.v1', 'done'));
     },
   };
 }

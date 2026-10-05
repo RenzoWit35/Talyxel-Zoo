@@ -11,7 +11,7 @@ interface Props {
 /** "Add" strip above the map: pick what to draw — habitats, utilities, walk routes, areas of interest… */
 export function ShapePalette({ kinds, active, onPick }: Props) {
   return (
-    <div className="shape-palette" role="toolbar" aria-label="Add to the map" onPointerDown={(e) => e.stopPropagation()}>
+    <div className="shape-palette" role="toolbar" aria-label="Add to the map" data-tour="palette" onPointerDown={(e) => e.stopPropagation()}>
       <span className="shape-palette-label">Add</span>
       {kinds.map((k) => (
         <button

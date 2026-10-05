@@ -15,7 +15,7 @@ export function AuthPage({ mode }: { mode: 'login' | 'register' }) {
   const mutation = mode === 'login' ? login : register;
 
   // Signing in stores `me`, which re-renders this page; send the user on from here so there's one redirect.
-  if (me) return <Navigate to={mode === 'register' && register.isSuccess ? '/zoos' : from} replace />;
+  if (me) return <Navigate to={mode === 'register' && register.isSuccess ? '/?welcome=1' : from} replace />;
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
@@ -27,9 +27,9 @@ export function AuthPage({ mode }: { mode: 'login' | 'register' }) {
     <div className="auth-wrap">
       <form className="auth-card card" onSubmit={submit}>
         <LogoMark className="auth-logo" />
-        <h1>{mode === 'login' ? 'Welcome back' : 'Start your zoo'}</h1>
+        <h1>{mode === 'login' ? 'Welcome back' : 'Start your park'}</h1>
         <p className="muted">
-          {mode === 'login' ? 'Log in to keep planning and see what your friends built.' : 'Create an account to plan, publish and share your zoos.'}
+          {mode === 'login' ? 'Log in to keep planning and see what your friends built.' : 'Create an account to plan your zoos and theme parks and share them with friends.'}
         </p>
         {mutation.error && <div className="form-error">{errorMessage(mutation.error)}</div>}
         <label className="field">

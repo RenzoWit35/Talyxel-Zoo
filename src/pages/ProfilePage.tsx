@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Grid3x3, Heart, Images, Map, MessageCircle, MessageCircleQuestion, PenLine, Plus, Users } from 'lucide-react';
-import { useState } from 'react';
-import { Link, useParams } from 'react-router';
+import { useEffect, useState } from 'react';
+import { Link, useParams, useSearchParams } from 'react-router';
 import { AVATAR_COLORS } from '../../shared/constants';
 import type { FeedItem, Me, Profile } from '../../shared/types';
 import { api, ApiError, errorMessage } from '../api/client';
@@ -27,6 +27,7 @@ function EditProfileDialog({ profile, onClose }: { profile: Profile; onClose: ()
     onSuccess: (me: Me) => {
       qc.setQueryData(['me'], me);
       void qc.invalidateQueries({ queryKey: ['profile'] });
+      void qc.invalidateQueries({ queryKey: ['onboarding'] });
       toast.ok('Profile saved');
       onClose();
     },
@@ -163,8 +164,16 @@ function PostsTab({ profile }: { profile: Profile }) {
 export function ProfilePage() {
   const { username = '' } = useParams();
   const [tab, setTab] = useState<Tab>('posts');
+  const [params, setParams] = useSearchParams();
   const [editing, setEditing] = useState(false);
   const profile = useQuery({ queryKey: ['profile', username], queryFn: () => api.profile(username) });
+  const isMe = profile.data?.isMe;
+  useEffect(() => {
+    if (params.get('edit') === '1' && isMe) {
+      setEditing(true);
+      setParams({}, { replace: true });
+    }
+  }, [params, setParams, isMe]);
 
   if (profile.isPending) return <PageLoader />;
   if (profile.error) return profile.error instanceof ApiError && profile.error.status === 404 ? <NotFound what="builder" /> : <div className="page">{errorMessage(profile.error)}</div>;

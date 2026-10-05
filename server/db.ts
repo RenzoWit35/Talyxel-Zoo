@@ -219,6 +219,10 @@ const MIGRATIONS: string[] = [
   );
   CREATE INDEX notifications_user ON notifications(user_id, id);
   `,
+  // v6: remember when someone hides the getting-started checklist.
+  `
+  ALTER TABLE users ADD COLUMN onboarding_dismissed_at TEXT;
+  `,
 ];
 
 export function openDb(file: string): DB {

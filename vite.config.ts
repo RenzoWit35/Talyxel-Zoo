@@ -15,5 +15,8 @@ export default defineConfig({
   test: {
     environment: 'node',
     include: ['tests/**/*.test.ts'],
+    setupFiles: ['tests/setup.ts'],
+    // Forked workers sometimes crash on exit on Windows (0xC0000409) with node:sqlite loaded; threads don't.
+    pool: 'threads',
   },
 });

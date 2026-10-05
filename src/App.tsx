@@ -6,6 +6,7 @@ import { PageLoader } from './components/ui';
 import { AuthPage } from './pages/AuthPage';
 import { ExplorePage } from './pages/ExplorePage';
 import { FeedPage } from './pages/FeedPage';
+import { GuidePage } from './pages/GuidePage';
 import { Landing } from './pages/Landing';
 import { MyZoosPage } from './pages/MyZoosPage';
 import { NotFound } from './pages/NotFound';
@@ -47,6 +48,7 @@ export function App() {
           <Route index element={<Home />} />
           <Route path="explore" element={<ExplorePage />} />
           <Route path="people" element={<PeoplePage />} />
+          <Route path="guide" element={<GuidePage />} />
           <Route path="login" element={<AuthPage mode="login" />} />
           <Route path="register" element={<AuthPage mode="register" />} />
           <Route

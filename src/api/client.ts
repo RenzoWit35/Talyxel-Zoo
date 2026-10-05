@@ -6,6 +6,7 @@ import type {
   Habitat,
   LikeState,
   NotificationsPage,
+  Onboarding,
   Me,
   ParkStats,
   PostKind,
@@ -139,6 +140,9 @@ export const api = {
 
   notifications: () => get<NotificationsPage>('/notifications'),
   markNotificationsRead: () => post<{ unread: number }>('/notifications/read'),
+
+  onboarding: () => get<Onboarding>('/onboarding'),
+  setOnboardingDismissed: (dismissed: boolean) => put<Onboarding>('/onboarding', { dismissed }),
 };
 
 export function errorMessage(err: unknown): string {

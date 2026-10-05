@@ -3,6 +3,7 @@ import {
   ArrowLeft,
   ChartColumn,
   Check,
+  CircleHelp,
   CloudOff,
   Copy,
   ExternalLink,
@@ -27,7 +28,7 @@ import {
   X,
 } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Link, Navigate, useNavigate, useParams } from 'react-router';
+import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-router';
 import { isLineKind, KIND_META, type HabitatKind } from '../../../shared/constants';
 import { bounds, type Point } from '../../../shared/geometry';
 import { parkMeta } from '../../../shared/parks';
@@ -43,6 +44,7 @@ import { plural } from '../../lib/format';
 import { NotFound } from '../NotFound';
 import { BoardView } from './BoardView';
 import { HabitatPanel } from './HabitatPanel';
+import { PlannerTour, plannerTourSeen } from './PlannerTour';
 import { PublishDialog } from './PublishDialog';
 import { ShortcutsOverlay } from './ShortcutsOverlay';
 import { ShapePalette } from './ShapePalette';
@@ -112,8 +114,11 @@ function Planner({ initial }: { initial: ZooDetail }) {
   const [panelOpen, setPanelOpen] = useState(false);
   const [hiddenKinds, setHiddenKinds] = useState<Set<HabitatKind>>(() => new Set());
   const [layersOpen, setLayersOpen] = useState(false);
-  const [statsOpen, setStatsOpen] = useState(false);
+  const [params, setParams] = useSearchParams();
+  const [statsOpen, setStatsOpen] = useState(() => params.get('stats') === '1');
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  // First visit in this browser: walk through the planner (unless we came here to fill in stats).
+  const [touring, setTouring] = useState(() => !plannerTourSeen() && params.get('stats') !== '1');
   const clipboard = useRef<{ habitat: Habitat; pastes: number } | null>(null);
 
   const selected = zoo.habitats.find((h) => h.id === selectedId) ?? null;
@@ -254,6 +259,11 @@ function Planner({ initial }: { initial: ZooDetail }) {
   };
 
   const drawing = view === 'map' && (tool === 'polygon' || tool === 'rect' || tool === 'line');
+
+  const closeStats = () => {
+    setStatsOpen(false);
+    if (params.has('stats')) setParams({}, { replace: true });
+  };
   const ideas = zoo.habitats.filter((h) => h.status === 'idea').map((h) => h.name);
 
   return (
@@ -289,11 +299,22 @@ function Planner({ initial }: { initial: ZooDetail }) {
             <LayoutGrid /> <span>Board</span>
           </button>
         </div>
-        <button className="btn btn-sm planner-stats-btn" onClick={() => setStatsOpen(true)} title="Park statistics">
+        <button
+          className="btn btn-ghost btn-icon btn-sm"
+          onClick={() => {
+            setView('map');
+            setTouring(true);
+          }}
+          title="Planner tour"
+          aria-label="Planner tour"
+        >
+          <CircleHelp />
+        </button>
+        <button className="btn btn-sm planner-stats-btn" data-tour="stats" onClick={() => setStatsOpen(true)} title="Park statistics">
           <ChartColumn /> <span>Stats</span>
         </button>
         {zoo.status === 'published' ? (
-          <div className="row planner-actions">
+          <div className="row planner-actions" data-tour="publish">
             <button className="btn btn-sm" onClick={() => setNewSurvey(true)}>
               <Vote /> <span>New survey</span>
             </button>
@@ -313,18 +334,18 @@ function Planner({ initial }: { initial: ZooDetail }) {
             </button>
           </div>
         ) : (
-          <button className="btn btn-sm btn-accent" onClick={() => setPublishing(true)}>
+          <button className="btn btn-sm btn-accent" data-tour="publish" onClick={() => setPublishing(true)}>
             <Globe /> <span>Publish</span>
           </button>
         )}
-        <button className="btn btn-sm btn-icon planner-panel-toggle" aria-label="Show details panel" onClick={() => setPanelOpen((o) => !o)}>
+        <button className="btn btn-sm btn-icon planner-panel-toggle" data-tour="panel-toggle" aria-label="Show details panel" onClick={() => setPanelOpen((o) => !o)}>
           <PanelRight />
         </button>
       </header>
 
       <div className={`planner-body view-${view}`}>
         {view === 'map' && (
-          <div className="planner-tools" role="toolbar" aria-label="Drawing tools">
+          <div className="planner-tools" role="toolbar" aria-label="Drawing tools" data-tour="tools">
             {TOOLS.map((t) => (
               <button key={t.id} className="tool" aria-pressed={tool === t.id} onClick={() => pickTool(t.id)} title={`${t.label} (${t.key})`} aria-label={t.label}>
                 {t.icon}
@@ -363,7 +384,7 @@ function Planner({ initial }: { initial: ZooDetail }) {
           </div>
         )}
 
-        <div className="planner-stage">
+        <div className="planner-stage" data-tour="map">
           {view === 'map' ? (
             <>
               <MapCanvas
@@ -450,7 +471,7 @@ function Planner({ initial }: { initial: ZooDetail }) {
           )}
         </div>
 
-        <aside className={`planner-panel${panelOpen ? ' open' : ''}`}>
+        <aside className={`planner-panel${panelOpen ? ' open' : ''}`} data-tour="panel">
           {selected ? (
             <HabitatPanel
               key={selected.id}
@@ -522,9 +543,8 @@ function Planner({ initial }: { initial: ZooDetail }) {
       )}
       {publishing && <PublishDialog editor={editor} onClose={() => setPublishing(false)} />}
       {shortcutsOpen && <ShortcutsOverlay onClose={() => setShortcutsOpen(false)} />}
-      {statsOpen && (
-        <StatsForm zooId={zoo.id} parkType={zoo.parkType} stats={zoo.stats} onClose={() => setStatsOpen(false)} onSaved={editor.setStats} />
-      )}
+      {statsOpen && <StatsForm zooId={zoo.id} parkType={zoo.parkType} stats={zoo.stats} onClose={closeStats} onSaved={editor.setStats} />}
+      {touring && view === 'map' && <PlannerTour onClose={() => setTouring(false)} />}
       {newSurvey && (
         <NewSurveyDialog zooId={zoo.id} title={zoo.title} ideas={ideas} examples={meta.optionExamples} onClose={() => setNewSurvey(false)} />
       )}

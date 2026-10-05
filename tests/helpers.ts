@@ -3,10 +3,18 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import request from 'supertest';
 import { createApp } from '../server/app';
-import { openDb } from '../server/db';
+import { openDb, type DB } from '../server/db';
+
+const openDbs: DB[] = [];
+
+/** Close every database the tests opened (see tests/setup.ts); open SQLite handles can crash the worker on exit. */
+export function closeDatabases() {
+  for (const db of openDbs.splice(0)) if (db.isOpen) db.close();
+}
 
 export function makeApp() {
   const db = openDb(':memory:');
+  openDbs.push(db);
   const uploadDir = mkdtempSync(path.join(tmpdir(), 'talyxel-test-'));
   const app = createApp({ db, uploadDir });
   return { app, db, uploadDir };
