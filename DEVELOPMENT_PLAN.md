@@ -1,4 +1,4 @@
-# Talyxel Zoo — development plan
+# Talyxel Park — development plan
 
 This plan covers what's built, what comes next, and how we work. Each phase can ship on its own. Sizes are rough: **S** is about a day, **M** a few days, **L** a week or more. Tick items off as they land on `main`.
 

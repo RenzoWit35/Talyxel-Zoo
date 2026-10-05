@@ -21,10 +21,10 @@ export function Layout() {
     <>
       <header className="nav">
         <div className="nav-inner">
-          <Link to="/" className="brand" aria-label="Talyxel Zoo home">
+          <Link to="/" className="brand" aria-label="Talyxel Park home">
             <LogoMark />
             <span>
-              Talyxel <em>Zoo</em>
+              Talyxel <em>Park</em>
             </span>
           </Link>
           <nav className="nav-links" aria-label="Main">

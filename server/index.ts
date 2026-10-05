@@ -27,5 +27,5 @@ cleanSessions();
 setInterval(cleanSessions, 6 * 60 * 60 * 1000).unref();
 
 app.listen(port, () => {
-  console.log(`Talyxel Zoo API listening on http://localhost:${port}`);
+  console.log(`Talyxel Park API listening on http://localhost:${port}`);
 });

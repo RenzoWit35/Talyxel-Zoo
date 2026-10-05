@@ -1,4 +1,4 @@
-# Talyxel Zoo
+# Talyxel Park
 
 A planning board for your **Planet Zoo** zoos and **Planet Coaster** theme parks. Draw your park from above, fill every habitat or ride with screenshots and notes, publish the plan with a survey about what to build next, and follow your friends to see their new additions in your feed.
 
