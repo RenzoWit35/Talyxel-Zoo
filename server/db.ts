@@ -203,6 +203,22 @@ const MIGRATIONS: string[] = [
   );
   CREATE INDEX comments_event ON comments(event_id, id);
   `,
+  // v5: in-app notifications (new follower, likes, comments, survey suggestions).
+  `
+  CREATE TABLE notifications (
+    id INTEGER PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    actor_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    type TEXT NOT NULL CHECK (type IN ('follow', 'like', 'comment', 'suggestion')),
+    event_id INTEGER REFERENCES events(id) ON DELETE CASCADE,
+    comment_id INTEGER REFERENCES comments(id) ON DELETE CASCADE,
+    survey_id INTEGER REFERENCES surveys(id) ON DELETE CASCADE,
+    data TEXT NOT NULL DEFAULT '{}',
+    created_at TEXT NOT NULL DEFAULT ${NOW},
+    read_at TEXT
+  );
+  CREATE INDEX notifications_user ON notifications(user_id, id);
+  `,
 ];
 
 export function openDb(file: string): DB {

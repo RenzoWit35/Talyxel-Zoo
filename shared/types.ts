@@ -209,6 +209,29 @@ export interface FeedPage {
   nextCursor: number | null;
 }
 
+export type NotificationType = 'follow' | 'like' | 'comment' | 'suggestion';
+
+export interface NotificationItem {
+  id: number;
+  type: NotificationType;
+  createdAt: string;
+  read: boolean;
+  actor: UserSummary;
+  /** Where opening it takes you. */
+  link: string;
+  /** What it's about: the first words of a post, a park or survey question. */
+  target: string | null;
+  /** The comment or suggested option, for comments and suggestions. */
+  comment: string | null;
+  /** A small picture of what it's about (a post's first photo), when there is one. */
+  thumbnailUrl: string | null;
+}
+
+export interface NotificationsPage {
+  items: NotificationItem[];
+  unread: number;
+}
+
 export interface ApiErrorBody {
   error: string;
 }

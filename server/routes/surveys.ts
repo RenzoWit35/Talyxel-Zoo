@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { LIMITS } from '../../shared/constants';
 import { one, run, tx, type DB } from '../db';
 import { badRequest, forbidden, HttpError, notFound, paramId, parse, requireUser } from '../http';
+import { notify } from '../notify';
 import { canView, getZooRow, loadSurveys } from '../queries';
 import { suggestionInput, surveyUpdateInput, voteInput } from '../schemas';
 
@@ -73,6 +74,7 @@ export function surveyRoutes(db: DB) {
     if (!existing && count >= LIMITS.surveyOptionsMax) throw badRequest('This survey already has the maximum number of options');
     tx(db, () => {
       const optionId = existing?.id ?? run(db, 'INSERT INTO survey_options (survey_id, label, suggested_by) VALUES (?, ?, ?)', survey.id, label, isOwner ? null : me.id).id;
+      if (!existing && !isOwner) notify(db, { userId: zoo.owner_id, actorId: me.id, type: 'suggestion', surveyId: survey.id, data: { label } });
       if (!isOwner) {
         run(
           db,

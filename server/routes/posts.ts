@@ -5,6 +5,7 @@ import { all, one, run, tx, type DB } from '../db';
 import { recordPost } from '../events';
 import { buildFeedItems, getVisibleEvent, likeState, loadAllComments, loadComment, toComment, type EventRow } from '../feed-items';
 import { badRequest, forbidden, notFound, paramId, parse, requireUser } from '../http';
+import { notify, unnotify } from '../notify';
 import { commentInput, postInput } from '../schemas';
 import { acceptUploads, discardUploads, removeStoredFiles } from '../uploads';
 
@@ -75,7 +76,8 @@ export function postRoutes(db: DB, upload: multer.Multer, uploadDir: string) {
   r.put('/activity/:id/like', (req, res) => {
     const me = requireUser(req);
     const event = visibleEvent(paramId(req));
-    run(db, 'INSERT OR IGNORE INTO likes (event_id, user_id) VALUES (?, ?)', event.id, me.id);
+    const { changes } = run(db, 'INSERT OR IGNORE INTO likes (event_id, user_id) VALUES (?, ?)', event.id, me.id);
+    if (changes) notify(db, { userId: event.actor_id, actorId: me.id, type: 'like', eventId: event.id });
     res.json(likeState(db, event.id, me.id));
   });
 
@@ -83,6 +85,7 @@ export function postRoutes(db: DB, upload: multer.Multer, uploadDir: string) {
     const me = requireUser(req);
     const event = visibleEvent(paramId(req));
     run(db, 'DELETE FROM likes WHERE event_id = ? AND user_id = ?', event.id, me.id);
+    unnotify(db, { userId: event.actor_id, actorId: me.id, type: 'like', eventId: event.id });
     res.json(likeState(db, event.id, me.id));
   });
 
@@ -96,6 +99,7 @@ export function postRoutes(db: DB, upload: multer.Multer, uploadDir: string) {
     const event = visibleEvent(paramId(req));
     const { body } = parse(commentInput, req.body);
     const { id } = run(db, 'INSERT INTO comments (event_id, user_id, body) VALUES (?, ?, ?)', event.id, me.id, body);
+    notify(db, { userId: event.actor_id, actorId: me.id, type: 'comment', eventId: event.id, commentId: id });
     res.status(201).json(toComment(loadComment(db, id)!, me.id, event.actor_id));
   });
 

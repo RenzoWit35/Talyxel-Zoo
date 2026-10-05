@@ -5,6 +5,7 @@ import type {
   FeedPage,
   Habitat,
   LikeState,
+  NotificationsPage,
   Me,
   ParkStats,
   PostKind,
@@ -135,6 +136,9 @@ export const api = {
   addComment: (id: number, body: string) => post<Comment>(`/activity/${id}/comments`, { body }),
   deleteComment: (id: number) => del<{ ok: true }>(`/comments/${id}`),
   userPosts: (username: string) => get<FeedItem[]>(`/users/${enc(username)}/posts`),
+
+  notifications: () => get<NotificationsPage>('/notifications'),
+  markNotificationsRead: () => post<{ unread: number }>('/notifications/read'),
 };
 
 export function errorMessage(err: unknown): string {

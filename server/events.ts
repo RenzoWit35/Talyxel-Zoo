@@ -60,7 +60,7 @@ export function recordPhotosAdded(db: DB, actorId: number, zooId: number, habita
   const id = insert(db, { actorId, type: 'photos_added', zooId, habitatId, data: { photoIds: [...earlier, ...photoIds] } });
   if (merge) {
     // The entry moves to the top of the feed under a new id; its likes and comments come along.
-    for (const table of ['likes', 'comments']) run(db, `UPDATE ${table} SET event_id = ? WHERE event_id = ?`, id, previous.id);
+    for (const table of ['likes', 'comments', 'notifications']) run(db, `UPDATE ${table} SET event_id = ? WHERE event_id = ?`, id, previous.id);
     run(db, 'DELETE FROM events WHERE id = ?', previous.id);
   }
 }

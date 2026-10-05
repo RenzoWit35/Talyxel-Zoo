@@ -8,6 +8,7 @@ import { errorHandler, notFound } from './http';
 import { authRoutes } from './routes/auth';
 import { feedRoutes } from './routes/feed';
 import { habitatRoutes } from './routes/habitats';
+import { notificationRoutes } from './routes/notifications';
 import { postRoutes } from './routes/posts';
 import { surveyRoutes } from './routes/surveys';
 import { userRoutes } from './routes/users';
@@ -71,6 +72,7 @@ export function createApp({ db, uploadDir, staticDir, trustProxy = 'loopback', a
   api.use('/zoos', zooRoutes(db, upload, uploadDir));
   api.use('/surveys', surveyRoutes(db));
   api.use('/feed', feedRoutes(db));
+  api.use('/notifications', notificationRoutes(db));
   api.use('/', postRoutes(db, upload, uploadDir));
   api.use('/', habitatRoutes(db, upload, uploadDir));
   api.get('/health', (_req, res) => {

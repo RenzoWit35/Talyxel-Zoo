@@ -1,6 +1,7 @@
 import { Compass, LogIn, LogOut, Map, Rss, Users } from 'lucide-react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router';
 import { useAuthActions, useMe } from '../auth';
+import { NotificationBell } from './NotificationBell';
 import { Avatar, LogoMark } from './ui';
 
 export function Layout() {
@@ -38,6 +39,7 @@ export function Layout() {
           <span className="spacer" />
           {me ? (
             <div className="nav-user">
+              <NotificationBell />
               <Link to={`/u/${me.username}`} className="nav-user-link">
                 <Avatar user={me} size={30} />
                 <span>{me.displayName}</span>

@@ -3,6 +3,7 @@ import type { Profile } from '../../shared/types';
 import { all, one, run, type DB } from '../db';
 import { buildFeedItems, EVENT_SELECT, VISIBLE, type EventRow } from '../feed-items';
 import { badRequest, notFound, requireUser } from '../http';
+import { notify, unnotify } from '../notify';
 import { listUsers, loadZooSummaries, toUserSummary, ZOO_SELECT, type UserRow, type ZooRow } from '../queries';
 
 export function userRoutes(db: DB) {
@@ -116,7 +117,8 @@ export function userRoutes(db: DB) {
     const me = requireUser(req);
     const user = findUser(req.params.username);
     if (user.id === me.id) throw badRequest("You can't follow yourself");
-    run(db, 'INSERT OR IGNORE INTO follows (follower_id, followee_id) VALUES (?, ?)', me.id, user.id);
+    const { changes } = run(db, 'INSERT OR IGNORE INTO follows (follower_id, followee_id) VALUES (?, ?)', me.id, user.id);
+    if (changes) notify(db, { userId: user.id, actorId: me.id, type: 'follow' });
     res.json({ following: true });
   });
 
@@ -124,6 +126,7 @@ export function userRoutes(db: DB) {
     const me = requireUser(req);
     const user = findUser(req.params.username);
     run(db, 'DELETE FROM follows WHERE follower_id = ? AND followee_id = ?', me.id, user.id);
+    unnotify(db, { userId: user.id, actorId: me.id, type: 'follow' });
     res.json({ following: false });
   });
 
