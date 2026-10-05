@@ -1,4 +1,4 @@
-import type { Biome, HabitatKind, HabitatStatus } from '../shared/constants';
+import type { Biome, HabitatKind, HabitatStatus, ParkType } from '../shared/constants';
 import type { Point } from '../shared/geometry';
 import type { Habitat, Photo, Survey, UserListItem, UserSummary, ZooDetail, ZooStatus, ZooSummary } from '../shared/types';
 import { all, one, placeholders, type DB } from './db';
@@ -65,6 +65,7 @@ export interface ZooRow {
   background_url: string | null;
   background_opacity: number;
   status: ZooStatus;
+  park_type: ParkType;
   published_at: string | null;
   created_at: string;
   updated_at: string;
@@ -120,6 +121,7 @@ export function loadZooSummaries(db: DB, zoos: ZooRow[]): ZooSummary[] {
     const own = habitats.filter((h) => h.zoo_id === z.id);
     return {
       id: z.id,
+      parkType: z.park_type,
       title: z.title,
       description: z.description,
       status: z.status,
@@ -298,6 +300,7 @@ export function loadZooDetail(db: DB, zoo: ZooRow, viewerId: number | undefined)
   );
   return {
     id: zoo.id,
+    parkType: zoo.park_type,
     title: zoo.title,
     description: zoo.description,
     status: zoo.status,

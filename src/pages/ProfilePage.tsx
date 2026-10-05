@@ -73,7 +73,7 @@ function EditProfileDialog({ profile, onClose }: { profile: Profile; onClose: ()
           value={bio}
           onChange={(e) => setBio(e.target.value)}
           maxLength={300}
-          placeholder="Favourite animals, how you build, what you're working on…"
+          placeholder="Favourite animals or rides, how you build, what you're working on…"
         />
         <small>{300 - bio.length} characters left</small>
       </label>
@@ -87,7 +87,7 @@ function PeopleTab({ username, kind }: { username: string; kind: 'followers' | '
   if (!list.data?.length)
     return (
       <EmptyState icon={<Users />} title={kind === 'followers' ? 'No followers yet' : 'Not following anyone yet'}>
-        {kind === 'followers' ? 'Publish a zoo to get noticed.' : 'Find builders on the People page.'}
+        {kind === 'followers' ? 'Publish a park to get noticed.' : 'Find builders on the People page.'}
       </EmptyState>
     );
   return (
@@ -169,8 +169,8 @@ export function ProfilePage() {
             ))}
           </div>
         ) : (
-          <EmptyState icon={<Map />} title="No published zoos yet">
-            {p.isMe ? 'Create a plan from My zoos and publish it to show it here.' : `${p.displayName} hasn't published a zoo yet.`}
+          <EmptyState icon={<Map />} title="No published parks yet">
+            {p.isMe ? 'Create a plan from My parks and publish it to show it here.' : `${p.displayName} hasn't published a park yet.`}
           </EmptyState>
         ))}
       {tab !== 'zoos' && <PeopleTab username={p.username} kind={tab} />}

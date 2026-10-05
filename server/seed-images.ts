@@ -1,6 +1,8 @@
 import { crc32, deflateSync } from 'node:zlib';
 import type { Biome } from '../shared/constants';
 
+type Landscape = 'grassland' | 'tropical' | 'temperate' | 'taiga' | 'tundra' | 'desert' | 'aquatic' | 'spooky';
+
 /**
  * Procedurally painted landscape "postcards" used as demo photos, so the seed
  * data has pictures without shipping or downloading any real images.
@@ -20,7 +22,7 @@ interface Palette {
 
 const hex = (h: string): RGB => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
 
-const PALETTES: Record<Exclude<Biome, ''>, Palette> = {
+const PALETTES: Record<Landscape, Palette> = {
   grassland: {
     skyTop: hex('#f2c48d'),
     skyBottom: hex('#fbe8c8'),
@@ -78,7 +80,38 @@ const PALETTES: Record<Exclude<Biome, ''>, Palette> = {
     treeShape: 'round',
     water: hex('#3f8fc2'),
   },
+  spooky: {
+    skyTop: hex('#4b3f6b'),
+    skyBottom: hex('#c99aa6'),
+    sun: hex('#f4ecd0'),
+    hills: [hex('#6d5f86'), hex('#4f4466'), hex('#2f2a40')],
+    trees: hex('#1e1a2b'),
+    treeShape: 'pine',
+  },
 };
+
+/** Which landscape to paint for each biome (zoos) or theme (theme parks). */
+const LANDSCAPE: Record<Exclude<Biome, ''>, Landscape> = {
+  grassland: 'grassland',
+  tropical: 'tropical',
+  temperate: 'temperate',
+  taiga: 'taiga',
+  tundra: 'tundra',
+  desert: 'desert',
+  aquatic: 'aquatic',
+  pirate: 'aquatic',
+  fairytale: 'temperate',
+  western: 'desert',
+  scifi: 'tundra',
+  spooky: 'spooky',
+  adventure: 'tropical',
+  studios: 'grassland',
+  viking: 'taiga',
+  classic: 'temperate',
+};
+
+/** Optional ride silhouette painted in front of the landscape (theme park photos). */
+export type Feature = 'coaster' | 'wheel';
 
 function rng(seed: number) {
   let a = seed >>> 0;
@@ -121,8 +154,8 @@ function encodePng(width: number, height: number, rgb: Uint8Array): Buffer {
   ]);
 }
 
-export function paintPostcard(biome: Biome, seed: number, width = 640, height = 420): Buffer {
-  const p = PALETTES[biome || 'temperate'];
+export function paintPostcard(biome: Biome, seed: number, feature?: Feature, width = 640, height = 420): Buffer {
+  const p = PALETTES[biome ? LANDSCAPE[biome] : 'temperate'];
   const r = rng(seed);
   const horizon = height * (0.42 + r() * 0.12);
   const sun = { x: width * (0.15 + r() * 0.7), y: height * (0.1 + r() * 0.16), r: 18 + r() * 16 };
@@ -145,6 +178,39 @@ export function paintPostcard(biome: Biome, seed: number, width = 640, height = 
           return { x, y: hillY(hills[layer], x) + 4, h: (36 + r() * 30) * scale, w: (22 + r() * 18) * scale, layer };
         });
   const waterLine = p.water ? height * (0.7 + r() * 0.08) : Infinity;
+  const ink: RGB = mix(p.hills[2], [0, 0, 0], 0.55);
+
+  // Coaster: a hilly track with vertical supports. Wheel: rim, spokes, cabins and an A-frame.
+  const track = { base: height * (0.32 + r() * 0.08), amp: height * (0.1 + r() * 0.06), f: 0.012 + r() * 0.008, ph: r() * 6 };
+  const trackY = (x: number) => track.base + track.amp * Math.sin(x * track.f + track.ph) + track.amp * 0.4 * Math.sin(x * track.f * 2.3);
+  const wheel = { x: width * (0.3 + r() * 0.4), y: height * (0.36 + r() * 0.06), r: height * (0.2 + r() * 0.05) };
+  const onSegment = (x: number, y: number, ax: number, ay: number, bx: number, by: number, w: number) => {
+    const dx = bx - ax;
+    const dy = by - ay;
+    const t = Math.max(0, Math.min(1, ((x - ax) * dx + (y - ay) * dy) / (dx * dx + dy * dy)));
+    return Math.hypot(x - ax - t * dx, y - ay - t * dy) < w;
+  };
+  const featureAt = (x: number, y: number): boolean => {
+    if (feature === 'coaster') {
+      const ty = trackY(x);
+      if (Math.abs(y - ty) < 2.6) return true;
+      return y > ty && x % 34 < 2;
+    }
+    if (feature === 'wheel') {
+      const d = Math.hypot(x - wheel.x, y - wheel.y);
+      if (Math.abs(d - wheel.r) < 2.4) return true;
+      for (let k = 0; k < 12; k++) {
+        const a = (k / 12) * Math.PI * 2;
+        const cx = wheel.x + Math.cos(a) * wheel.r;
+        const cy = wheel.y + Math.sin(a) * wheel.r;
+        if (Math.hypot(x - cx, y - cy - 7) < 6.5) return true;
+        if (d < wheel.r && onSegment(x, y, wheel.x, wheel.y, cx, cy, 1)) return true;
+      }
+      const legs = wheel.r * 0.75;
+      return onSegment(x, y, wheel.x, wheel.y, wheel.x - legs, height, 2.2) || onSegment(x, y, wheel.x, wheel.y, wheel.x + legs, height, 2.2);
+    }
+    return false;
+  };
 
   const px = new Uint8Array(width * height * 3);
   for (let y = 0; y < height; y++) {
@@ -169,6 +235,8 @@ export function paintPostcard(biome: Biome, seed: number, width = 640, height = 
           if (hit) c = mix(p.trees, [0, 0, 0], i * 0.08);
         }
       });
+
+      if (feature && featureAt(x, y)) c = ink;
 
       if (p.water && y > waterLine) {
         const ripple = Math.sin(x * 0.08 + y * 0.5) * Math.sin(y * 0.9) > 0.85 ? 0.35 : 0;

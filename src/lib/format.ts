@@ -29,3 +29,5 @@ export const plural = (n: number, one: string, many = `${one}s`) => `${n.toLocal
 export function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString('en', { year: 'numeric', month: 'long', day: 'numeric' });
 }
+
+export const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);

@@ -13,7 +13,7 @@ export function Layout() {
   const links = [
     ...(me ? [{ to: '/', label: 'Feed', icon: <Rss />, end: true }] : []),
     { to: '/explore', label: 'Explore', icon: <Compass /> },
-    ...(me ? [{ to: '/zoos', label: 'My zoos', icon: <Map /> }] : []),
+    ...(me ? [{ to: '/zoos', label: 'My parks', icon: <Map /> }] : []),
     { to: '/people', label: 'People', icon: <Users /> },
   ];
 

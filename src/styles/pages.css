@@ -966,3 +966,77 @@
   color: var(--brand);
   flex: none;
 }
+
+/* ---------- park types ---------- */
+.park-picker {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.park-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 14px;
+  border: 1.5px solid var(--line-strong);
+  background: var(--surface);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    background 0.15s,
+    box-shadow 0.15s;
+}
+.park-option:hover {
+  border-color: var(--ink-3);
+}
+.park-option > span:last-child {
+  display: flex;
+  flex-direction: column;
+}
+.park-option-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  flex: none;
+  background: var(--brand-soft);
+  color: var(--brand);
+}
+.park-option.park-theme_park .park-option-icon {
+  background: var(--coaster-soft);
+  color: var(--coaster);
+}
+.park-option[aria-checked='true'] {
+  border-color: var(--brand);
+  background: var(--brand-soft);
+  box-shadow: 0 0 0 3px rgba(47, 107, 71, 0.12);
+}
+.park-option.park-theme_park[aria-checked='true'] {
+  border-color: var(--coaster);
+  background: var(--coaster-soft);
+  box-shadow: 0 0 0 3px rgba(178, 70, 52, 0.12);
+}
+.park-option[aria-checked='true'] .park-option-icon {
+  background: var(--surface);
+}
+.zoo-card-badges {
+  right: 10px;
+  flex-wrap: wrap;
+}
+.zoo-card-badges .park-badge {
+  color: var(--brand-strong);
+}
+.zoo-card-badges .park-badge.park-theme_park {
+  color: var(--coaster);
+}
+.explore-filter {
+  margin: -6px 0 20px;
+}
+@media (max-width: 480px) {
+  .park-picker {
+    grid-template-columns: 1fr;
+  }
+}

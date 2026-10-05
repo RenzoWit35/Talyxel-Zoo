@@ -1,10 +1,12 @@
 import { Router, type RequestHandler } from 'express';
 import type multer from 'multer';
-import { HABITAT_COLORS, KIND_META } from '../../shared/constants';
+import { KIND_META, PARK_TYPES, type HabitatKind, type ParkType } from '../../shared/constants';
 import { bounds, clampPoint, roundPoint, type Point } from '../../shared/geometry';
+import { parkMeta } from '../../shared/parks';
 import { all, one, placeholders, run, tx, type DB } from '../db';
 import { recordEvent } from '../events';
 import { badRequest, forbidden, notFound, paramId, parse, requireUser } from '../http';
+import { checkShapeFits } from '../parks';
 import {
   canView,
   getZooRow,
@@ -35,9 +37,24 @@ export function zooRoutes(db: DB, upload: multer.Multer, uploadDir: string) {
 
   const ownZoo = (userId: number, zooId: number) => {
     const zoo = getZooRow(db, zooId);
-    if (!zoo || !canView(zoo, userId)) throw notFound('Zoo not found');
-    if (zoo.owner_id !== userId) throw forbidden('Only the owner can change this zoo');
+    if (!zoo || !canView(zoo, userId)) throw notFound('Park not found');
+    if (zoo.owner_id !== userId) throw forbidden('Only the owner can change this park');
     return zoo;
+  };
+
+  /** A park can only change type when every shape it has also exists in the new type. */
+  const assertCanSwitchType = (zooId: number, parkType: ParkType) => {
+    const meta = parkMeta(parkType);
+    const misfits = all<{ name: string; kind: HabitatKind }>(db, 'SELECT name, kind FROM habitats WHERE zoo_id = ? ORDER BY id', zooId).filter(
+      (h) => !meta.kinds.includes(h.kind),
+    );
+    if (misfits.length) {
+      const list = misfits
+        .slice(0, 3)
+        .map((h) => `${h.name} (${KIND_META[h.kind].label.toLowerCase()})`)
+        .join(', ');
+      throw badRequest(`Change or remove ${misfits.length > 3 ? `${list} and ${misfits.length - 3} more` : list} first — a ${meta.noun} can't have those`);
+    }
   };
 
   r.get('/mine', (req, res) => {
@@ -46,23 +63,23 @@ export function zooRoutes(db: DB, upload: multer.Multer, uploadDir: string) {
     res.json(loadZooSummaries(db, zoos));
   });
 
+  // Published parks, newest first. Optional ?q= search and ?type=zoo|theme_park filter.
   r.get('/explore', (req, res) => {
     const q = typeof req.query.q === 'string' ? req.query.q.trim().slice(0, 60) : '';
-    const like = `%${q.replace(/[\\%_]/g, (c) => `\\${c}`)}%`;
-    const zoos = q
-      ? all<ZooRow>(
-          db,
-          `${ZOO_SELECT} WHERE z.status = 'published'
-           AND (z.title LIKE ? ESCAPE '\\' OR z.description LIKE ? ESCAPE '\\' OR u.username LIKE ? ESCAPE '\\'
-                OR EXISTS (SELECT 1 FROM habitats h WHERE h.zoo_id = z.id AND (h.species LIKE ? ESCAPE '\\' OR h.name LIKE ? ESCAPE '\\')))
-           ORDER BY z.published_at DESC LIMIT 60`,
-          like,
-          like,
-          like,
-          like,
-          like,
-        )
-      : all<ZooRow>(db, `${ZOO_SELECT} WHERE z.status = 'published' ORDER BY z.published_at DESC LIMIT 60`);
+    const type = PARK_TYPES.find((t) => t === req.query.type);
+    const where = ["z.status = 'published'"];
+    const params: string[] = [];
+    if (type) {
+      where.push('z.park_type = ?');
+      params.push(type);
+    }
+    if (q) {
+      const like = `%${q.replace(/[\\%_]/g, (c) => `\\${c}`)}%`;
+      where.push(`(z.title LIKE ? ESCAPE '\\' OR z.description LIKE ? ESCAPE '\\' OR u.username LIKE ? ESCAPE '\\'
+        OR EXISTS (SELECT 1 FROM habitats h WHERE h.zoo_id = z.id AND (h.species LIKE ? ESCAPE '\\' OR h.name LIKE ? ESCAPE '\\')))`);
+      params.push(like, like, like, like, like);
+    }
+    const zoos = all<ZooRow>(db, `${ZOO_SELECT} WHERE ${where.join(' AND ')} ORDER BY z.published_at DESC LIMIT 60`, ...params);
     res.json(loadZooSummaries(db, zoos));
   });
 
@@ -71,8 +88,9 @@ export function zooRoutes(db: DB, upload: multer.Multer, uploadDir: string) {
     const body = parse(zooCreateInput, req.body);
     const { id } = run(
       db,
-      'INSERT INTO zoos (owner_id, title, description, width, height) VALUES (?, ?, ?, ?, ?)',
+      'INSERT INTO zoos (owner_id, park_type, title, description, width, height) VALUES (?, ?, ?, ?, ?, ?)',
       me.id,
+      body.parkType,
       body.title,
       body.description,
       Math.round(body.width),
@@ -83,7 +101,7 @@ export function zooRoutes(db: DB, upload: multer.Multer, uploadDir: string) {
 
   r.get('/:id', (req, res) => {
     const zoo = getZooRow(db, paramId(req));
-    if (!zoo || !canView(zoo, req.user?.id)) throw notFound('Zoo not found');
+    if (!zoo || !canView(zoo, req.user?.id)) throw notFound('Park not found');
     res.json(loadZooDetail(db, zoo, req.user?.id));
   });
 
@@ -104,17 +122,27 @@ export function zooRoutes(db: DB, upload: multer.Multer, uploadDir: string) {
         }
       }
     }
-    run(
-      db,
-      `UPDATE zoos SET title = ?, description = ?, width = ?, height = ?, background_opacity = ?,
-         updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE id = ?`,
-      body.title ?? zoo.title,
-      body.description ?? zoo.description,
-      width,
-      height,
-      body.backgroundOpacity ?? zoo.background_opacity,
-      zoo.id,
-    );
+    const parkType = body.parkType ?? zoo.park_type;
+    if (parkType !== zoo.park_type) assertCanSwitchType(zoo.id, parkType);
+    tx(db, () => {
+      if (parkType !== zoo.park_type) {
+        // Biomes and themes don't carry over between park types; clear the ones that no longer fit.
+        const allowed = parkMeta(parkType).settings;
+        run(db, `UPDATE habitats SET biome = '' WHERE zoo_id = ? AND biome NOT IN (${placeholders(allowed.length)})`, zoo.id, ...allowed);
+      }
+      run(
+        db,
+        `UPDATE zoos SET park_type = ?, title = ?, description = ?, width = ?, height = ?, background_opacity = ?,
+           updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE id = ?`,
+        parkType,
+        body.title ?? zoo.title,
+        body.description ?? zoo.description,
+        width,
+        height,
+        body.backgroundOpacity ?? zoo.background_opacity,
+        zoo.id,
+      );
+    });
     res.json(loadZooDetail(db, getZooRow(db, zoo.id)!, me.id));
   });
 
@@ -193,9 +221,12 @@ export function zooRoutes(db: DB, upload: multer.Multer, uploadDir: string) {
     const me = requireUser(req);
     const zoo = ownZoo(me.id, paramId(req));
     const body = parse(habitatCreateInput, req.body);
+    const meta = parkMeta(zoo.park_type);
+    const kind = body.kind ?? meta.defaultKind;
+    checkShapeFits(zoo.park_type, kind, body.biome);
     const count = one<{ n: number }>(db, 'SELECT COUNT(*) AS n FROM habitats WHERE zoo_id = ?', zoo.id)!.n;
-    if (count >= 500) throw badRequest('A zoo can have at most 500 shapes');
-    const color = body.color ?? (body.kind === 'habitat' ? HABITAT_COLORS[count % 6] : KIND_META[body.kind].color);
+    if (count >= 500) throw badRequest('A park can have at most 500 shapes');
+    const color = body.color ?? (kind === meta.defaultKind ? meta.colors[count % meta.colors.length] : KIND_META[kind].color);
     const position = one<{ p: number | null }>(db, 'SELECT MAX(position) AS p FROM habitats WHERE zoo_id = ? AND status = ?', zoo.id, body.status)!.p;
     const { id } = run(
       db,
@@ -203,7 +234,7 @@ export function zooRoutes(db: DB, upload: multer.Multer, uploadDir: string) {
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       zoo.id,
       body.name,
-      body.kind,
+      kind,
       body.status,
       body.biome,
       body.species,
@@ -230,7 +261,7 @@ export function zooRoutes(db: DB, upload: multer.Multer, uploadDir: string) {
         zoo.id,
         ...ids,
       );
-      if (found.length !== new Set(ids).size) throw badRequest('Some habitats do not belong to this zoo');
+      if (found.length !== new Set(ids).size) throw badRequest('Some shapes do not belong to this park');
     }
     tx(db, () => {
       for (const [status, list] of Object.entries(columns)) {

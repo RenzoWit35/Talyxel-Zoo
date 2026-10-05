@@ -5,12 +5,12 @@
 import { mkdirSync } from 'node:fs';
 import type { AddressInfo } from 'node:net';
 import path from 'node:path';
-import type { Biome, HabitatKind, HabitatStatus } from '../shared/constants';
+import type { Biome, HabitatKind, HabitatStatus, ParkType } from '../shared/constants';
 import type { Point } from '../shared/geometry';
 import type { Habitat, ZooDetail } from '../shared/types';
 import { createApp } from './app';
 import { all, one, openDb, run } from './db';
-import { paintPostcard } from './seed-images';
+import { paintPostcard, type Feature } from './seed-images';
 
 const PASSWORD = 'zoo-demo-123';
 const dataDir = path.resolve(process.env.DATA_DIR ?? 'data');
@@ -60,6 +60,7 @@ interface HabitatSeed {
 }
 
 interface ZooSeed {
+  parkType?: ParkType;
   title: string;
   description: string;
   width: number;
@@ -77,14 +78,24 @@ const rect = (x: number, y: number, w: number, h: number): Point[] => [
 
 let photoSeed = 1;
 
+/** Theme park photos get a coaster track or a Ferris wheel painted in. */
+const featureFor = (h: Pick<HabitatSeed, 'kind' | 'species'>): Feature | undefined =>
+  h.kind === 'coaster' ? 'coaster' : h.species?.toLowerCase().includes('ferris') ? 'wheel' : undefined;
+
 async function createZoo(owner: Client, z: ZooSeed) {
-  const zoo = await owner.call<ZooDetail>('POST', '/zoos', { title: z.title, description: z.description, width: z.width, height: z.height });
+  const zoo = await owner.call<ZooDetail>('POST', '/zoos', {
+    parkType: z.parkType ?? 'zoo',
+    title: z.title,
+    description: z.description,
+    width: z.width,
+    height: z.height,
+  });
   const addHabitat = async ({ photos = [], later: _later, ...fields }: HabitatSeed) => {
     const created = await owner.call<Habitat>('POST', `/zoos/${zoo.id}/habitats`, fields);
     if (!photos.length) return;
     const form = new FormData();
     for (let i = 0; i < photos.length; i++) {
-      const png = paintPostcard(fields.biome ?? '', photoSeed++ * 7919);
+      const png = paintPostcard(fields.biome ?? '', photoSeed++ * 7919, featureFor(fields));
       form.append('photos', new Blob([new Uint8Array(png)], { type: 'image/png' }), 'postcard.png');
     }
     const withPhotos = await owner.call<Habitat>('POST', `/habitats/${created.id}/photos`, form);
@@ -103,6 +114,7 @@ async function main() {
     { username: 'rosa', displayName: 'Rosa Verhoeven', bio: 'Savanna specialist. Every lion deserves a view.' },
     { username: 'kai', displayName: 'Kai Lindqvist', bio: 'Cold-climate conservation parks. Snow, wolves and northern lights.' },
     { username: 'milan', displayName: 'Milan de Vries', bio: 'Reptile houses and aquariums. Glass is my love language.' },
+    { username: 'lotte', displayName: 'Lotte Bakker', bio: "Planet Coaster addict. If it doesn't have a loop, is it even a ride?" },
   ];
   for (const p of people) {
     const c = new Client();
@@ -118,6 +130,9 @@ async function main() {
   await follow('kai', 'rosa');
   await follow('milan', 'talyxel');
   await follow('milan', 'rosa');
+  await follow('talyxel', 'lotte');
+  await follow('lotte', 'talyxel');
+  await follow('rosa', 'lotte');
 
   // Rosa: a published savanna park with an open survey.
   const serengeti = await createZoo(users.rosa, {
@@ -289,6 +304,62 @@ async function main() {
       { name: 'Entrance hall', kind: 'facility', status: 'done', points: rect(10, 74, 140, 36) },
     ],
   });
+
+  // Lotte: a Planet Coaster theme park with themed lands.
+  const thunderPeak = await createZoo(users.lotte, {
+    parkType: 'theme_park',
+    title: 'Thunder Peak Adventure Park',
+    description: 'Three themed lands around one main street: pirates by the bay, a western mining town and a spooky hollow that is still mostly ideas.',
+    width: 360,
+    height: 260,
+    publish: {
+      survey: {
+        question: 'Which coaster should Thunder Peak build next?',
+        options: ['Launched coaster', 'Wing coaster over the bay', 'Family wild mouse'],
+        allowSuggestions: true,
+      },
+    },
+    habitats: [
+      { name: 'Pirate Cove', kind: 'zone', biome: 'pirate', status: 'done', points: rect(10, 10, 166, 112), description: 'Docks, shipwrecks and a skull rock.' },
+      { name: 'Frontier Town', kind: 'zone', biome: 'western', status: 'building', points: rect(184, 10, 166, 112), description: 'Mining town with a saloon and a big wooden coaster.' },
+      { name: 'Spooky Hollow', kind: 'zone', biome: 'spooky', status: 'planned', points: rect(184, 140, 166, 110), description: 'Graveyard, crooked trees and fog machines.' },
+      { name: 'Main Street', kind: 'path', status: 'done', points: rect(10, 124, 340, 12) },
+      { name: 'Entrance Plaza', kind: 'path', status: 'done', points: rect(10, 140, 166, 110) },
+      {
+        name: 'Thunderbolt',
+        kind: 'coaster',
+        species: 'Wooden coaster',
+        biome: 'western',
+        status: 'done',
+        description: 'Out-and-back wooden coaster through the mine buildings. Excitement 7.8, intensity 6.1.',
+        points: [[196, 20], [340, 18], [338, 76], [280, 90], [200, 80]],
+        photos: ['Lift hill at sunset', 'The first drop', 'Station building'],
+      },
+      { name: 'Rapids Run', kind: 'water_ride', species: 'River rapids', biome: 'western', status: 'planned', points: rect(196, 96, 144, 20) },
+      { name: 'Galleon Swing', kind: 'ride', species: 'Pirate ship', biome: 'pirate', status: 'done', points: rect(126, 22, 40, 30), photos: ['Full swing'] },
+      { name: 'Skull Bay', kind: 'water', status: 'done', points: [[20, 86], [104, 84], [112, 116], [22, 116]] },
+      { name: 'Popcorn Stand', kind: 'shop', species: 'Food court', status: 'done', points: rect(24, 152, 34, 24) },
+      { name: 'Gift Shop', kind: 'shop', species: 'Gift shop', status: 'done', points: rect(66, 152, 50, 24) },
+      { name: 'First Aid & Restrooms', kind: 'facility', status: 'done', points: rect(124, 152, 40, 24) },
+      {
+        name: 'Kraken',
+        kind: 'coaster',
+        species: 'Inverted coaster',
+        biome: 'pirate',
+        status: 'building',
+        description: 'Inverted coaster with a dive over Skull Bay. Supports still need hiding.',
+        points: [[20, 20], [112, 18], [118, 74], [62, 80], [22, 66]],
+        photos: ['Over the bay', 'Cobra roll'],
+        later: true,
+      },
+      { name: 'Skywheel', kind: 'ride', species: 'Ferris wheel', biome: 'classic', status: 'done', points: rect(126, 64, 40, 40), photos: ['Skywheel at dusk'], later: true },
+      { name: 'Nightmare Express', kind: 'coaster', species: 'Mine train', biome: 'spooky', status: 'idea', points: rect(250, 152, 88, 60), later: true },
+    ],
+  });
+  const tpSurvey = (await users.lotte.call<ZooDetail>('GET', `/zoos/${thunderPeak}`)).surveys[0];
+  await users.talyxel.call('POST', `/surveys/${tpSurvey.id}/vote`, { optionId: tpSurvey.options[1].id });
+  await users.rosa.call('POST', `/surveys/${tpSurvey.id}/vote`, { optionId: tpSurvey.options[1].id });
+  await users.kai.call('POST', `/surveys/${tpSurvey.id}/options`, { label: 'Bobsled through the hollow' });
 
   // Votes and a community suggestion on Rosa's survey.
   const rosaZoo = await users.rosa.call<ZooDetail>('GET', `/zoos/${serengeti}`);

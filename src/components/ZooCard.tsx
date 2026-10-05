@@ -2,6 +2,7 @@ import { Images, Lock, PenLine, Vote } from 'lucide-react';
 import { Link } from 'react-router';
 import type { ZooSummary } from '../../shared/types';
 import { plural, timeAgo } from '../lib/format';
+import { ParkBadge } from './ParkType';
 import { Avatar } from './ui';
 import { ZooThumbnail } from './ZooThumbnail';
 
@@ -20,6 +21,7 @@ export function ZooCard({ zoo, editable, showOwner = true }: Props) {
         <ZooThumbnail width={zoo.width} height={zoo.height} shapes={zoo.shapes} />
         {zoo.coverUrl && <img className="zoo-card-cover" src={zoo.coverUrl} alt="" loading="lazy" />}
         <div className="zoo-card-badges">
+          <ParkBadge type={zoo.parkType} />
           {zoo.status === 'draft' && (
             <span className="chip">
               <Lock /> Draft

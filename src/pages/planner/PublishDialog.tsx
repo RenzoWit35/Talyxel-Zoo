@@ -5,10 +5,12 @@ import type { ZooDetail } from '../../../shared/types';
 import { errorMessage } from '../../api/client';
 import { cleanSurvey, emptySurvey, SurveyEditor, surveyProblem } from '../../components/SurveyEditor';
 import { Modal } from '../../components/ui';
+import { parkMeta } from '../../../shared/parks';
 import type { ZooEditor } from './useZooEditor';
 
 export function PublishDialog({ editor, onClose }: { editor: ZooEditor; onClose: () => void }) {
   const zoo: ZooDetail = editor.zoo;
+  const meta = parkMeta(zoo.parkType);
   const ideas = zoo.habitats.filter((h) => h.status === 'idea').map((h) => (h.species ? `${h.name} (${h.species})` : h.name).slice(0, 80));
   const [withSurvey, setWithSurvey] = useState(true);
   const [survey, setSurvey] = useState(() => emptySurvey(zoo.title, ideas));
@@ -34,7 +36,7 @@ export function PublishDialog({ editor, onClose }: { editor: ZooEditor; onClose:
 
   if (done) {
     return (
-      <Modal title="Your zoo is live! 🎉" description="It's on your profile and in your followers' feeds now." onClose={onClose}
+      <Modal title={`Your ${meta.noun} is live! 🎉`} description="It's on your profile and in your followers' feeds now." onClose={onClose}
         footer={
           <>
             <button className="btn" onClick={onClose}>
@@ -60,7 +62,7 @@ export function PublishDialog({ editor, onClose }: { editor: ZooEditor; onClose:
         </div>
         {withSurvey && (
           <p className="muted">
-            <Vote size={15} style={{ verticalAlign: '-2px' }} /> Your survey is open. Close it from the zoo page whenever you've decided.
+            <Vote size={15} style={{ verticalAlign: '-2px' }} /> Your survey is open. Close it from the {meta.noun} page whenever you've decided.
           </p>
         )}
       </Modal>
@@ -97,7 +99,7 @@ export function PublishDialog({ editor, onClose }: { editor: ZooEditor; onClose:
       {withSurvey && (
         <>
           {ideas.length > 0 && <p className="subtle">We pre-filled the options with the shapes you marked as “Idea”.</p>}
-          <SurveyEditor value={survey} onChange={setSurvey} />
+          <SurveyEditor value={survey} onChange={setSurvey} examples={meta.optionExamples} />
         </>
       )}
       {problem && <p className="subtle">{problem}</p>}

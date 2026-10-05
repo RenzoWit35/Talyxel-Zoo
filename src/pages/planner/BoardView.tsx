@@ -12,6 +12,7 @@ interface Props {
   onSelect: (id: number) => void;
   onSave: (columns: Columns) => void;
   onAddIdea: (name: string) => void;
+  ideaExample: string;
 }
 
 const HINTS: Record<HabitatStatus, string> = {
@@ -22,7 +23,7 @@ const HINTS: Record<HabitatStatus, string> = {
 };
 
 /** Kanban view of the plan: drag cards between columns to change their status. */
-export function BoardView({ habitats, selectedId, onSelect, onSave, onAddIdea }: Props) {
+export function BoardView({ habitats, selectedId, onSelect, onSave, onAddIdea, ideaExample }: Props) {
   const [dragId, setDragId] = useState<number | null>(null);
   const [drop, setDrop] = useState<{ status: HabitatStatus; index: number } | null>(null);
   const [idea, setIdea] = useState('');
@@ -40,14 +41,17 @@ export function BoardView({ habitats, selectedId, onSelect, onSave, onAddIdea }:
     return { status, index: index === -1 ? cards.length : index };
   };
 
-  const onDrop = (status: HabitatStatus) => {
-    if (dragId === null || !drop) return;
+  // Read the card and position from the drop event itself: a quick drop can land
+  // before React has re-rendered with the state set by the last dragover.
+  const onDrop = (e: DragEvent<HTMLDivElement>, status: HabitatStatus) => {
+    const id = Number(e.dataTransfer.getData('text/plain')) || dragId;
+    if (!id || !habitats.some((h) => h.id === id)) return;
     const next = Object.fromEntries(HABITAT_STATUSES.map((s) => [s, columns[s].map((h) => h.id)])) as Columns;
-    const from = columns[status].findIndex((h) => h.id === dragId);
-    let index = drop.index;
+    const from = columns[status].findIndex((h) => h.id === id);
+    let index = dropIndex(e, status).index;
     if (from !== -1 && from < index) index--; // removing the card shifts later ones up
-    for (const s of HABITAT_STATUSES) next[s] = next[s].filter((id) => id !== dragId);
-    next[status].splice(index, 0, dragId);
+    for (const s of HABITAT_STATUSES) next[s] = next[s].filter((x) => x !== id);
+    next[status].splice(index, 0, id);
     setDragId(null);
     setDrop(null);
     onSave(next);
@@ -76,7 +80,7 @@ export function BoardView({ habitats, selectedId, onSelect, onSave, onAddIdea }:
           }}
           onDrop={(e) => {
             e.preventDefault();
-            onDrop(status);
+            onDrop(e, status);
           }}
         >
           <div className="board-col-head">
@@ -121,13 +125,14 @@ export function BoardView({ habitats, selectedId, onSelect, onSave, onAddIdea }:
                 </button>
               </div>
             ))}
-            {drop?.status === status && drop.index === columns[status].length && <div className="board-drop-marker" />}
-            {columns[status].length === 0 && !drop && <div className="board-empty">Drag cards here</div>}
+            {columns[status].length > 0 && drop?.status === status && drop.index === columns[status].length && <div className="board-drop-marker" />}
+            {/* Stays in place while dragging so the column doesn't shrink out from under the cursor. */}
+            {columns[status].length === 0 && <div className={`board-empty${drop?.status === status ? ' active' : ''}`}>Drag cards here</div>}
           </div>
           {status === 'idea' && (
             <form className="board-add" onSubmit={submitIdea}>
               <Lightbulb size={16} />
-              <input className="input" placeholder="Quick idea, e.g. Penguin pool" value={idea} maxLength={60} onChange={(e) => setIdea(e.target.value)} />
+              <input className="input" placeholder={`Quick idea, e.g. ${ideaExample}`} value={idea} maxLength={60} onChange={(e) => setIdea(e.target.value)} />
               <button className="btn btn-sm btn-icon" aria-label="Add idea" disabled={!idea.trim()}>
                 <Plus />
               </button>

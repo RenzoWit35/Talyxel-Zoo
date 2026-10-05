@@ -27,7 +27,16 @@ export const cleanSurvey = (s: SurveyDraft): SurveyDraft => ({
   allowSuggestions: s.allowSuggestions,
 });
 
-export function SurveyEditor({ value, onChange }: { value: SurveyDraft; onChange: (s: SurveyDraft) => void }) {
+export function SurveyEditor({
+  value,
+  onChange,
+  examples = ['e.g. Red Panda habitat', 'e.g. Reptile house'],
+}: {
+  value: SurveyDraft;
+  onChange: (s: SurveyDraft) => void;
+  /** Placeholders for the first two options. */
+  examples?: readonly [string, string];
+}) {
   const setOption = (i: number, text: string) => onChange({ ...value, options: value.options.map((o, j) => (j === i ? text : o)) });
   return (
     <div className="survey-editor stack">
@@ -44,7 +53,7 @@ export function SurveyEditor({ value, onChange }: { value: SurveyDraft; onChange
               className="input"
               value={o}
               maxLength={80}
-              placeholder={i === 0 ? 'e.g. Red Panda habitat' : i === 1 ? 'e.g. Reptile house' : 'Another idea'}
+              placeholder={examples[i] ?? 'Another idea'}
               onChange={(e) => setOption(i, e.target.value)}
             />
             {value.options.length > 2 && (
@@ -77,8 +86,20 @@ export function SurveyEditor({ value, onChange }: { value: SurveyDraft; onChange
   );
 }
 
-/** Start another survey on an already-published zoo. */
-export function NewSurveyDialog({ zooId, title, ideas, onClose }: { zooId: number; title: string; ideas?: string[]; onClose: () => void }) {
+/** Start another survey on an already-published park. */
+export function NewSurveyDialog({
+  zooId,
+  title,
+  ideas,
+  examples,
+  onClose,
+}: {
+  zooId: number;
+  title: string;
+  ideas?: string[];
+  examples?: readonly [string, string];
+  onClose: () => void;
+}) {
   const qc = useQueryClient();
   const toast = useToast();
   const [survey, setSurvey] = useState(() => emptySurvey(title, ideas));
@@ -95,7 +116,7 @@ export function NewSurveyDialog({ zooId, title, ideas, onClose }: { zooId: numbe
   return (
     <Modal
       title="Ask the community"
-      description="Start a new survey about what to add next. It shows up on your zoo page and in your followers' feeds."
+      description="Start a new survey about what to add next. It shows up on your park page and in your followers' feeds."
       onClose={onClose}
       footer={
         <>
@@ -109,7 +130,7 @@ export function NewSurveyDialog({ zooId, title, ideas, onClose }: { zooId: numbe
       }
     >
       {create.error && <div className="form-error">{errorMessage(create.error)}</div>}
-      <SurveyEditor value={survey} onChange={setSurvey} />
+      <SurveyEditor value={survey} onChange={setSurvey} examples={examples} />
     </Modal>
   );
 }

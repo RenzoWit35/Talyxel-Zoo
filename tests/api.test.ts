@@ -129,6 +129,51 @@ describe('zoo planning', () => {
   });
 });
 
+describe('theme parks', () => {
+  it('creates a theme park with coaster shapes and theme-park themes', async () => {
+    const lotte = await signUp(app, 'lotte');
+    const park = (await lotte.post('/api/zoos', { title: 'Thunder Peak', parkType: 'theme_park', width: 300, height: 200 })).body as ZooDetail;
+    expect(park.parkType).toBe('theme_park');
+
+    // Without a kind, new shapes default to the park type's main kind.
+    const first = (await lotte.post(`/api/zoos/${park.id}/habitats`, { name: 'Thunderbolt', species: 'Wooden coaster', points: square(10, 10, 40) }))
+      .body as Habitat;
+    expect(first.kind).toBe('coaster');
+
+    const ride = await lotte.post(`/api/zoos/${park.id}/habitats`, { name: 'Skywheel', kind: 'ride', biome: 'pirate', points: square(60, 10, 20) });
+    expect(ride.status).toBe(201);
+    expect(ride.body.biome).toBe('pirate');
+
+    expect((await lotte.post(`/api/zoos/${park.id}/habitats`, { kind: 'habitat', points: square(90, 10, 20) })).status).toBe(400);
+    expect((await lotte.post(`/api/zoos/${park.id}/habitats`, { kind: 'ride', biome: 'tropical', points: square(90, 10, 20) })).status).toBe(400);
+    expect((await lotte.patch(`/api/habitats/${first.id}`, { kind: 'exhibit' })).status).toBe(400);
+  });
+
+  it('keeps zoo shapes out of theme parks and filters explore by type', async () => {
+    const rosa = await signUp(app, 'rosa');
+    const { zoo } = await zooWithHabitat(rosa);
+    expect(zoo.parkType).toBe('zoo');
+    expect((await rosa.post(`/api/zoos/${zoo.id}/habitats`, { kind: 'coaster', points: square(50, 50, 20) })).status).toBe(400);
+
+    // A zoo with a habitat in it can't become a theme park…
+    expect((await rosa.patch(`/api/zoos/${zoo.id}`, { parkType: 'theme_park' })).status).toBe(400);
+
+    // …but one with only shared shape types can, and its biomes are cleared.
+    const plain = (await rosa.post('/api/zoos', { title: 'Lakeside', width: 100, height: 100 })).body as ZooDetail;
+    await rosa.post(`/api/zoos/${plain.id}/habitats`, { kind: 'water', biome: 'aquatic', points: square(10, 10, 20) });
+    const switched = (await rosa.patch(`/api/zoos/${plain.id}`, { parkType: 'theme_park' })).body as ZooDetail;
+    expect(switched.parkType).toBe('theme_park');
+    expect(switched.habitats[0].biome).toBe('');
+
+    await rosa.post(`/api/zoos/${zoo.id}/publish`);
+    await rosa.post(`/api/zoos/${plain.id}/publish`);
+    const titles = async (type: string) => ((await request(app).get(`/api/zoos/explore?type=${type}`)).body as ZooDetail[]).map((z) => z.title);
+    expect(await titles('zoo')).toEqual(['Savanna Park']);
+    expect(await titles('theme_park')).toEqual(['Lakeside']);
+    expect(await titles('')).toHaveLength(2);
+  });
+});
+
 describe('publishing with a survey', () => {
   it('hides results until you vote, accepts suggestions and lets the owner close it', async () => {
     const rosa = await signUp(app, 'rosa');

@@ -19,10 +19,10 @@ const DEMO: ZooShape[] = [
 ];
 
 const FEATURES = [
-  { icon: <PenLine />, title: 'Draw it top-down', text: 'Trace habitat borders on a grid — or over a screenshot of your park — with snapping, rectangles and freeform shapes.' },
-  { icon: <Images />, title: 'Hover for the story', text: 'Every habitat holds its own photo collection, species, biome and notes. Hover a shape to see it all at a glance.' },
+  { icon: <PenLine />, title: 'Draw it top-down', text: 'Trace habitats, coasters and themed areas on a grid — or over a screenshot of your park — with snapping, rectangles and freeform shapes.' },
+  { icon: <Images />, title: 'Hover for the story', text: 'Every habitat or ride holds its own photo collection, species or ride type, biome or theme, and notes. Hover a shape to see it all.' },
   { icon: <Vote />, title: 'Publish with a survey', text: 'Share your plan and ask the community what to build next. Visitors vote or suggest their own ideas.' },
-  { icon: <Users />, title: 'Follow your friends', text: 'Follow other builders and get a feed of their new habitats, photos and surveys as they happen.' },
+  { icon: <Users />, title: 'Follow your friends', text: 'Follow other builders and get a feed of their new habitats, rides, photos and surveys as they happen.' },
 ];
 
 export function Landing() {
@@ -32,22 +32,22 @@ export function Landing() {
       <section className="hero">
         <div className="hero-inner">
           <div className="hero-copy">
-            <span className="chip chip-brand">For Planet Zoo builders</span>
+            <span className="chip chip-brand">For Planet Zoo & Planet Coaster builders</span>
             <h1>
-              Plan your dream zoo.
+              Plan your dream park.
               <br />
               <em>Let your friends pick what's next.</em>
             </h1>
             <p>
-              Talyxel Zoo is a planning board for your park: sketch every habitat from above, fill it with screenshots and notes, then publish it with a
-              survey and follow the builds of the people you like.
+              Talyxel Zoo is a planning board for your zoos and theme parks: sketch every habitat, coaster and themed area from above, fill it with
+              screenshots and notes, then publish it with a survey and follow the builds of the people you like.
             </p>
             <div className="row row-wrap">
               <Link to="/register" className="btn btn-primary btn-lg">
                 Start planning <ArrowRight />
               </Link>
               <Link to="/explore" className="btn btn-lg">
-                Explore zoos
+                Explore parks
               </Link>
             </div>
           </div>
@@ -95,7 +95,7 @@ export function Landing() {
             <div className="page-header" style={{ marginTop: 56 }}>
               <div>
                 <h2>Freshly published</h2>
-                <p>Zoos the community shared recently.</p>
+                <p>Zoos and theme parks the community shared recently.</p>
               </div>
               <Link to="/explore" className="btn btn-sm">
                 See all <ArrowRight />

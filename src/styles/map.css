@@ -78,6 +78,16 @@
   stroke-linejoin: round;
   font-family: var(--font-ui);
 }
+.map-label-zone {
+  font-weight: 750;
+  letter-spacing: 0.12em;
+  fill: #2c3a30;
+}
+.shape.kind-zone polygon:first-child {
+  fill-opacity: 0.5;
+  stroke-dasharray: 2 4;
+  stroke-width: 2;
+}
 .map-label-sub {
   fill: #2c3a30;
 }

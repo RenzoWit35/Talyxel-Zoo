@@ -21,8 +21,9 @@ import {
 } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { Link, Navigate, useNavigate, useParams } from 'react-router';
-import { HABITAT_KINDS, KIND_META, type HabitatKind } from '../../../shared/constants';
+import { KIND_META, type HabitatKind } from '../../../shared/constants';
 import { bounds, type Point } from '../../../shared/geometry';
+import { parkMeta } from '../../../shared/parks';
 import type { Habitat, ZooDetail } from '../../../shared/types';
 import { api, ApiError, errorMessage } from '../../api/client';
 import { MapCanvas, type Tool } from '../../components/map/MapCanvas';
@@ -83,11 +84,12 @@ function freeSpot(zoo: ZooDetail): Point[] {
 function Planner({ initial }: { initial: ZooDetail }) {
   const editor = useZooEditor(initial);
   const { zoo } = editor;
+  const meta = parkMeta(zoo.parkType);
   const navigate = useNavigate();
   const toast = useToast();
   const [view, setView] = useState<'map' | 'board'>('map');
   const [tool, setTool] = useState<Tool>('select');
-  const [drawKind, setDrawKind] = useState<HabitatKind>('habitat');
+  const [drawKind, setDrawKind] = useState<HabitatKind>(meta.defaultKind);
   const [snap, setSnap] = useState(true);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [draftPoints, setDraftPoints] = useState(0);
@@ -98,6 +100,8 @@ function Planner({ initial }: { initial: ZooDetail }) {
   const [panelOpen, setPanelOpen] = useState(false);
 
   const selected = zoo.habitats.find((h) => h.id === selectedId) ?? null;
+  // If the park type changes, fall back to its main shape type for drawing.
+  const kindToDraw = meta.kinds.includes(drawKind) ? drawKind : meta.defaultKind;
 
   const select = useCallback((id: number | null) => {
     setSelectedId(id);
@@ -111,14 +115,14 @@ function Planner({ initial }: { initial: ZooDetail }) {
   const onCreateShape = useCallback(
     async (points: Point[]) => {
       try {
-        const h = await editor.createHabitat(points, drawKind);
+        const h = await editor.createHabitat(points, kindToDraw);
         setTool('select');
         select(h.id);
       } catch {
         /* toast already shown */
       }
     },
-    [editor, drawKind, select],
+    [editor, kindToDraw, select],
   );
 
   // Global shortcuts (the canvas handles drawing-specific keys itself).
@@ -144,7 +148,7 @@ function Planner({ initial }: { initial: ZooDetail }) {
 
   const addIdea = async (name: string) => {
     try {
-      const h = await editor.createHabitat(freeSpot(zoo), 'habitat', { name, status: 'idea' });
+      const h = await editor.createHabitat(freeSpot(zoo), meta.defaultKind, { name, status: 'idea' });
       select(h.id);
       toast.ok('Idea added — switch to the map to place it');
     } catch {
@@ -155,7 +159,7 @@ function Planner({ initial }: { initial: ZooDetail }) {
   const deleteZoo = async () => {
     try {
       await api.deleteZoo(zoo.id);
-      toast.ok('Zoo deleted');
+      toast.ok(`${meta.label} deleted`);
       navigate('/zoos');
     } catch (err) {
       toast.error(err);
@@ -168,14 +172,14 @@ function Planner({ initial }: { initial: ZooDetail }) {
   return (
     <div className="planner">
       <header className="planner-bar">
-        <Link to="/zoos" className="btn btn-ghost btn-icon btn-sm" aria-label="Back to my zoos" title="My zoos">
+        <Link to="/zoos" className="btn btn-ghost btn-icon btn-sm" aria-label="Back to my parks" title="My parks">
           <ArrowLeft />
         </Link>
         <input
           className="planner-title"
           value={zoo.title}
           maxLength={80}
-          aria-label="Zoo name"
+          aria-label="Park name"
           onChange={(e) => editor.updateZoo({ title: e.target.value })}
           onBlur={(e) => !e.target.value.trim() && editor.updateZoo({ title: initial.title })}
         />
@@ -274,9 +278,9 @@ function Planner({ initial }: { initial: ZooDetail }) {
               {drawing && (
                 <div className="draw-hint" onPointerDown={(e) => e.stopPropagation()}>
                   <label className="row" style={{ gap: 6 }}>
-                    <span className="swatch-dot" style={{ background: KIND_META[drawKind].color }} />
-                    <select className="select select-sm" value={drawKind} onChange={(e) => setDrawKind(e.target.value as HabitatKind)} aria-label="Shape type">
-                      {HABITAT_KINDS.map((k) => (
+                    <span className="swatch-dot" style={{ background: KIND_META[kindToDraw].color }} />
+                    <select className="select select-sm" value={kindToDraw} onChange={(e) => setDrawKind(e.target.value as HabitatKind)} aria-label="Shape type">
+                      {meta.kinds.map((k) => (
                         <option key={k} value={k}>
                           {KIND_META[k].label}
                         </option>
@@ -298,7 +302,7 @@ function Planner({ initial }: { initial: ZooDetail }) {
               {zoo.habitats.length === 0 && !drawing && (
                 <div className="stage-empty">
                   <strong>Your map is empty</strong>
-                  <span>Pick a drawing tool to outline your first habitat.</span>
+                  <span>Pick a drawing tool to outline your first {KIND_META[meta.defaultKind].label.toLowerCase()}.</span>
                   <div className="row">
                     <button className="btn btn-primary btn-sm" onClick={() => setTool('polygon')}>
                       <Hexagon /> Freeform
@@ -317,6 +321,7 @@ function Planner({ initial }: { initial: ZooDetail }) {
               onSelect={select}
               onSave={(columns) => void editor.saveBoard(columns).catch(() => {})}
               onAddIdea={addIdea}
+              ideaExample={meta.ideaExample}
             />
           )}
         </div>
@@ -369,7 +374,7 @@ function Planner({ initial }: { initial: ZooDetail }) {
       {confirmDeleteZoo && (
         <Modal
           title={`Delete “${zoo.title}”?`}
-          description="All habitats, photos and surveys in this zoo will be removed for good."
+          description={`Every shape, photo and survey in this ${meta.noun} will be removed for good.`}
           onClose={() => setConfirmDeleteZoo(false)}
           footer={
             <>
@@ -377,7 +382,7 @@ function Planner({ initial }: { initial: ZooDetail }) {
                 Cancel
               </button>
               <button className="btn btn-danger" onClick={deleteZoo}>
-                <Trash2 /> Delete zoo
+                <Trash2 /> Delete {meta.noun}
               </button>
             </>
           }
@@ -386,7 +391,9 @@ function Planner({ initial }: { initial: ZooDetail }) {
         </Modal>
       )}
       {publishing && <PublishDialog editor={editor} onClose={() => setPublishing(false)} />}
-      {newSurvey && <NewSurveyDialog zooId={zoo.id} title={zoo.title} ideas={ideas} onClose={() => setNewSurvey(false)} />}
+      {newSurvey && (
+        <NewSurveyDialog zooId={zoo.id} title={zoo.title} ideas={ideas} examples={meta.optionExamples} onClose={() => setNewSurvey(false)} />
+      )}
     </div>
   );
 }
@@ -396,10 +403,10 @@ export function PlannerPage() {
   const zooId = Number(id);
   const query = useQuery({ queryKey: ['zoo', zooId], queryFn: () => api.zoo(zooId), enabled: Number.isInteger(zooId), staleTime: 0 });
 
-  if (!Number.isInteger(zooId)) return <NotFound what="zoo" />;
+  if (!Number.isInteger(zooId)) return <NotFound what="park" />;
   if (query.isPending) return <PageLoader />;
   if (query.error) {
-    if (query.error instanceof ApiError && query.error.status === 404) return <NotFound what="zoo" />;
+    if (query.error instanceof ApiError && query.error.status === 404) return <NotFound what="park" />;
     return <div className="page">{errorMessage(query.error)}</div>;
   }
   if (!query.data.isOwner) return <Navigate to={`/z/${zooId}`} replace />;

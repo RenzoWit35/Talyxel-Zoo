@@ -4,6 +4,7 @@ import { LIMITS } from '../../shared/constants';
 import { all, one, run, tx, type DB } from '../db';
 import { recordPhotosAdded } from '../events';
 import { badRequest, forbidden, notFound, paramId, parse, requireUser } from '../http';
+import { checkShapeFits } from '../parks';
 import { canView, getHabitatWithZoo, loadHabitat, touchZoo } from '../queries';
 import { habitatUpdateInput, photoUpdateInput, photoUrlInput } from '../schemas';
 import { acceptUploads, discardUploads, removeStoredFiles } from '../uploads';
@@ -14,8 +15,8 @@ export function habitatRoutes(db: DB, upload: multer.Multer, uploadDir: string) 
 
   const ownHabitat = (userId: number, habitatId: number) => {
     const found = getHabitatWithZoo(db, habitatId);
-    if (!found || !canView(found.zoo, userId)) throw notFound('Habitat not found');
-    if (found.zoo.owner_id !== userId) throw forbidden('Only the zoo owner can change this habitat');
+    if (!found || !canView(found.zoo, userId)) throw notFound('Shape not found');
+    if (found.zoo.owner_id !== userId) throw forbidden('Only the park owner can change this');
     return found;
   };
 
@@ -29,6 +30,7 @@ export function habitatRoutes(db: DB, upload: multer.Multer, uploadDir: string) 
     const me = requireUser(req);
     const { habitat, zoo } = ownHabitat(me.id, paramId(req));
     const body = parse(habitatUpdateInput, req.body);
+    checkShapeFits(zoo.park_type, body.kind, body.biome);
     const next = {
       name: body.name ?? habitat.name,
       kind: body.kind ?? habitat.kind,

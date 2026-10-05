@@ -2,6 +2,7 @@ import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { ArrowRight, Camera, Map, Plus, Rss, Sparkles, Vote } from 'lucide-react';
 import { Link } from 'react-router';
 import { KIND_META } from '../../shared/constants';
+import { parkMeta } from '../../shared/parks';
 import type { FeedItem } from '../../shared/types';
 import { api } from '../api/client';
 import { useMe } from '../auth';
@@ -40,7 +41,11 @@ function FeedEntry({ item }: { item: FeedItem }) {
   switch (item.type) {
     case 'zoo_published':
       icon = <Sparkles />;
-      headline = <>published a new zoo plan: {zooLink}</>;
+      headline = (
+        <>
+          published a new {parkMeta(item.zoo.parkType).noun} plan: {zooLink}
+        </>
+      );
       break;
     case 'habitat_added':
       icon = <Plus />;
@@ -134,7 +139,7 @@ export function FeedPage() {
         <div className="page-header">
           <div>
             <h1>Hi {me?.displayName.split(' ')[0]} 👋</h1>
-            <p>New habitats, photos and surveys from you and the builders you follow.</p>
+            <p>New habitats, rides, photos and surveys from you and the builders you follow.</p>
           </div>
         </div>
         {feed.isPending ? (
@@ -150,12 +155,12 @@ export function FeedPage() {
                     Find people to follow
                   </Link>
                   <Link to="/zoos" className="btn">
-                    Plan a zoo
+                    Plan a park
                   </Link>
                 </div>
               }
             >
-              Follow other builders to see what they add to their zoos — or publish your own plan to get things going.
+              Follow other builders to see what they add to their zoos and theme parks — or publish your own plan to get things going.
             </EmptyState>
           </div>
         ) : (
@@ -176,7 +181,7 @@ export function FeedPage() {
         <div className="card card-pad">
           <div className="card-title">
             <Map size={18} />
-            <h3>Your zoos</h3>
+            <h3>Your parks</h3>
             <span className="spacer" />
             <Link to="/zoos" className="subtle">
               All
@@ -198,11 +203,11 @@ export function FeedPage() {
             </div>
           ) : (
             <p className="muted" style={{ marginBottom: 12 }}>
-              You haven't planned a zoo yet.
+              You haven't planned a park yet.
             </p>
           )}
           <Link to="/zoos?new=1" className="btn btn-sm btn-block" style={{ marginTop: 12 }}>
-            <Plus /> New zoo plan
+            <Plus /> New plan
           </Link>
         </div>
 

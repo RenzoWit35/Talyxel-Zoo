@@ -1,4 +1,4 @@
-import type { Biome, HabitatKind, HabitatStatus } from './constants';
+import type { Biome, HabitatKind, HabitatStatus, ParkType } from './constants';
 import type { Point } from './geometry';
 
 export interface UserSummary {
@@ -44,7 +44,9 @@ export interface Habitat {
   name: string;
   kind: HabitatKind;
   status: HabitatStatus;
+  /** Biome in zoos, theme in theme parks. */
   biome: Biome;
+  /** Species in zoos, ride type in theme parks. */
   species: string;
   description: string;
   color: string;
@@ -86,6 +88,7 @@ export interface ZooShape {
 
 export interface ZooSummary {
   id: number;
+  parkType: ParkType;
   title: string;
   description: string;
   status: ZooStatus;
@@ -103,6 +106,7 @@ export interface ZooSummary {
 
 export interface ZooDetail {
   id: number;
+  parkType: ParkType;
   title: string;
   description: string;
   status: ZooStatus;

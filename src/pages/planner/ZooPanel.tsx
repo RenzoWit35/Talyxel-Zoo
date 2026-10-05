@@ -1,8 +1,10 @@
 import { ImagePlus, Loader2, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { HABITAT_STATUSES, KIND_META, LIMITS, STATUS_META } from '../../../shared/constants';
+import { HABITAT_STATUSES, KIND_META, LIMITS, PARK_TYPES, STATUS_META } from '../../../shared/constants';
 import { formatArea, polygonArea } from '../../../shared/geometry';
-import { plural } from '../../lib/format';
+import { parkMeta } from '../../../shared/parks';
+import { ParkIcon } from '../../components/ParkType';
+import { capitalize, plural } from '../../lib/format';
 import type { ZooEditor } from './useZooEditor';
 
 const SHORTCUTS: [string, string][] = [
@@ -21,6 +23,7 @@ const SHORTCUTS: [string, string][] = [
 
 export function ZooPanel({ editor, onDeleteZoo }: { editor: ZooEditor; onDeleteZoo: () => void }) {
   const { zoo } = editor;
+  const meta = parkMeta(zoo.parkType);
   const [w, setW] = useState(String(zoo.width));
   const [h, setH] = useState(String(zoo.height));
   const [busy, setBusy] = useState(false);
@@ -39,9 +42,8 @@ export function ZooPanel({ editor, onDeleteZoo }: { editor: ZooEditor; onDeleteZ
   }, [zoo.backgroundUrl]);
 
   const habitats = zoo.habitats;
-  const animals = habitats.filter((x) => x.kind === 'habitat' || x.kind === 'exhibit');
-  const animalArea = animals.reduce((sum, x) => sum + polygonArea(x.points), 0);
-  const species = [...new Set(habitats.map((x) => x.species.trim()).filter(Boolean))];
+  const featureArea = habitats.filter((x) => meta.featureKinds.includes(x.kind)).reduce((sum, x) => sum + polygonArea(x.points), 0);
+  const species = [...new Set(habitats.filter((x) => meta.featureKinds.includes(x.kind)).map((x) => x.species.trim()).filter(Boolean))];
   const byStatus = HABITAT_STATUSES.map((s) => ({ s, n: habitats.filter((x) => x.status === s).length }));
   const done = byStatus.find((b) => b.s === 'done')!.n;
 
@@ -75,11 +77,11 @@ export function ZooPanel({ editor, onDeleteZoo }: { editor: ZooEditor; onDeleteZ
             <strong>{habitats.length}</strong>
           </div>
           <div>
-            <small>Animals</small>
-            <strong>{formatArea(animalArea)}</strong>
+            <small>{meta.featureStatLabel}</small>
+            <strong>{formatArea(featureArea)}</strong>
           </div>
           <div>
-            <small>Species</small>
+            <small>{capitalize(meta.subjectNoun[1])}</small>
             <strong>{species.length}</strong>
           </div>
         </div>
@@ -117,7 +119,7 @@ export function ZooPanel({ editor, onDeleteZoo }: { editor: ZooEditor; onDeleteZ
         )}
         {habitats.length === 0 && (
           <div className="tip">
-            <strong>Start drawing.</strong> Pick the <b>freeform</b> or <b>rectangle</b> tool on the left and outline your first habitat. Shapes snap
+            <strong>Start drawing.</strong> Pick the <b>freeform</b> or <b>rectangle</b> tool on the left and outline your first {KIND_META[meta.defaultKind].label.toLowerCase()}. Shapes snap
             to the grid and to each other’s corners so neighbours line up.
           </div>
         )}
@@ -130,7 +132,7 @@ export function ZooPanel({ editor, onDeleteZoo }: { editor: ZooEditor; onDeleteZ
             className="textarea"
             value={zoo.description}
             maxLength={2000}
-            placeholder="What's the idea behind this zoo?"
+            placeholder={`What's the idea behind this ${meta.noun}?`}
             onChange={(e) => editor.updateZoo({ description: e.target.value })}
           />
         </label>
@@ -139,6 +141,24 @@ export function ZooPanel({ editor, onDeleteZoo }: { editor: ZooEditor; onDeleteZ
       <div className="panel-section">
         <div className="panel-section-head">
           <h4>Map</h4>
+        </div>
+        <div className="field">
+          <span>Plan type</span>
+          <div className="segmented full" role="radiogroup" aria-label="Plan type">
+            {PARK_TYPES.map((t) => (
+              <button
+                key={t}
+                role="radio"
+                aria-checked={zoo.parkType === t}
+                aria-pressed={zoo.parkType === t}
+                disabled={busy}
+                onClick={() => t !== zoo.parkType && run(() => editor.setParkType(t))}
+              >
+                <ParkIcon type={t} size={15} /> {parkMeta(t).label}
+              </button>
+            ))}
+          </div>
+          <small>For {meta.game}. Switching keeps shared shapes like paths and water.</small>
         </div>
         <div className="field">
           <span>Size in metres</span>
@@ -208,7 +228,7 @@ export function ZooPanel({ editor, onDeleteZoo }: { editor: ZooEditor; onDeleteZ
           <h4>Shape types</h4>
         </div>
         <div className="legend legend-kinds">
-          {Object.values(KIND_META).map((k) => (
+          {meta.kinds.map((kind) => KIND_META[kind]).map((k) => (
             <span key={k.label} title={k.hint}>
               <i className="legend-swatch" style={{ ['--c' as string]: k.color }} />
               {k.label}
@@ -233,7 +253,7 @@ export function ZooPanel({ editor, onDeleteZoo }: { editor: ZooEditor; onDeleteZ
 
       <div className="panel-section">
         <button className="btn btn-danger btn-block" onClick={onDeleteZoo}>
-          <Trash2 /> Delete this zoo
+          <Trash2 /> Delete this {meta.noun}
         </button>
       </div>
     </div>

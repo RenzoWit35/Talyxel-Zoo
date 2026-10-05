@@ -24,7 +24,7 @@ export function surveyRoutes(db: DB) {
 
   const ownSurvey = (id: number, viewerId: number) => {
     const found = findSurvey(id, viewerId);
-    if (found.zoo.owner_id !== viewerId) throw forbidden('Only the zoo owner can manage this survey');
+    if (found.zoo.owner_id !== viewerId) throw forbidden('Only the park owner can manage this survey');
     return found;
   };
 

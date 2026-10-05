@@ -1,8 +1,8 @@
 import { ImagePlus, Link2, Loader2, Trash2, X } from 'lucide-react';
 import { useState, type DragEvent } from 'react';
-import { BIOME_LABELS, BIOMES, HABITAT_COLORS, HABITAT_KINDS, HABITAT_STATUSES, KIND_META, LIMITS, STATUS_META } from '../../../shared/constants';
+import { BIOME_LABELS, HABITAT_COLORS, HABITAT_STATUSES, KIND_META, LIMITS, STATUS_META } from '../../../shared/constants';
 import { formatArea, formatLength, polygonArea, polygonPerimeter } from '../../../shared/geometry';
-import { SPECIES } from '../../../shared/species';
+import { parkMeta } from '../../../shared/parks';
 import type { Habitat } from '../../../shared/types';
 import { Lightbox } from '../../components/Lightbox';
 import { useToast } from '../../components/toast';
@@ -143,6 +143,8 @@ interface Props {
 export function HabitatPanel({ habitat, editor, onClose, onDelete }: Props) {
   const set = (patch: Parameters<ZooEditor['updateHabitat']>[1]) => editor.updateHabitat(habitat.id, patch);
   const area = polygonArea(habitat.points);
+  const meta = parkMeta(editor.zoo.parkType);
+  const isFeature = meta.featureKinds.includes(habitat.kind);
   return (
     <div className="panel-inner">
       <div className="panel-head">
@@ -159,17 +161,17 @@ export function HabitatPanel({ habitat, editor, onClose, onDelete }: Props) {
           <input className="input" value={habitat.name} maxLength={60} onChange={(e) => set({ name: e.target.value })} />
         </label>
         <label className="field">
-          <span>Species</span>
+          <span>{isFeature ? meta.subjectLabel : 'Subtitle'}</span>
           <input
             className="input"
-            list="species-list"
+            list="subject-list"
             value={habitat.species}
             maxLength={80}
-            placeholder={habitat.kind === 'habitat' || habitat.kind === 'exhibit' ? 'e.g. Bengal Tiger' : 'Optional'}
+            placeholder={isFeature ? meta.subjectPlaceholder : 'Optional — shown under the name'}
             onChange={(e) => set({ species: e.target.value })}
           />
-          <datalist id="species-list">
-            {SPECIES.map((s) => (
+          <datalist id="subject-list">
+            {meta.subjects.map((s) => (
               <option key={s} value={s} />
             ))}
           </datalist>
@@ -189,7 +191,7 @@ export function HabitatPanel({ habitat, editor, onClose, onDelete }: Props) {
           <label className="field spacer">
             <span>Type</span>
             <select className="select" value={habitat.kind} onChange={(e) => set({ kind: e.target.value as Habitat['kind'] })}>
-              {HABITAT_KINDS.map((k) => (
+              {meta.kinds.map((k) => (
                 <option key={k} value={k}>
                   {KIND_META[k].label}
                 </option>
@@ -197,9 +199,9 @@ export function HabitatPanel({ habitat, editor, onClose, onDelete }: Props) {
             </select>
           </label>
           <label className="field spacer">
-            <span>Biome</span>
+            <span>{meta.settingLabel}</span>
             <select className="select" value={habitat.biome} onChange={(e) => set({ biome: e.target.value as Habitat['biome'] })}>
-              {BIOMES.map((b) => (
+              {meta.settings.map((b) => (
                 <option key={b} value={b}>
                   {b ? BIOME_LABELS[b] : '—'}
                 </option>
@@ -224,7 +226,7 @@ export function HabitatPanel({ habitat, editor, onClose, onDelete }: Props) {
             className="textarea"
             value={habitat.description}
             maxLength={2000}
-            placeholder="Theme, terrain, enrichment, guest views, what's still missing…"
+            placeholder={meta.notesPlaceholder}
             onChange={(e) => set({ description: e.target.value })}
           />
         </label>

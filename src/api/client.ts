@@ -1,4 +1,4 @@
-import type { HabitatStatus } from '../../shared/constants';
+import type { HabitatStatus, ParkType } from '../../shared/constants';
 import type {
   FeedPage,
   Habitat,
@@ -70,10 +70,13 @@ export const api = {
   unfollow: (username: string) => del<{ following: boolean }>(`/users/${enc(username)}/follow`),
 
   myZoos: () => get<ZooSummary[]>('/zoos/mine'),
-  explore: (q = '') => get<ZooSummary[]>(`/zoos/explore?q=${enc(q)}`),
+  explore: (q = '', type: ParkType | '' = '') => get<ZooSummary[]>(`/zoos/explore?q=${enc(q)}&type=${type}`),
   zoo: (id: number) => get<ZooDetail>(`/zoos/${id}`),
-  createZoo: (body: { title: string; description?: string; width: number; height: number }) => post<ZooDetail>('/zoos', body),
-  updateZoo: (id: number, body: Partial<{ title: string; description: string; width: number; height: number; backgroundOpacity: number }>) =>
+  createZoo: (body: { parkType: ParkType; title: string; description?: string; width: number; height: number }) => post<ZooDetail>('/zoos', body),
+  updateZoo: (
+    id: number,
+    body: Partial<{ parkType: ParkType; title: string; description: string; width: number; height: number; backgroundOpacity: number }>,
+  ) =>
     patch<ZooDetail>(`/zoos/${id}`, body),
   deleteZoo: (id: number) => del<{ ok: true }>(`/zoos/${id}`),
   setBackground: (id: number, file: File) => {

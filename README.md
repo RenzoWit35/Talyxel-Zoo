@@ -1,15 +1,23 @@
 # Talyxel Zoo
 
-A planning board for your Planet Zoo builds. Draw your park from above, fill every habitat with screenshots and notes, publish the plan with a survey about what to build next, and follow your friends to see their new additions in your feed.
+A planning board for your **Planet Zoo** zoos and **Planet Coaster** theme parks. Draw your park from above, fill every habitat or ride with screenshots and notes, publish the plan with a survey about what to build next, and follow your friends to see their new additions in your feed.
 
 ## Features
 
-- **Top-down planner.** Draw habitat borders on a metre grid with the freeform or rectangle tool, or trace over a screenshot of your park. Shapes snap to the grid and to each other's corners. You can drag shapes, reshape them by their corners, add or remove corners, nudge with the arrow keys and undo with Ctrl+Z. Everything autosaves.
-- **Hover cards.** Hover any shape to see its photos, species, status, biome, area and barrier length. Click it to open the full gallery and notes.
+- **Zoos and theme parks.** When you start a plan you pick its type, and the planner adapts to it:
+
+  | | Zoo (Planet Zoo) | Theme park (Planet Coaster) |
+  | --- | --- | --- |
+  | Shape types | Habitat, exhibit, facility, water, path, scenery | Roller coaster, flat ride, water ride, shop/food, themed area, facility, water, path, scenery |
+  | Details | Species (Planet Zoo autocomplete), biome | Ride type (coaster/ride autocomplete), theme (Pirate, Western, Spooky, …) |
+
+  You can switch a plan's type later from the planner's side panel, as long as it only contains shape types both share (paths, water, scenery, facilities). Explore can filter by type.
+- **Top-down planner.** Draw habitats, rides and themed areas on a metre grid with the freeform or rectangle tool, or trace over a screenshot of your park. Shapes snap to the grid and to each other's corners. You can drag shapes, reshape them by their corners, add or remove corners, nudge with the arrow keys and undo with Ctrl+Z. Everything autosaves.
+- **Hover cards.** Hover any shape to see its photos, species or ride type, status, biome or theme, area and perimeter. Click it to open the full gallery and notes.
 - **Planning board.** A kanban view (Idea → Planned → Building → Done). Drag cards to change their status, and jot down quick ideas that you place on the map later.
 - **Publish with a survey.** Publishing makes the plan public and announces it to your followers. You can attach a survey ("What should I add next?"), and options are pre-filled from the shapes you marked as Idea. Visitors vote and can suggest their own options. Results stay hidden until you vote, and the owner can close the survey or start new ones.
-- **Friends and feed.** Follow other builders; when you follow each other you're friends. Your feed shows the zoos they publish, the habitats and photos they add, and the surveys they start, but only for published zoos. Drafts stay private.
-- **Explore and people.** Browse published zoos (search by title, species or builder), find people, and view profiles.
+- **Friends and feed.** Follow other builders; when you follow each other you're friends. Your feed shows the parks they publish, the habitats, rides and photos they add, and the surveys they start, but only for published parks. Drafts stay private.
+- **Explore and people.** Browse published parks (filter by zoo or theme park, search by title, species, ride type or builder), find people, and view profiles.
 
 ## Getting started
 
@@ -21,7 +29,7 @@ npm run seed   # optional: demo builders, zoos and photos
 npm run dev    # API on :3001, web app on http://localhost:5173
 ```
 
-The demo accounts are `talyxel`, `rosa`, `kai` and `milan`. They all use the password `zoo-demo-123`.
+The demo accounts are `talyxel`, `rosa`, `kai`, `milan` and `lotte` (who has a Planet Coaster park). They all use the password `zoo-demo-123`.
 
 ### Production
 
@@ -59,7 +67,7 @@ server/            Express API
   routes/          auth, users (follows), zoos, habitats + photos, surveys, feed
   events.ts        feed events (only for published zoos)
   seed.ts          demo data (photos are generated, not downloaded)
-shared/            types, constants and geometry used by both sides
+shared/            types, constants, park types (parks.ts) and geometry used by both sides
 src/               React app
   components/map/  MapCanvas (SVG planner/viewer) and the hover card
   pages/planner/   planner page, side panels, board view, publish dialog

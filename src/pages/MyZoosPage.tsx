@@ -2,8 +2,10 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Map, Plus } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
-import { LIMITS } from '../../shared/constants';
+import { LIMITS, type ParkType } from '../../shared/constants';
+import { parkMeta } from '../../shared/parks';
 import { api, errorMessage } from '../api/client';
+import { ParkTypePicker } from '../components/ParkType';
 import { EmptyState, Modal, PageLoader } from '../components/ui';
 import { ZooCard } from '../components/ZooCard';
 
@@ -17,6 +19,7 @@ const SIZES = [
 function NewZooDialog({ onClose }: { onClose: () => void }) {
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const [parkType, setParkType] = useState<ParkType>('zoo');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [width, setWidth] = useState(400);
@@ -31,12 +34,12 @@ function NewZooDialog({ onClose }: { onClose: () => void }) {
   });
   const submit = (e?: FormEvent) => {
     e?.preventDefault();
-    create.mutate({ title, description, width, height });
+    create.mutate({ parkType, title, description, width, height });
   };
   return (
     <Modal
-      title="New zoo plan"
-      description="You can change all of this later in the planner."
+      title="New plan"
+      description="Pick what you're building — you can change the rest later in the planner."
       onClose={onClose}
       footer={
         <>
@@ -51,9 +54,10 @@ function NewZooDialog({ onClose }: { onClose: () => void }) {
     >
       <form className="stack" onSubmit={submit} style={{ gap: 16 }}>
         {create.error && <div className="form-error">{errorMessage(create.error)}</div>}
+        <ParkTypePicker value={parkType} onChange={setParkType} />
         <label className="field">
           <span>Name</span>
-          <input className="input" value={title} onChange={(e) => setTitle(e.target.value)} maxLength={80} placeholder="e.g. Talyxel Wildlife Park" required />
+          <input className="input" value={title} onChange={(e) => setTitle(e.target.value)} maxLength={80} placeholder={parkMeta(parkType).namePlaceholder} required />
         </label>
         <label className="field">
           <span>Description</span>
@@ -103,7 +107,7 @@ function NewZooDialog({ onClose }: { onClose: () => void }) {
               aria-label="Height in metres"
             />
           </div>
-          <small>Match your Planet Zoo map so areas come out right. You can trace over a screenshot later.</small>
+          <small>Match your {parkMeta(parkType).game} map so areas come out right. You can trace over a screenshot later.</small>
         </div>
         <button type="submit" hidden />
       </form>
@@ -121,11 +125,11 @@ export function MyZoosPage() {
     <div className="page">
       <div className="page-header">
         <div>
-          <h1>My zoos</h1>
-          <p>Your planning boards. Drafts are private until you publish them.</p>
+          <h1>My parks</h1>
+          <p>Your zoo and theme park plans. Drafts are private until you publish them.</p>
         </div>
         <button className="btn btn-primary" onClick={() => setShowNew(true)}>
-          <Plus /> New zoo plan
+          <Plus /> New plan
         </button>
       </div>
       {zoos.isPending ? (
@@ -134,14 +138,14 @@ export function MyZoosPage() {
         <div className="card">
           <EmptyState
             icon={<Map />}
-            title="Plan your first zoo"
+            title="Plan your first park"
             action={
               <button className="btn btn-primary" onClick={() => setShowNew(true)}>
-                <Plus /> New zoo plan
+                <Plus /> New plan
               </button>
             }
           >
-            Start with an empty map, draw your habitats from above and fill them with photos and notes.
+            Pick a zoo or a theme park, draw your habitats or rides from above and fill them with photos and notes.
           </EmptyState>
         </div>
       ) : (

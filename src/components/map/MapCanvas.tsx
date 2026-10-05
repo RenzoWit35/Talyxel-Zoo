@@ -7,6 +7,7 @@ import {
   formatArea,
   formatLength,
   labelPoint,
+  pointInPolygon,
   polygonArea,
   roundPoint,
   type Point,
@@ -612,9 +613,19 @@ export function MapCanvas({
               const b = bounds(h.points);
               const wPx = b.width * v.scale;
               if (wPx < 46 || b.height * v.scale < 18) return null;
-              const [lx, ly] = labelPoint(h.points);
               const maxChars = Math.max(4, Math.floor(wPx / 7.2));
               const name = h.name.length > maxChars ? `${h.name.slice(0, maxChars - 1)}…` : h.name;
+              if (h.kind === 'zone') {
+                // Themed areas hold rides, so their name goes along the top edge instead of the middle.
+                const top: Point = [(b.minX + b.maxX) / 2, b.minY + 16 * px];
+                const [zx, zy] = pointInPolygon(top, h.points) ? top : labelPoint(h.points);
+                return (
+                  <text key={h.id} x={zx} y={zy} fontSize={11 * px} textAnchor="middle" className="map-label map-label-zone">
+                    {name.toUpperCase()}
+                  </text>
+                );
+              }
+              const [lx, ly] = labelPoint(h.points);
               const showSpecies = h.species && b.height * v.scale > 44;
               const species = h.species.length > maxChars ? `${h.species.slice(0, maxChars - 1)}…` : h.species;
               return (

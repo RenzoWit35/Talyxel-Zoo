@@ -388,7 +388,7 @@ kbd {
   grid-template-columns: repeat(4, minmax(240px, 1fr));
   gap: 14px;
   padding: 16px;
-  align-items: start;
+  align-items: stretch;
 }
 .board-col {
   background: var(--bg);
@@ -485,6 +485,10 @@ kbd {
   height: 4px;
   border-radius: 4px;
   background: var(--brand);
+}
+.board-empty.active {
+  border-color: var(--brand);
+  color: var(--brand);
 }
 .board-empty {
   border: 1.5px dashed var(--line-strong);

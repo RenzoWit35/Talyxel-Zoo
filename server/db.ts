@@ -131,6 +131,10 @@ const MIGRATIONS: string[] = [
   CREATE INDEX events_actor ON events(actor_id, id);
   CREATE INDEX events_zoo ON events(zoo_id);
   `,
+  // v2: theme parks (Planet Coaster) next to zoos.
+  `
+  ALTER TABLE zoos ADD COLUMN park_type TEXT NOT NULL DEFAULT 'zoo' CHECK (park_type IN ('zoo', 'theme_park'));
+  `,
 ];
 
 export function openDb(file: string): DB {

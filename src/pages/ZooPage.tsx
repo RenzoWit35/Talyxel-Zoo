@@ -3,11 +3,13 @@ import { Calendar, Images, Lock, PenLine, Plus, Ruler, Vote, X } from 'lucide-re
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useParams, useSearchParams } from 'react-router';
 import { BIOME_LABELS, HABITAT_STATUSES, KIND_META, STATUS_META } from '../../shared/constants';
+import { parkMeta } from '../../shared/parks';
 import { formatArea, formatLength, polygonArea, polygonPerimeter } from '../../shared/geometry';
 import type { Habitat, ZooDetail } from '../../shared/types';
 import { api, ApiError, errorMessage } from '../api/client';
 import { FollowButton } from '../components/FollowButton';
 import { KindIcon } from '../components/KindIcon';
+import { ParkIcon } from '../components/ParkType';
 import { PhotoGrid } from '../components/Lightbox';
 import { StatusChip } from '../components/map/HoverCard';
 import { MapCanvas } from '../components/map/MapCanvas';
@@ -62,6 +64,7 @@ function HabitatDetails({ habitat, onClose }: { habitat: Habitat; onClose: () =>
 }
 
 function ZooView({ zoo }: { zoo: ZooDetail }) {
+  const meta = parkMeta(zoo.parkType);
   const [params, setParams] = useSearchParams();
   const { hash } = useLocation();
   const [newSurvey, setNewSurvey] = useState(false);
@@ -76,14 +79,14 @@ function ZooView({ zoo }: { zoo: ZooDetail }) {
   }, [hash]);
 
   const counts = useMemo(() => {
-    const animals = zoo.habitats.filter((h) => h.kind === 'habitat' || h.kind === 'exhibit');
+    const animals = zoo.habitats.filter((h) => meta.featureKinds.includes(h.kind));
     return {
       animals: animals.length,
       area: animals.reduce((s, h) => s + polygonArea(h.points), 0),
-      species: new Set(zoo.habitats.map((h) => h.species.trim()).filter(Boolean)).size,
+      species: new Set(animals.map((h) => h.species.trim()).filter(Boolean)).size,
       photos: zoo.habitats.reduce((s, h) => s + h.photos.length, 0),
     };
-  }, [zoo.habitats]);
+  }, [zoo.habitats, meta]);
 
   const listed = [...zoo.habitats]
     .filter((h) => h.kind !== 'path')
@@ -111,9 +114,14 @@ function ZooView({ zoo }: { zoo: ZooDetail }) {
             <span>
               <Ruler /> {zoo.width} × {zoo.height} m
             </span>
-            <span>{plural(counts.animals, 'enclosure')}</span>
-            <span>{formatArea(counts.area)} for animals</span>
-            <span>{plural(counts.species, 'species', 'species')}</span>
+            <span>
+              <ParkIcon type={zoo.parkType} size={15} /> {meta.game}
+            </span>
+            <span>{plural(counts.animals, ...meta.featureNoun)}</span>
+            <span>
+              {formatArea(counts.area)} {meta.featureAreaLabel}
+            </span>
+            <span>{plural(counts.species, ...meta.subjectNoun)}</span>
             <span>
               <Images /> {counts.photos}
             </span>
@@ -165,7 +173,7 @@ function ZooView({ zoo }: { zoo: ZooDetail }) {
 
       <div className="zoo-columns">
         <section>
-          <h2 className="section-title">In this zoo</h2>
+          <h2 className="section-title">In this {meta.noun}</h2>
           {listed.length ? (
             <div className="habitat-grid">
               {listed.map((h) => (
@@ -234,6 +242,7 @@ function ZooView({ zoo }: { zoo: ZooDetail }) {
           zooId={zoo.id}
           title={zoo.title}
           ideas={zoo.habitats.filter((h) => h.status === 'idea').map((h) => h.name)}
+          examples={meta.optionExamples}
           onClose={() => setNewSurvey(false)}
         />
       )}
@@ -251,10 +260,10 @@ export function ZooPage() {
   const { id } = useParams();
   const zooId = Number(id);
   const query = useQuery({ queryKey: ['zoo', zooId], queryFn: () => api.zoo(zooId), enabled: Number.isInteger(zooId) });
-  if (!Number.isInteger(zooId)) return <NotFound what="zoo" />;
+  if (!Number.isInteger(zooId)) return <NotFound what="park" />;
   if (query.isPending) return <PageLoader />;
   if (query.error) {
-    if (query.error instanceof ApiError && query.error.status === 404) return <NotFound what="zoo" />;
+    if (query.error instanceof ApiError && query.error.status === 404) return <NotFound what="park" />;
     return <div className="page">{errorMessage(query.error)}</div>;
   }
   return <ZooView zoo={query.data} />;

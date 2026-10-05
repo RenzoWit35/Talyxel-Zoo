@@ -17,8 +17,8 @@ export function UserRow({ user, compact }: { user: UserListItem; compact?: boole
           </div>
           <span className="subtle">
             {compact
-              ? `${friends ? 'Friend' : user.followsYou ? 'Follows you' : `@${user.username}`} · ${plural(user.publishedZoos, 'zoo')}`
-              : `@${user.username} · ${plural(user.publishedZoos, 'zoo')} · ${plural(user.followers, 'follower')}`}
+              ? `${friends ? 'Friend' : user.followsYou ? 'Follows you' : `@${user.username}`} · ${plural(user.publishedZoos, 'park')}`
+              : `@${user.username} · ${plural(user.publishedZoos, 'park')} · ${plural(user.followers, 'follower')}`}
           </span>
           {!compact && user.bio && <p className="user-row-bio">{user.bio}</p>}
         </div>

@@ -1,6 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { KIND_META, type HabitatKind, type HabitatStatus } from '../../../shared/constants';
+import { KIND_META, type HabitatKind, type HabitatStatus, type ParkType } from '../../../shared/constants';
 import type { Point } from '../../../shared/geometry';
 import type { Habitat, ZooDetail } from '../../../shared/types';
 import { api, ApiError, type HabitatInput, type SurveyDraft } from '../../api/client';
@@ -15,7 +15,7 @@ const UNDO_LIMIT = 50;
 const isRetryable = (err: unknown) => !(err instanceof ApiError) || err.status === 0 || err.status >= 500;
 
 /**
- * Local editing state for one zoo plan. Edits apply instantly on screen and are
+ * Local editing state for one park plan. Edits apply instantly on screen and are
  * saved to the server in the background (debounced), with an undo stack for geometry.
  */
 export function useZooEditor(initial: ZooDetail) {
@@ -120,7 +120,7 @@ export function useZooEditor(initial: ZooDetail) {
   const createHabitat = useCallback(
     async (points: Point[], kind: HabitatKind, extra: { name?: string; status?: HabitatStatus } = {}) => {
       const n = zooRef.current.habitats.filter((h) => h.kind === kind).length + 1;
-      const name = extra.name || `${KIND_META[kind].label.split(' ')[0]} ${n}`;
+      const name = extra.name || `${KIND_META[kind].noun} ${n}`;
       const habitat = await track(api.createHabitat(zooRef.current.id, { points, kind, name, status: extra.status }));
       setZoo((z) => ({ ...z, habitats: [...z.habitats, habitat] }));
       return habitat;
@@ -157,8 +157,18 @@ export function useZooEditor(initial: ZooDetail) {
     [flush, schedule],
   );
 
-  /** Server-confirmed changes to the zoo itself (size, background, publishing) — keep local habitats. */
+  /** Server-confirmed changes to the park itself (type, size, background, publishing) — keep local shape edits. */
   const applyZoo = (z: ZooDetail) => setZoo((prev) => ({ ...z, title: prev.title, description: prev.description, habitats: prev.habitats }));
+
+  /** Switching type clears biomes/themes that don't exist in the new type, so take the server's shapes. */
+  const setParkType = useCallback(
+    async (parkType: ParkType) => {
+      await flush();
+      const z = await track(api.updateZoo(zooRef.current.id, { parkType }));
+      setZoo((prev) => ({ ...z, title: prev.title, description: prev.description }));
+    },
+    [flush, track],
+  );
 
   const resize = useCallback(async (width: number, height: number) => applyZoo(await track(api.updateZoo(zooRef.current.id, { width, height }))), [track]);
   const setBackground = useCallback(async (file: File) => applyZoo(await track(api.setBackground(zooRef.current.id, file))), [track]);
@@ -223,6 +233,7 @@ export function useZooEditor(initial: ZooDetail) {
     updatePhotoCaption,
     updateZoo,
     resize,
+    setParkType,
     setBackground,
     removeBackground,
     publish,

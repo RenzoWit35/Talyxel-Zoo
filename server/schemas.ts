@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { BIOMES, HABITAT_KINDS, HABITAT_STATUSES, LIMITS } from '../shared/constants';
+import { BIOMES, HABITAT_KINDS, HABITAT_STATUSES, LIMITS, PARK_TYPES, THEMES } from '../shared/constants';
 
 const text = (max: number) => z.string().trim().max(max, `Keep it under ${max} characters`);
 const required = (label: string, max: number) => text(max).min(1, `${label} is required`);
@@ -32,7 +32,10 @@ export const profileInput = z.object({
 
 const mapSize = z.number().finite().min(LIMITS.mapMin).max(LIMITS.mapMax);
 
+const setting = z.enum([...new Set([...BIOMES, ...THEMES])]);
+
 export const zooCreateInput = z.object({
+  parkType: z.enum(PARK_TYPES).default('zoo'),
   title: required('Title', 80),
   description: text(2000).default(''),
   width: mapSize.default(300),
@@ -40,6 +43,7 @@ export const zooCreateInput = z.object({
 });
 
 export const zooUpdateInput = z.object({
+  parkType: z.enum(PARK_TYPES).optional(),
   title: required('Title', 80).optional(),
   description: text(2000).optional(),
   width: mapSize.optional(),
@@ -57,9 +61,9 @@ const color = z.string().regex(/^#[0-9a-fA-F]{6}$/, 'Colours must look like #a1b
 
 export const habitatCreateInput = z.object({
   name: required('Name', 60).default('New habitat'),
-  kind: z.enum(HABITAT_KINDS).default('habitat'),
+  kind: z.enum(HABITAT_KINDS).optional(), // defaults to the park type's main kind
   status: z.enum(HABITAT_STATUSES).default('planned'),
-  biome: z.enum(BIOMES).default(''),
+  biome: setting.default(''),
   species: text(80).default(''),
   description: text(2000).default(''),
   color: color.optional(),
@@ -70,7 +74,7 @@ export const habitatUpdateInput = z.object({
   name: required('Name', 60).optional(),
   kind: z.enum(HABITAT_KINDS).optional(),
   status: z.enum(HABITAT_STATUSES).optional(),
-  biome: z.enum(BIOMES).optional(),
+  biome: setting.optional(),
   species: text(80).optional(),
   description: text(2000).optional(),
   color: color.optional(),
