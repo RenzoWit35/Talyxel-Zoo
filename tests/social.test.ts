@@ -58,6 +58,9 @@ describe('posts', () => {
     expect((await rosa.post('/api/posts', { kind: 'question', body: 'Hi' })).status).toBe(400);
     expect((await rosa.post('/api/posts', { kind: 'poll', body: 'Hello there' })).status).toBe(400);
     expect((await postWithPhotos(rosa, { kind: 'update' }, 11)).status).toBe(400);
+    const flood = await postWithPhotos(rosa, { kind: 'update' }, 13);
+    expect(flood.status).toBe(400);
+    expect(flood.body.error).toBe('Too many files at once');
     const photoOnly = await postWithPhotos(rosa, { kind: 'update' }, 1);
     expect(photoOnly.status).toBe(201);
     expect((await request(app).post('/api/posts').set('x-talyxel', '1').send({ kind: 'update', body: 'x' })).status).toBe(401);

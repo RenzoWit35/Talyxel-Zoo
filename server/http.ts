@@ -43,7 +43,12 @@ export function errorHandler(err: unknown, _req: Request, res: Response, _next: 
   }
   if ((err as Error)?.name === 'MulterError') {
     const code = (err as { code?: string }).code;
-    const message = code === 'LIMIT_FILE_SIZE' ? 'Images can be at most 8 MB' : code === 'LIMIT_FILE_COUNT' ? 'Too many files at once (max 12)' : (err as Error).message;
+    const message =
+      code === 'LIMIT_FILE_SIZE'
+        ? 'Images can be at most 8 MB'
+        : code === 'LIMIT_FILE_COUNT' || code === 'LIMIT_UNEXPECTED_FILE'
+          ? 'Too many files at once'
+          : (err as Error).message;
     res.status(400).json({ error: message });
     return;
   }

@@ -210,10 +210,13 @@ export interface FeedPage {
 }
 
 export type NotificationType = 'follow' | 'like' | 'comment' | 'suggestion';
+/** What a like or comment was on, so it can be described properly. */
+export type NotificationSubject = 'post' | 'question' | 'park' | 'shape' | 'photos' | 'survey';
 
 export interface NotificationItem {
   id: number;
   type: NotificationType;
+  about: NotificationSubject | null;
   createdAt: string;
   read: boolean;
   actor: UserSummary;

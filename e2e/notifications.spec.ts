@@ -19,13 +19,13 @@ test('the bell shows new likes, comments and followers and clears when opened', 
   const panel = page.getByRole('dialog', { name: 'Notifications' });
   await expect(panel.locator('.notif-item')).toHaveCount(3);
   await expect(panel).toContainText('Kai Lindqvist started following you.');
-  await expect(panel).toContainText('liked your post “Which biome for the red pandas?”');
+  await expect(panel).toContainText('liked your question “Which biome for the red pandas?”');
   await expect(panel).toContainText('Temperate, with lots of climbing');
   await expect(bell.locator('.notif-badge')).toHaveCount(0);
   await panel.evaluate((el) => Promise.all(el.getAnimations().map((a) => a.finished.catch(() => undefined))));
   await page.screenshot({ path: `test-results/screens/notifications-${test.info().project.name}.png` });
 
-  await panel.locator('.notif-item', { hasText: 'commented' }).click();
+  await panel.locator('.notif-item', { hasText: 'answered' }).click();
   await expect(page).toHaveURL(new RegExp(`/p/${post.id}$`));
   await expect(page.getByRole('dialog', { name: 'Notifications' })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Notifications', exact: true })).toBeVisible();

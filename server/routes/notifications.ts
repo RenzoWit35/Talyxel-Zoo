@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import type { NotificationItem, NotificationsPage, NotificationType } from '../../shared/types';
+import type { FeedItem, NotificationItem, NotificationsPage, NotificationSubject, NotificationType } from '../../shared/types';
 import { all, one, placeholders, run, type DB } from '../db';
 import { buildFeedItems, EVENT_SELECT, type EventRow } from '../feed-items';
 import { requireUser } from '../http';
@@ -36,6 +36,14 @@ const FROM = `
     AND (n.event_id IS NULL OR e.zoo_id IS NULL OR ez.status = 'published')
     AND (n.survey_id IS NULL OR sz.status = 'published')`;
 
+const SUBJECT: Record<FeedItem['type'], NotificationSubject> = {
+  post_created: 'post',
+  zoo_published: 'park',
+  habitat_added: 'shape',
+  photos_added: 'photos',
+  survey_created: 'survey',
+};
+
 const excerpt = (text: string, max: number) => {
   const flat = text.replace(/\s+/g, ' ').trim();
   return flat.length > max ? `${flat.slice(0, max - 1)}…` : flat;
@@ -63,8 +71,9 @@ export function notificationRoutes(db: DB) {
     const items: NotificationItem[] = rows.map((n) => {
       const actor = toUserSummary({ id: n.actor_id, username: n.username, display_name: n.display_name, avatar_color: n.avatar_color });
       const item = n.event_id ? itemById.get(n.event_id) : undefined;
-      const about = item?.post?.body || item?.habitat?.name || item?.zoo?.title || null;
-      const base = { id: n.id, type: n.type, createdAt: n.created_at, read: !!n.read_at, actor };
+      const label = item?.post?.body || item?.habitat?.name || item?.zoo?.title || null;
+      const about: NotificationSubject | null = item ? (item.post?.kind === 'question' ? 'question' : SUBJECT[item.type]) : n.type === 'suggestion' ? 'survey' : null;
+      const base = { id: n.id, type: n.type, about, createdAt: n.created_at, read: !!n.read_at, actor };
       switch (n.type) {
         case 'follow':
           return { ...base, link: `/u/${actor.username}`, target: null, comment: null, thumbnailUrl: null };
@@ -80,7 +89,7 @@ export function notificationRoutes(db: DB) {
           return {
             ...base,
             link: `/p/${n.event_id}`,
-            target: about ? excerpt(about, 60) : null,
+            target: label ? excerpt(label, 60) : null,
             comment: n.comment_body ? excerpt(n.comment_body, 120) : null,
             thumbnailUrl: item?.post?.photos[0]?.url ?? item?.photos[0]?.url ?? null,
           };

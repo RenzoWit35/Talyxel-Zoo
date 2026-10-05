@@ -7,7 +7,7 @@ import type { AddressInfo } from 'node:net';
 import path from 'node:path';
 import type { Biome, HabitatKind, HabitatStatus, ParkType } from '../shared/constants';
 import type { Point } from '../shared/geometry';
-import type { Habitat, ZooDetail } from '../shared/types';
+import type { FeedItem, Habitat, PostKind, ZooDetail } from '../shared/types';
 import { createApp } from './app';
 import { all, one, openDb, run } from './db';
 import { paintPostcard, type Feature } from './seed-images';
@@ -107,6 +107,42 @@ async function createZoo(owner: Client, z: ZooSeed) {
   return zoo.id;
 }
 
+const daysAgo = (days: number) => new Date(Date.now() - days * 86_400_000).toISOString();
+
+interface PostSeed {
+  kind: PostKind;
+  body: string;
+  zooId?: number;
+  photos?: { biome: Biome; feature?: Feature }[];
+}
+
+/** Shares a post through the API, with generated screenshots. */
+async function share(user: Client, p: PostSeed) {
+  const form = new FormData();
+  form.append('kind', p.kind);
+  form.append('body', p.body);
+  if (p.zooId) form.append('zooId', String(p.zooId));
+  for (const photo of p.photos ?? []) {
+    const png = paintPostcard(photo.biome, photoSeed++ * 7919, photo.feature);
+    form.append('photos', new Blob([new Uint8Array(png)], { type: 'image/png' }), 'screenshot.png');
+  }
+  return (await user.call<FeedItem>('POST', '/posts', form)).id;
+}
+
+/** In-game stats: an older snapshot (so park pages show what changed) and today's numbers. */
+async function saveStats(
+  owner: Client,
+  zooId: number,
+  now: Record<string, number>,
+  opts: { before?: Record<string, number>; gameDate?: string; custom?: { label: string; value: string }[] } = {},
+) {
+  if (opts.before) {
+    await owner.call('PUT', `/zoos/${zooId}/stats`, { values: opts.before, custom: [], gameDate: '' });
+    run(db, 'UPDATE zoo_stats SET created_at = ?, updated_at = ? WHERE zoo_id = ?', daysAgo(6), daysAgo(6), zooId);
+  }
+  await owner.call('PUT', `/zoos/${zooId}/stats`, { values: now, custom: opts.custom ?? [], gameDate: opts.gameDate ?? '' });
+}
+
 async function main() {
   const users: Record<string, Client> = {};
   const people = [
@@ -193,11 +229,28 @@ async function main() {
       },
       { name: 'Savanna Market', kind: 'facility', status: 'done', points: rect(212, 204, 60, 44), description: 'Food court, restrooms and the gift shop.' },
       { name: 'Okapi forest', species: 'Okapi', biome: 'tropical', status: 'idea', points: rect(286, 204, 94, 44), description: 'Maybe? Depends on the survey.', later: true },
+      { name: 'Vet & keeper yard', kind: 'utility', species: 'Vet surgery', status: 'done', points: rect(198, 196, 12, 52), description: 'Vet surgery, staff room and the hay store, hidden behind the market.' },
+      {
+        name: 'Safari walk',
+        kind: 'route',
+        species: 'Guided tour',
+        status: 'done',
+        points: [[30, 130], [188, 130], [200, 116], [200, 34], [214, 24], [250, 96]],
+        description: 'Keeper-led tour: the lions first, then up the north path to the giraffe platform.',
+      },
+      { name: 'Sunset overlook', kind: 'interest', species: 'Viewpoint', status: 'done', points: rect(132, 60, 40, 32), description: 'Glass-fronted overlook on the kopje.' },
+      { name: 'Giraffe platform', kind: 'interest', species: 'Feeding time', status: 'done', points: rect(232, 84, 34, 20), description: 'Feeding sessions at 11:00 and 15:00.', later: true },
     ],
+  });
+  await share(users.rosa, {
+    kind: 'update',
+    body: 'Finally finished the giraffe feeding platform — guests queue for it all day. The safari walk now ends right there.',
+    zooId: serengeti,
+    photos: [{ biome: 'grassland' }, { biome: 'grassland' }],
   });
 
   // Kai: a published cold-climate park.
-  await createZoo(users.kai, {
+  const northernLights = await createZoo(users.kai, {
     title: 'Northern Lights Park',
     description: 'Taiga and tundra species around a frozen lake. Built on a challenge-mode map with harsh winters.',
     width: 320,
@@ -239,11 +292,20 @@ async function main() {
       },
       { name: 'Ranger Lodge', kind: 'facility', status: 'done', points: rect(20, 220, 70, 60), description: 'Staff room, workshop and a warm café.' },
       { name: 'Lakeside trail', kind: 'path', status: 'done', points: [[20, 200], [240, 232], [240, 246], [20, 214]] },
+      { name: 'Heating plant', kind: 'utility', species: 'Power generator', status: 'done', points: rect(110, 254, 50, 34), description: 'Keeps the indoor viewing areas warm in winter.' },
+      { name: 'Aurora trail', kind: 'route', species: 'Nature trail', status: 'building', points: [[30, 196], [96, 186], [160, 206], [236, 228], [290, 250]] },
+      { name: 'Northern lights point', kind: 'interest', species: 'Viewpoint', status: 'planned', points: rect(250, 236, 50, 40), description: 'Benches facing north, lights off at night.' },
     ],
+  });
+  await share(users.kai, {
+    kind: 'update',
+    body: 'First snow of the season in Northern Lights Park. The wolves love it.',
+    zooId: northernLights,
+    photos: [{ biome: 'taiga' }],
   });
 
   // Talyxel: one published rainforest reserve and one private draft.
-  await createZoo(users.talyxel, {
+  const reserve = await createZoo(users.talyxel, {
     title: 'Talyxel Rainforest Reserve',
     description: 'Dense jungle walkways, a temple ruin theme and lots of verticality. My main project — feedback very welcome!',
     width: 360,
@@ -278,7 +340,16 @@ async function main() {
       { name: 'Tapir Lagoon', species: "Baird's Tapir", biome: 'tropical', status: 'planned', color: '#4fb3a9', points: [[20, 170], [150, 176], [140, 228], [24, 226]] },
       { name: 'Treehouse Café', kind: 'facility', status: 'done', points: rect(220, 140, 54, 40) },
       { name: 'Red Panda hill', species: 'Red Panda', biome: 'temperate', status: 'idea', points: rect(286, 140, 60, 86) },
+      { name: 'Water treatment', kind: 'utility', species: 'Water treatment', status: 'done', points: rect(220, 188, 54, 38) },
+      { name: 'Canopy walk', kind: 'route', species: 'Scenic loop', status: 'done', points: [[24, 118], [150, 112], [168, 60], [228, 40], [330, 58]], later: true },
+      { name: 'Temple photo spot', kind: 'interest', species: 'Photo spot', status: 'building', points: rect(296, 56, 34, 26), later: true },
     ],
+  });
+  await share(users.talyxel, {
+    kind: 'question',
+    body: 'Which of these temple gates fits the Tiger Temple better — the mossy one or the sandstone one?',
+    zooId: reserve,
+    photos: [{ biome: 'tropical' }, { biome: 'tropical' }],
   });
   await createZoo(users.talyxel, {
     title: 'Desert Outpost (WIP)',
@@ -304,6 +375,7 @@ async function main() {
       { name: 'Entrance hall', kind: 'facility', status: 'done', points: rect(10, 74, 140, 36) },
     ],
   });
+  await share(users.milan, { kind: 'update', body: 'Spent the whole evening on glass reflections in the reptile house. Worth every minute.' });
 
   // Lotte: a Planet Coaster theme park with themed lands.
   const thunderPeak = await createZoo(users.lotte, {
@@ -354,7 +426,14 @@ async function main() {
       },
       { name: 'Skywheel', kind: 'ride', species: 'Ferris wheel', biome: 'classic', status: 'done', points: rect(126, 64, 40, 40), photos: ['Skywheel at dusk'], later: true },
       { name: 'Nightmare Express', kind: 'coaster', species: 'Mine train', biome: 'spooky', status: 'idea', points: rect(250, 152, 88, 60), later: true },
+      { name: 'Mechanic workshop', kind: 'utility', species: 'Mechanic workshop', status: 'done', points: rect(124, 184, 40, 24) },
+      { name: 'Haunted trail', kind: 'route', species: 'Guided tour', status: 'planned', points: [[190, 244], [232, 200], [300, 232], [344, 182]] },
+      { name: 'Fireworks spot', kind: 'interest', species: 'Fireworks spot', status: 'done', points: rect(30, 196, 60, 40), description: 'Best view of the night show over Skull Bay.' },
     ],
+  });
+  const kraken = await share(users.lotte, {
+    kind: 'question',
+    body: 'Should Kraken get a splash zone over Skull Bay, or keep the bay quiet for the Galleon?',
   });
   const tpSurvey = (await users.lotte.call<ZooDetail>('GET', `/zoos/${thunderPeak}`)).surveys[0];
   await users.talyxel.call('POST', `/surveys/${tpSurvey.id}/vote`, { optionId: tpSurvey.options[1].id });
@@ -367,6 +446,55 @@ async function main() {
   await users.kai.call('POST', `/surveys/${survey.id}/vote`, { optionId: survey.options[0].id });
   await users.talyxel.call('POST', `/surveys/${survey.id}/vote`, { optionId: survey.options[2].id });
   await users.milan.call('POST', `/surveys/${survey.id}/options`, { label: 'Nile crocodile river' });
+
+  // In-game stats.
+  await saveStats(
+    users.rosa,
+    serengeti,
+    { guests: 1250, guestHappiness: 83, rating: 4, animals: 41, species: 10, animalWelfare: 88, conservationCredits: 3150, cash: 236500, monthlyProfit: 11800, entryPrice: 32, staff: 31 },
+    {
+      before: { guests: 980, guestHappiness: 78, rating: 3.5, animals: 34, species: 9, animalWelfare: 84, conservationCredits: 2400, cash: 182000, monthlyProfit: 9400, entryPrice: 32, staff: 28 },
+      gameDate: 'Year 4, June',
+      custom: [{ label: 'Gift shop income', value: '$4,200 a month' }],
+    },
+  );
+  await saveStats(
+    users.kai,
+    northernLights,
+    { guests: 720, guestHappiness: 80, rating: 3.5, animals: 26, species: 8, animalWelfare: 91, cash: 8400, monthlyProfit: 2600, staff: 19 },
+    { before: { guests: 640, guestHappiness: 74, rating: 3.5, animals: 22, species: 7, animalWelfare: 89, cash: -12000, monthlyProfit: -800, staff: 17 }, gameDate: 'Year 2, December' },
+  );
+  await saveStats(users.talyxel, reserve, { guests: 1580, guestHappiness: 88, rating: 4.5, animals: 37, species: 12, conservationCredits: 5200, staff: 35 }, { gameDate: 'Year 6, March' });
+  await saveStats(
+    users.lotte,
+    thunderPeak,
+    { guests: 3150, guestHappiness: 86, rating: 79, rides: 17, coasters: 4, avgExcitement: 6.6, scenery: 72, cash: 503000, monthlyProfit: 22500, entryPrice: 45, staff: 71 },
+    {
+      before: { guests: 2400, guestHappiness: 81, rating: 72, rides: 14, coasters: 3, avgExcitement: 6.1, scenery: 66, cash: 412000, monthlyProfit: 18000, entryPrice: 45, staff: 64 },
+      gameDate: 'Year 3, August',
+    },
+  );
+
+  // Likes and answers on posts and park activity.
+  const feedOf = async (user: Client) => (await user.call<{ items: FeedItem[] }>('GET', '/feed')).items;
+  for (const [liker, owners] of Object.entries({ talyxel: ['rosa', 'kai', 'lotte'], rosa: ['talyxel', 'lotte'], kai: ['rosa'], milan: ['talyxel', 'rosa'], lotte: ['talyxel'] })) {
+    for (const item of await feedOf(users[liker])) {
+      if (owners.includes(item.actor.username) && (item.post || item.type === 'zoo_published' || item.photos.length)) {
+        await users[liker].call('PUT', `/activity/${item.id}/like`);
+      }
+    }
+  }
+  const answer = (user: string, id: number, body: string) => users[user].call('POST', `/activity/${id}/comments`, { body });
+  await answer('talyxel', kraken, 'Splash zone! People love getting soaked on a hot day.');
+  await answer('rosa', kraken, 'Keep the bay calm — the Galleon over still water looks amazing at night.');
+  await answer('lotte', kraken, 'Leaning splash zone… maybe on the far side so the Galleon view stays.');
+  const temple = (await feedOf(users.rosa)).find((i) => i.post?.kind === 'question' && i.actor.username === 'talyxel');
+  if (temple) {
+    await answer('rosa', temple.id, 'Mossy one, it matches the canopy.');
+    await answer('kai', temple.id, 'Sandstone — it would stand out more against all that green.');
+  }
+  const platform = (await feedOf(users.talyxel)).find((i) => i.post && i.actor.username === 'rosa');
+  if (platform) await answer('talyxel', platform.id, 'Love the platform height, you can see the whole plain from there.');
 
   // Spread timestamps over the last couple of weeks so the feed reads naturally.
   const events = all<{ id: number }>(db, 'SELECT id FROM events ORDER BY id DESC');
@@ -382,6 +510,25 @@ async function main() {
      WHERE status = 'published'`,
   );
   run(db, 'UPDATE surveys SET created_at = (SELECT published_at FROM zoos WHERE zoos.id = surveys.zoo_id)');
+  // Reactions come a little after what they react to (never in the future); notifications follow them.
+  const after = (expr: string, minutes: string) =>
+    `min(strftime('%Y-%m-%dT%H:%M:%fZ', ${expr}, '+' || (${minutes}) || ' minutes'), strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))`;
+  run(db, `UPDATE likes SET created_at = ${after('(SELECT created_at FROM events WHERE events.id = likes.event_id)', '5 + (user_id * 53) % 240')}`);
+  run(db, `UPDATE comments SET created_at = ${after('(SELECT created_at FROM events WHERE events.id = comments.event_id)', '12 + (id * 37) % 300')}`);
+  run(
+    db,
+    `UPDATE notifications SET created_at = COALESCE(
+       (SELECT created_at FROM comments WHERE comments.id = notifications.comment_id),
+       (SELECT created_at FROM likes WHERE likes.event_id = notifications.event_id AND likes.user_id = notifications.actor_id),
+       ${after('(SELECT MIN(created_at) FROM events)', '0')})`,
+  );
+  // Everyone has a few new notifications waiting; the rest were seen.
+  run(
+    db,
+    `UPDATE notifications SET read_at = created_at WHERE id NOT IN
+       (SELECT id FROM (SELECT id, ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY created_at DESC) AS rn FROM notifications) WHERE rn <= 4)`,
+  );
+  run(db, 'UPDATE posts SET created_at = (SELECT created_at FROM events WHERE events.post_id = posts.id)');
 
   server.close();
   console.log(`Seeded ${people.length} builders. Log in as any of: ${people.map((p) => p.username).join(', ')} — password "${PASSWORD}"`);

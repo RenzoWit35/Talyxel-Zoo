@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { ArrowRight, Images, PenLine, Users, Vote } from 'lucide-react';
+import { ArrowRight, BookOpen, ChartColumn, Heart, PenLine, Users } from 'lucide-react';
 import { Link } from 'react-router';
 import { api } from '../api/client';
 import { ZooCard } from '../components/ZooCard';
@@ -7,10 +7,26 @@ import { ZooThumbnail } from '../components/ZooThumbnail';
 import { DEMO_SHAPES as DEMO } from '../lib/demo';
 
 const FEATURES = [
-  { icon: <PenLine />, title: 'Draw it top-down', text: 'Trace habitats, coasters and themed areas on a grid — or over a screenshot of your park — with snapping, rectangles and freeform shapes.' },
-  { icon: <Images />, title: 'Hover for the story', text: 'Every habitat or ride holds its own photo collection, species or ride type, biome or theme, and notes. Hover a shape to see it all.' },
-  { icon: <Vote />, title: 'Publish with a survey', text: 'Share your plan and ask the community what to build next. Visitors vote or suggest their own ideas.' },
-  { icon: <Users />, title: 'Follow your friends', text: 'Follow other builders and get a feed of their new habitats, rides, photos and surveys as they happen.' },
+  {
+    icon: <PenLine />,
+    title: 'Draw it top-down',
+    text: 'Habitats, rides, utilities, walk routes and areas of interest on a metre grid — or traced over a screenshot of your park. Every shape keeps its photos and notes.',
+  },
+  {
+    icon: <Heart />,
+    title: 'Share and ask',
+    text: 'Post screenshots of what you built or ask your followers what to do next. They like with a double-tap and answer in the comments.',
+  },
+  {
+    icon: <ChartColumn />,
+    title: 'Publish, poll and track',
+    text: 'Publish your plan with a survey about what to build next, and keep your in-game stats so friends can watch the park grow.',
+  },
+  {
+    icon: <Users />,
+    title: 'Follow your friends',
+    text: 'A feed of the builders you follow, their parks from above on every profile, and a bell for new likes, answers and followers.',
+  },
 ];
 
 export function Landing() {
@@ -27,8 +43,8 @@ export function Landing() {
               <em>Let your friends pick what's next.</em>
             </h1>
             <p>
-              Talyxel Park is a planning board for your zoos and theme parks: sketch every habitat, coaster and themed area from above, fill it with
-              screenshots and notes, then publish it with a survey and follow the builds of the people you like.
+              Talyxel Park is a planning board for your zoos and theme parks: sketch every habitat, ride, utility and walk route from above, fill it
+              with screenshots, notes and stats, then share updates and questions with the builders you follow.
             </p>
             <div className="row row-wrap">
               <Link to="/register" className="btn btn-primary btn-lg">
@@ -36,6 +52,9 @@ export function Landing() {
               </Link>
               <Link to="/explore" className="btn btn-lg">
                 Explore parks
+              </Link>
+              <Link to="/guide" className="btn btn-lg btn-ghost">
+                <BookOpen /> How it works
               </Link>
             </div>
           </div>

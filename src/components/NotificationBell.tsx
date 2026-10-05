@@ -2,33 +2,48 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Bell } from 'lucide-react';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Link, useLocation } from 'react-router';
-import type { NotificationItem, NotificationsPage } from '../../shared/types';
+import type { NotificationItem, NotificationsPage, NotificationSubject } from '../../shared/types';
 import { api } from '../api/client';
 import { timeAgo } from '../lib/format';
 import { Avatar } from './ui';
 
+/** "your question “…”", "your new addition “Lion Ridge”", "your photos of “Lion Ridge”"… */
+const SUBJECT_WORDS: Record<NotificationSubject, string> = {
+  post: 'your post',
+  question: 'your question',
+  park: 'your park',
+  shape: 'your new addition',
+  photos: 'your photos of',
+  survey: 'your survey on',
+};
+
 function describe(n: NotificationItem): ReactNode {
   const who = <strong>{n.actor.displayName}</strong>;
-  const about = n.target ? <> “{n.target}”</> : null;
+  const what = (
+    <>
+      {SUBJECT_WORDS[n.about ?? 'post']}
+      {n.target && <> “{n.target}”</>}
+    </>
+  );
   switch (n.type) {
     case 'follow':
       return <>{who} started following you.</>;
     case 'like':
       return (
         <>
-          {who} liked your post{about}.
+          {who} liked {what}.
         </>
       );
     case 'comment':
       return (
         <>
-          {who} commented{n.target ? <> on “{n.target}”</> : null}: <span className="notif-quote">{n.comment}</span>
+          {who} {n.about === 'question' ? 'answered' : 'commented on'} {what}: <span className="notif-quote">{n.comment}</span>
         </>
       );
     case 'suggestion':
       return (
         <>
-          {who} suggested <span className="notif-quote">“{n.comment}”</span> in your survey{about}.
+          {who} suggested <span className="notif-quote">“{n.comment}”</span> in your survey{n.target && <> “{n.target}”</>}.
         </>
       );
   }

@@ -41,7 +41,7 @@ describe('notifications', () => {
     const box = await inbox(rosa);
     expect(box.unread).toBe(2);
     expect(box.items.map((n) => n.type)).toEqual(['comment', 'like']);
-    expect(box.items[0]).toMatchObject({ link: `/p/${item.id}`, comment: 'Wolves, definitely — with a den', target: 'Bears or wolves for the forest?' });
+    expect(box.items[0]).toMatchObject({ about: 'question', link: `/p/${item.id}`, comment: 'Wolves, definitely — with a den', target: 'Bears or wolves for the forest?' });
 
     await kai.del(`/api/activity/${item.id}/like`);
     await kai.del(`/api/comments/${comment.id}`);
@@ -74,7 +74,7 @@ describe('notifications', () => {
     await rosa.post(`/api/zoos/${zoo.id}/habitats`, { name: 'Lions', points: square(10, 10, 20) });
     const items = ((await rosa.get('/api/feed')).body as FeedPage).items;
     await kai.put(`/api/activity/${items[0].id}/like`);
-    expect((await inbox(rosa)).items).toHaveLength(1);
+    expect((await inbox(rosa)).items).toMatchObject([{ type: 'like', about: 'shape', target: 'Lions' }]);
 
     await rosa.post(`/api/zoos/${zoo.id}/unpublish`);
     expect(await inbox(rosa)).toEqual({ items: [], unread: 0 });

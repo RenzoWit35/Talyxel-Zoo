@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import type { Onboarding } from '../../shared/types';
-import { one, run, type DB } from '../db';
+import { run, type DB } from '../db';
 import { parse, requireUser } from '../http';
 
 const dismissInput = z.object({ dismissed: z.boolean() });
@@ -11,9 +11,9 @@ export function onboardingRoutes(db: DB) {
   const r = Router();
 
   const load = (userId: number): Onboarding => {
-    const row = one<Record<string, number | string | null>>(
-      db,
-      `SELECT
+    const row = db
+      .prepare(
+        `SELECT
          EXISTS (SELECT 1 FROM zoos WHERE owner_id = $u) AS park,
          EXISTS (SELECT 1 FROM habitats h JOIN zoos z ON z.id = h.zoo_id WHERE z.owner_id = $u) AS shape,
          EXISTS (SELECT 1 FROM habitats h JOIN zoos z ON z.id = h.zoo_id
@@ -25,8 +25,8 @@ export function onboardingRoutes(db: DB) {
          (SELECT bio <> '' FROM users WHERE id = $u) AS profile,
          (SELECT onboarding_dismissed_at FROM users WHERE id = $u) AS dismissed,
          (SELECT id FROM zoos WHERE owner_id = $u ORDER BY updated_at DESC LIMIT 1) AS parkId`,
-      { u: userId } as never,
-    )!;
+      )
+      .get({ u: userId }) as Record<string, number | string | null>;
     return {
       steps: {
         park: !!row.park,
