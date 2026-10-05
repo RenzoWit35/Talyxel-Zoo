@@ -1,4 +1,4 @@
-import { ChartColumn, ImagePlus, Loader2, PenLine, Trash2 } from 'lucide-react';
+import { ChartColumn, ImagePlus, Keyboard, Loader2, PenLine, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { HABITAT_STATUSES, KIND_META, LIMITS, PARK_TYPES, STATUS_META } from '../../../shared/constants';
 import { formatArea, formatLength, polygonArea, polylineLength } from '../../../shared/geometry';
@@ -8,22 +8,14 @@ import { StatsSummary } from '../../components/stats/StatsView';
 import { capitalize, plural } from '../../lib/format';
 import type { ZooEditor } from './useZooEditor';
 
-const SHORTCUTS: [string, string][] = [
-  ['V', 'Select & move'],
-  ['P', 'Draw a freeform shape'],
-  ['R', 'Draw a rectangle'],
-  ['L', 'Draw a walk route'],
-  ['H / Space', 'Pan the map'],
-  ['Enter', 'Finish the shape'],
-  ['Esc', 'Cancel / deselect'],
-  ['Del', 'Delete selection'],
-  ['Arrows', 'Nudge (Shift = more)'],
-  ['Alt', 'Hold to draw without snapping'],
-  ['S', 'Toggle snapping'],
-  ['Ctrl Z', 'Undo shape edits'],
-];
+interface Props {
+  editor: ZooEditor;
+  onDeleteZoo: () => void;
+  onEditStats: () => void;
+  onShowShortcuts: () => void;
+}
 
-export function ZooPanel({ editor, onDeleteZoo, onEditStats }: { editor: ZooEditor; onDeleteZoo: () => void; onEditStats: () => void }) {
+export function ZooPanel({ editor, onDeleteZoo, onEditStats, onShowShortcuts }: Props) {
   const { zoo } = editor;
   const meta = parkMeta(zoo.parkType);
   const [w, setW] = useState(String(zoo.width));
@@ -279,19 +271,11 @@ export function ZooPanel({ editor, onDeleteZoo, onEditStats }: { editor: ZooEdit
         </div>
       </div>
 
-      <details className="panel-section shortcuts">
-        <summary>Keyboard shortcuts</summary>
-        <dl>
-          {SHORTCUTS.map(([k, d]) => (
-            <div key={k}>
-              <dt>
-                <kbd>{k}</kbd>
-              </dt>
-              <dd>{d}</dd>
-            </div>
-          ))}
-        </dl>
-      </details>
+      <div className="panel-section">
+        <button className="btn btn-ghost btn-sm shortcuts-link" onClick={onShowShortcuts}>
+          <Keyboard /> Keyboard shortcuts <kbd>?</kbd>
+        </button>
+      </div>
 
       <div className="panel-section">
         <button className="btn btn-danger btn-block" onClick={onDeleteZoo}>

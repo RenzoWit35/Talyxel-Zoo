@@ -4,10 +4,12 @@ import {
   ChartColumn,
   Check,
   CloudOff,
+  Copy,
   ExternalLink,
   Globe,
   Hand,
   Hexagon,
+  Keyboard,
   Layers,
   LayoutGrid,
   Loader2,
@@ -16,6 +18,7 @@ import {
   Map as MapIcon,
   MousePointer2,
   PanelRight,
+  Redo2,
   Spline,
   Square,
   Trash2,
@@ -23,7 +26,7 @@ import {
   Vote,
   X,
 } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, Navigate, useNavigate, useParams } from 'react-router';
 import { isLineKind, KIND_META, type HabitatKind } from '../../../shared/constants';
 import { bounds, type Point } from '../../../shared/geometry';
@@ -41,6 +44,7 @@ import { NotFound } from '../NotFound';
 import { BoardView } from './BoardView';
 import { HabitatPanel } from './HabitatPanel';
 import { PublishDialog } from './PublishDialog';
+import { ShortcutsOverlay } from './ShortcutsOverlay';
 import { ShapePalette } from './ShapePalette';
 import { useZooEditor, type SaveState } from './useZooEditor';
 import { ZooPanel } from './ZooPanel';
@@ -109,6 +113,8 @@ function Planner({ initial }: { initial: ZooDetail }) {
   const [hiddenKinds, setHiddenKinds] = useState<Set<HabitatKind>>(() => new Set());
   const [layersOpen, setLayersOpen] = useState(false);
   const [statsOpen, setStatsOpen] = useState(false);
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  const clipboard = useRef<{ habitat: Habitat; pastes: number } | null>(null);
 
   const selected = zoo.habitats.find((h) => h.id === selectedId) ?? null;
   // If the park type changes, fall back to its main shape type for drawing.
@@ -161,26 +167,71 @@ function Planner({ initial }: { initial: ZooDetail }) {
     [editor, kindToDraw, select],
   );
 
+  const duplicate = useCallback(
+    async (source: Habitat, times = 1) => {
+      try {
+        const copy = await editor.duplicateHabitat(source, times);
+        select(copy.id);
+      } catch {
+        /* toast already shown */
+      }
+    },
+    [editor, select],
+  );
+
+  const historyStep = useCallback(
+    (direction: 'undo' | 'redo') => {
+      const id = direction === 'undo' ? editor.undo() : editor.redo();
+      if (id !== null) select(id);
+    },
+    [editor, select],
+  );
+
   // Global shortcuts (the canvas handles drawing-specific keys itself).
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement;
       if (t.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(t.tagName)) return;
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+      const mod = e.ctrlKey || e.metaKey;
+      const key = e.key.toLowerCase();
+      if (mod && (key === 'y' || (key === 'z' && e.shiftKey))) {
         e.preventDefault();
-        const id = editor.undo();
-        if (id !== null) select(id);
+        historyStep('redo');
         return;
       }
-      if (e.ctrlKey || e.metaKey || e.altKey || view !== 'map') return;
-      const key = e.key.toLowerCase();
+      if (mod && key === 'z') {
+        e.preventDefault();
+        historyStep('undo');
+        return;
+      }
+      if (mod && key === 'd' && selected) {
+        e.preventDefault(); // not the browser's bookmark dialog
+        void duplicate(selected);
+        return;
+      }
+      if (mod && key === 'c' && selected && !window.getSelection()?.toString()) {
+        clipboard.current = { habitat: selected, pastes: 0 };
+        toast.ok(`Copied “${selected.name}”`);
+        return;
+      }
+      if (mod && key === 'v' && clipboard.current) {
+        e.preventDefault();
+        clipboard.current.pastes++;
+        void duplicate(clipboard.current.habitat, clipboard.current.pastes);
+        return;
+      }
+      if (e.key === '?') {
+        setShortcutsOpen((o) => !o);
+        return;
+      }
+      if (mod || e.altKey || view !== 'map') return;
       const found = TOOLS.find((x) => x.key.toLowerCase() === key);
       if (found) pickTool(found.id);
       if (key === 's') setSnap((s) => !s);
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [editor, view, select, pickTool]);
+  }, [view, pickTool, historyStep, duplicate, selected, toast]);
 
   const addIdea = async (name: string) => {
     try {
@@ -293,14 +344,21 @@ function Planner({ initial }: { initial: ZooDetail }) {
             >
               <Layers />
             </button>
-            <button className="tool" onClick={() => {
-                const id = editor.undo();
-                if (id !== null) select(id);
-              }} disabled={!editor.canUndo} title="Undo shape edit (Ctrl+Z)" aria-label="Undo">
+            <button className="tool" onClick={() => historyStep('undo')} disabled={!editor.canUndo} title="Undo shape edit (Ctrl+Z)" aria-label="Undo">
               <Undo2 />
+            </button>
+            <button className="tool" onClick={() => historyStep('redo')} disabled={!editor.canRedo} title="Redo (Ctrl+Shift+Z)" aria-label="Redo">
+              <Redo2 />
+            </button>
+            <button className="tool" disabled={!selected} onClick={() => selected && void duplicate(selected)} title="Duplicate selected (Ctrl+D)" aria-label="Duplicate selected">
+              <Copy />
             </button>
             <button className="tool tool-danger" disabled={!selected} onClick={() => selected && setConfirmDelete(selected)} title="Delete selected (Del)" aria-label="Delete selected">
               <Trash2 />
+            </button>
+            <span className="spacer" />
+            <button className="tool" onClick={() => setShortcutsOpen(true)} title="Keyboard shortcuts (?)" aria-label="Keyboard shortcuts">
+              <Keyboard />
             </button>
           </div>
         )}
@@ -403,9 +461,15 @@ function Planner({ initial }: { initial: ZooDetail }) {
                 setPanelOpen(false);
               }}
               onDelete={() => setConfirmDelete(selected)}
+              onDuplicate={() => void duplicate(selected)}
             />
           ) : (
-            <ZooPanel editor={editor} onDeleteZoo={() => setConfirmDeleteZoo(true)} onEditStats={() => setStatsOpen(true)} />
+            <ZooPanel
+              editor={editor}
+              onDeleteZoo={() => setConfirmDeleteZoo(true)}
+              onEditStats={() => setStatsOpen(true)}
+              onShowShortcuts={() => setShortcutsOpen(true)}
+            />
           )}
         </aside>
       </div>
@@ -457,6 +521,7 @@ function Planner({ initial }: { initial: ZooDetail }) {
         </Modal>
       )}
       {publishing && <PublishDialog editor={editor} onClose={() => setPublishing(false)} />}
+      {shortcutsOpen && <ShortcutsOverlay onClose={() => setShortcutsOpen(false)} />}
       {statsOpen && (
         <StatsForm zooId={zoo.id} parkType={zoo.parkType} stats={zoo.stats} onClose={() => setStatsOpen(false)} onSaved={editor.setStats} />
       )}

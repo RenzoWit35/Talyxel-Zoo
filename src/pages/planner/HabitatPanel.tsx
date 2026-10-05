@@ -1,4 +1,4 @@
-import { ImagePlus, Link2, Loader2, Trash2, X } from 'lucide-react';
+import { Copy, ImagePlus, Link2, Loader2, Trash2, X } from 'lucide-react';
 import { useState, type DragEvent } from 'react';
 import { BIOME_LABELS, HABITAT_COLORS, HABITAT_STATUSES, isLineKind, KIND_META, LIMITS, STATUS_META } from '../../../shared/constants';
 import { parkMeta } from '../../../shared/parks';
@@ -138,9 +138,10 @@ interface Props {
   editor: ZooEditor;
   onClose: () => void;
   onDelete: () => void;
+  onDuplicate: () => void;
 }
 
-export function HabitatPanel({ habitat, editor, onClose, onDelete }: Props) {
+export function HabitatPanel({ habitat, editor, onClose, onDelete, onDuplicate }: Props) {
   const set = (patch: Parameters<ZooEditor['updateHabitat']>[1]) => editor.updateHabitat(habitat.id, patch);
   const meta = parkMeta(editor.zoo.parkType);
   const kindMeta = KIND_META[habitat.kind];
@@ -261,7 +262,10 @@ export function HabitatPanel({ habitat, editor, onClose, onDelete }: Props) {
 
       <PhotoManager habitat={habitat} editor={editor} />
 
-      <div className="panel-section">
+      <div className="panel-section panel-actions">
+        <button className="btn btn-block" onClick={onDuplicate} title="Duplicate (Ctrl+D)">
+          <Copy /> Duplicate
+        </button>
         <button className="btn btn-danger btn-block" onClick={onDelete}>
           <Trash2 /> Delete {KIND_META[habitat.kind].label.toLowerCase()}
         </button>

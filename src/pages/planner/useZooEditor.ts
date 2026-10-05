@@ -1,7 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { KIND_META, type HabitatKind, type HabitatStatus, type ParkType } from '../../../shared/constants';
-import type { Point } from '../../../shared/geometry';
+import { clampedTranslate, roundPoint, type Point } from '../../../shared/geometry';
 import type { Habitat, ParkStats, ZooDetail } from '../../../shared/types';
 import { api, ApiError, type HabitatInput, type SurveyDraft } from '../../api/client';
 import { useToast } from '../../components/toast';
@@ -24,6 +24,7 @@ export function useZooEditor(initial: ZooDetail) {
   const [zoo, setZoo] = useState(initial);
   const [saveState, setSaveState] = useState<SaveState>('saved');
   const [canUndo, setCanUndo] = useState(false);
+  const [canRedo, setCanRedo] = useState(false);
 
   const zooRef = useRef(zoo);
   zooRef.current = zoo;
@@ -32,6 +33,7 @@ export function useZooEditor(initial: ZooDetail) {
   const pendingZoo = useRef<ZooPatch>({});
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const undoStack = useRef<{ id: number; points: Point[] }[]>([]);
+  const redoStack = useRef<{ id: number; points: Point[] }[]>([]);
 
   const hasPending = () => pendingHabitats.current.size > 0 || Object.keys(pendingZoo.current).length > 0;
 
@@ -101,6 +103,9 @@ export function useZooEditor(initial: ZooDetail) {
       if (patch.points && opts.undoable !== false) {
         undoStack.current = [...undoStack.current.slice(-UNDO_LIMIT + 1), { id, points: current.points }];
         setCanUndo(true);
+        // A fresh edit starts a new history branch.
+        redoStack.current = [];
+        setCanRedo(false);
       }
       patchLocalHabitat(id, patch);
       pendingHabitats.current.set(id, { ...pendingHabitats.current.get(id), ...patch });
@@ -110,12 +115,22 @@ export function useZooEditor(initial: ZooDetail) {
     [flush, schedule],
   );
 
-  const undo = useCallback(() => {
-    const last = undoStack.current.pop();
-    setCanUndo(undoStack.current.length > 0);
-    if (last) updateHabitat(last.id, { points: last.points }, { immediate: true, undoable: false });
-    return last?.id ?? null;
-  }, [updateHabitat]);
+  /** Move one outline between the undo and redo stacks, remembering where it was. */
+  const step = useCallback(
+    (from: typeof undoStack, to: typeof undoStack) => {
+      const last = from.current.pop();
+      if (!last) return null;
+      const current = zooRef.current.habitats.find((h) => h.id === last.id);
+      if (current) to.current = [...to.current.slice(-UNDO_LIMIT + 1), { id: last.id, points: current.points }];
+      setCanUndo(undoStack.current.length > 0);
+      setCanRedo(redoStack.current.length > 0);
+      updateHabitat(last.id, { points: last.points }, { immediate: true, undoable: false });
+      return last.id;
+    },
+    [updateHabitat],
+  );
+  const undo = useCallback(() => step(undoStack, redoStack), [step]);
+  const redo = useCallback(() => step(redoStack, undoStack), [step]);
 
   const createHabitat = useCallback(
     async (points: Point[], kind: HabitatKind, extra: { name?: string; status?: HabitatStatus } = {}) => {
@@ -128,12 +143,39 @@ export function useZooEditor(initial: ZooDetail) {
     [track],
   );
 
+  /** Copy a shape (not its photos) a little down and to the right, so the copy is easy to see and drag away. */
+  const duplicateHabitat = useCallback(
+    async (source: Habitat, times = 1) => {
+      const z = zooRef.current;
+      const offset = Math.max(2, Math.round(Math.min(z.width, z.height) * 0.03)) * times;
+      const points = clampedTranslate(source.points, offset, offset, z.width, z.height).map((p) => roundPoint(p));
+      const name = source.name.endsWith(' copy') ? source.name : `${source.name.slice(0, 55)} copy`;
+      const habitat = await track(
+        api.createHabitat(z.id, {
+          points,
+          name,
+          kind: source.kind,
+          status: source.status,
+          biome: source.biome,
+          species: source.species,
+          description: source.description,
+          color: source.color,
+        }),
+      );
+      setZoo((prev) => ({ ...prev, habitats: [...prev.habitats, habitat] }));
+      return habitat;
+    },
+    [track],
+  );
+
   const deleteHabitat = useCallback(
     async (id: number) => {
       pendingHabitats.current.delete(id);
       await track(api.deleteHabitat(id));
       undoStack.current = undoStack.current.filter((u) => u.id !== id);
+      redoStack.current = redoStack.current.filter((u) => u.id !== id);
       setCanUndo(undoStack.current.length > 0);
+      setCanRedo(redoStack.current.length > 0);
       setZoo((z) => ({ ...z, habitats: z.habitats.filter((h) => h.id !== id) }));
     },
     [track],
@@ -223,8 +265,11 @@ export function useZooEditor(initial: ZooDetail) {
     zoo,
     saveState,
     canUndo,
+    canRedo,
     flush,
     undo,
+    redo,
+    duplicateHabitat,
     updateHabitat,
     createHabitat,
     deleteHabitat,

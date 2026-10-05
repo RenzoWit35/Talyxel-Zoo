@@ -283,32 +283,6 @@ input[type='range'] {
   accent-color: var(--brand);
   width: 100%;
 }
-.shortcuts summary {
-  cursor: pointer;
-  font-weight: 650;
-  font-size: 0.88rem;
-  color: var(--ink-2);
-}
-.shortcuts dl {
-  margin: 4px 0 0;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.shortcuts dl > div {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  font-size: 0.86rem;
-}
-.shortcuts dt {
-  width: 86px;
-  flex: none;
-}
-.shortcuts dd {
-  margin: 0;
-  color: var(--ink-2);
-}
 kbd {
   font-family: var(--font-ui);
   font-size: 0.74rem;
@@ -730,4 +704,49 @@ kbd {
     top: 62px;
     left: 8px;
   }
+}
+
+/* ---------- shortcuts overlay ---------- */
+.shortcut-groups {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 18px 28px;
+}
+.shortcut-groups h4 {
+  font-size: 1rem;
+  margin-bottom: 8px;
+}
+.shortcut-groups dl {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.shortcut-groups dl > div {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.88rem;
+}
+.shortcut-groups dt {
+  display: flex;
+  gap: 3px;
+  min-width: 112px;
+  flex: none;
+}
+.shortcut-groups dd {
+  margin: 0;
+  color: var(--ink-2);
+}
+.shortcuts-link {
+  align-self: flex-start;
+}
+.shortcuts-link kbd {
+  margin-left: 2px;
+}
+.planner-tools .spacer {
+  flex: 1;
+}
+.panel-actions {
+  flex-direction: row;
 }
