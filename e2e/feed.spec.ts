@@ -11,7 +11,7 @@ test('builders share updates and questions; followers like, answer and open the 
 
   // Rosa shares an update with two screenshots…
   await rosa.loginPage(page);
-  await page.goto('/');
+  await page.goto('/social');
   await page.getByRole('button', { name: 'Share an update or ask a question…' }).click();
   await page.getByLabel('Your update').fill('Finished the savanna overlook today!');
   await page.locator('.composer input[type=file]').setInputFiles([
@@ -34,7 +34,7 @@ test('builders share updates and questions; followers like, answer and open the 
   // Kai sees both, double-clicks to like the update and answers the question.
   const kaiPage = await browser.newPage();
   await kai.loginPage(kaiPage);
-  await kaiPage.goto('/');
+  await kaiPage.goto('/social');
   const kaiUpdate = kaiPage.locator('.post-card', { hasText: 'Finished the savanna overlook today!' });
   await expect(kaiUpdate).toBeVisible();
   await kaiUpdate.locator('.media-track').dblclick();
@@ -72,7 +72,7 @@ test('park activity shows as a card with the top-down map', async ({ page, baseU
   await lotte.api.post(`/api/zoos/${park.id}/publish`, { data: { survey: { question: 'Which ride next?', options: ['Log flume', 'Drop tower'] } } });
 
   await lotte.loginPage(page);
-  await page.goto('/');
+  await page.goto('/social');
   const card = page.locator('.post-card', { hasText: 'published a new theme park plan' });
   await expect(card.locator('.media-map')).toBeVisible();
   await expect(card.locator('.media-map-tag')).toHaveText('Thunder Peak');

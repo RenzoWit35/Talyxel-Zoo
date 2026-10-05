@@ -1,5 +1,6 @@
 import '@fontsource-variable/inter';
 import '@fontsource-variable/inter/wght-italic.css';
+import '@fontsource-variable/manrope';
 import './styles/tokens.css';
 import './styles/base.css';
 import './styles/ui.css';
@@ -9,6 +10,7 @@ import './styles/planner.css';
 import './styles/stats.css';
 import './styles/feed.css';
 import './styles/tutorial.css';
+import './styles/home.css';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { StrictMode } from 'react';

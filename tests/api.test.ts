@@ -61,7 +61,10 @@ describe('zoo planning', () => {
     expect(patched.body).toMatchObject({ status: 'building', biome: 'grassland', name: 'Lion Pride' });
 
     const mine = await rosa.get('/api/zoos/mine');
-    expect(mine.body[0]).toMatchObject({ title: 'Savanna Park', habitatCount: 2, status: 'draft' });
+    expect(mine.body[0]).toMatchObject({ title: 'Savanna Park', habitatCount: 2, doneCount: 0, status: 'draft' });
+
+    await rosa.patch(`/api/habitats/${habitat.id}`, { status: 'done' });
+    expect((await rosa.get('/api/zoos/mine')).body[0].doneCount).toBe(1);
   });
 
   it('keeps drafts private and blocks edits by other users', async () => {

@@ -123,6 +123,8 @@ export interface ZooSummary {
   updatedAt: string;
   owner: UserSummary;
   habitatCount: number;
+  /** Shapes marked done — how far the build is. */
+  doneCount: number;
   photoCount: number;
   coverUrl: string | null;
   hasOpenSurvey: boolean;
@@ -203,6 +205,10 @@ export interface LikeState {
   likes: number;
   liked: boolean;
 }
+
+/** Feed tabs on the Social page. */
+export const FEED_FILTERS = ['all', 'friends', 'following', 'questions'] as const;
+export type FeedFilter = (typeof FEED_FILTERS)[number];
 
 export interface FeedPage {
   items: FeedItem[];

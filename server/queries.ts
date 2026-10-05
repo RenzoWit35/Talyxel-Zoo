@@ -97,9 +97,9 @@ export function canView(zoo: ZooRow, viewerId: number | undefined) {
 export function loadZooSummaries(db: DB, zoos: ZooRow[]): ZooSummary[] {
   if (!zoos.length) return [];
   const ids = zoos.map((z) => z.id);
-  const habitats = all<{ id: number; zoo_id: number; points: string; color: string; kind: HabitatKind }>(
+  const habitats = all<{ id: number; zoo_id: number; points: string; color: string; kind: HabitatKind; status: HabitatStatus }>(
     db,
-    `SELECT id, zoo_id, points, color, kind FROM habitats WHERE zoo_id IN (${placeholders(ids.length)}) ORDER BY id`,
+    `SELECT id, zoo_id, points, color, kind, status FROM habitats WHERE zoo_id IN (${placeholders(ids.length)}) ORDER BY id`,
     ...ids,
   );
   const photos = all<{ zoo_id: number; count: number; cover: string | null }>(
@@ -138,6 +138,7 @@ export function loadZooSummaries(db: DB, zoos: ZooRow[]): ZooSummary[] {
       updatedAt: z.updated_at,
       owner: zooOwner(z),
       habitatCount: own.length,
+      doneCount: own.filter((h) => h.status === 'done').length,
       photoCount: photoByZoo.get(z.id)?.count ?? 0,
       coverUrl: photoByZoo.get(z.id)?.cover ?? null,
       hasOpenSurvey: open.has(z.id),

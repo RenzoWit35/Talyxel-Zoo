@@ -13,7 +13,7 @@ test('the bell shows new likes, comments and followers and clears when opened', 
   await page.goto('/');
   const bell = page.getByRole('button', { name: /^Notifications/ });
   await expect(bell).toHaveAccessibleName('Notifications, 3 new');
-  await expect(bell.locator('.notif-badge')).toHaveText('3');
+  await expect(bell.locator('.notif-dot')).toBeVisible();
 
   await bell.click();
   const panel = page.getByRole('dialog', { name: 'Notifications' });
@@ -21,7 +21,7 @@ test('the bell shows new likes, comments and followers and clears when opened', 
   await expect(panel).toContainText('Kai Lindqvist started following you.');
   await expect(panel).toContainText('liked your question “Which biome for the red pandas?”');
   await expect(panel).toContainText('Temperate, with lots of climbing');
-  await expect(bell.locator('.notif-badge')).toHaveCount(0);
+  await expect(bell.locator('.notif-dot')).toHaveCount(0);
   await panel.evaluate((el) => Promise.all(el.getAnimations().map((a) => a.finished.catch(() => undefined))));
   await page.screenshot({ path: `test-results/screens/notifications-${test.info().project.name}.png` });
 

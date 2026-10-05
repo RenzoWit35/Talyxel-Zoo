@@ -30,5 +30,5 @@ test('pages fit the screen width for builders', async ({ page, baseURL }) => {
   await user.api.post(`/api/zoos/${park.id}/publish`, { data: {} });
   await user.api.post('/api/posts', { data: { kind: 'question', body: 'Does everything fit on a small phone screen, even with a long question like this one?' } });
   await user.loginPage(page);
-  for (const url of ['/', '/zoos', `/z/${park.id}`, `/u/${user.username}`, '/guide']) await expectNoSidewaysScroll(page, url);
+  for (const url of ['/', '/social', '/zoos', `/z/${park.id}`, `/u/${user.username}`, '/guide']) await expectNoSidewaysScroll(page, url);
 });

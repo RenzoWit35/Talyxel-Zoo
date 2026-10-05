@@ -5,7 +5,9 @@ import { Layout } from './components/Layout';
 import { PageLoader } from './components/ui';
 import { AuthPage } from './pages/AuthPage';
 import { ExplorePage } from './pages/ExplorePage';
+import { ActivityPage } from './pages/ActivityPage';
 import { FeedPage } from './pages/FeedPage';
+import { HomePage } from './pages/HomePage';
 import { Landing } from './pages/Landing';
 import { MyZoosPage } from './pages/MyZoosPage';
 import { NotFound } from './pages/NotFound';
@@ -30,7 +32,7 @@ function RequireAuth({ children }: { children: ReactNode }) {
 function Home() {
   const { me, loading } = useMe();
   if (loading) return <PageLoader />;
-  return me ? <FeedPage /> : <Landing />;
+  return me ? <HomePage /> : <Landing />;
 }
 
 function ScrollToTop() {
@@ -49,6 +51,22 @@ export function App() {
       <Routes>
         <Route element={<Layout />}>
           <Route index element={<Home />} />
+          <Route
+            path="social"
+            element={
+              <RequireAuth>
+                <FeedPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="activity"
+            element={
+              <RequireAuth>
+                <ActivityPage />
+              </RequireAuth>
+            }
+          />
           <Route path="explore" element={<ExplorePage />} />
           <Route path="people" element={<PeoplePage />} />
           <Route path="guide" element={<GuidePage />} />

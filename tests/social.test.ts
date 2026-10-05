@@ -117,6 +117,26 @@ describe('posts', () => {
     expect((await rosa.get('/api/users/rosa')).body.zoos).toHaveLength(2); // you see your own drafts
   });
 
+  it('filters the feed by friends, people you follow and open questions', async () => {
+    const rosa = await signUp(app, 'rosa');
+    const kai = await signUp(app, 'kai');
+    const moss = await signUp(app, 'moss');
+    await rosa.put('/api/users/kai/follow');
+    await kai.put('/api/users/rosa/follow'); // rosa and kai are friends
+    await rosa.put('/api/users/moss/follow'); // rosa only follows moss
+    await kai.post('/api/posts', { kind: 'update', body: 'Kai update' });
+    await kai.post('/api/posts', { kind: 'question', body: 'Kai question?' });
+    await moss.post('/api/posts', { kind: 'question', body: 'Moss question?' });
+    await rosa.post('/api/posts', { kind: 'update', body: 'My own update' });
+
+    const bodies = async (filter: string) => ((await rosa.get(`/api/feed?filter=${filter}`)).body as FeedPage).items.map((i) => i.post?.body);
+    expect(await bodies('all')).toEqual(['My own update', 'Moss question?', 'Kai question?', 'Kai update']);
+    expect(await bodies('friends')).toEqual(['Kai question?', 'Kai update']);
+    expect(await bodies('following')).toEqual(['Moss question?', 'Kai question?', 'Kai update']);
+    expect(await bodies('questions')).toEqual(['Moss question?', 'Kai question?']);
+    expect((await rosa.get('/api/feed?filter=nonsense')).status).toBe(400);
+  });
+
   it('lists a builder’s posts newest first and serves single posts to anyone', async () => {
     const rosa = await signUp(app, 'rosa');
     await rosa.post('/api/posts', { kind: 'update', body: 'First' });

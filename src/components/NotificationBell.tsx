@@ -17,7 +17,7 @@ const SUBJECT_WORDS: Record<NotificationSubject, string> = {
   survey: 'your survey on',
 };
 
-function describe(n: NotificationItem): ReactNode {
+export function describeNotification(n: NotificationItem): ReactNode {
   const who = <strong>{n.actor.displayName}</strong>;
   const what = (
     <>
@@ -89,14 +89,14 @@ export function NotificationBell() {
   return (
     <div className="notif" ref={wrap}>
       <button
-        className="btn btn-ghost btn-icon btn-sm notif-button"
+        className="notif-button"
         aria-label={unread ? `Notifications, ${unread} new` : 'Notifications'}
         aria-expanded={open}
         title="Notifications"
         onClick={toggle}
       >
         <Bell />
-        {unread > 0 && <span className="notif-badge">{unread > 9 ? '9+' : unread}</span>}
+        {unread > 0 && <span className="notif-dot" aria-hidden="true" />}
       </button>
       {open && (
         <div className="notif-panel card" role="dialog" aria-label="Notifications">
@@ -110,7 +110,7 @@ export function NotificationBell() {
                   <Link to={n.link} className={`notif-item${n.read ? '' : ' unread'}`} onClick={() => setOpen(false)}>
                     <Avatar user={n.actor} size={36} />
                     <span className="notif-text">
-                      {describe(n)} <span className="subtle">{timeAgo(n.createdAt)}</span>
+                      {describeNotification(n)} <span className="subtle">{timeAgo(n.createdAt)}</span>
                     </span>
                     {n.thumbnailUrl && <img className="notif-thumb" src={n.thumbnailUrl} alt="" loading="lazy" />}
                   </Link>

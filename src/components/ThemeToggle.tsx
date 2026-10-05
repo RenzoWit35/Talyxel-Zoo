@@ -11,8 +11,8 @@ function currentTheme(): Theme {
   return set === 'light' || set === 'dark' ? set : systemTheme();
 }
 
-/** Light/dark switch. Until someone uses it, the site follows the system setting (see public/theme.js). */
-export function ThemeToggle() {
+/** Light/dark theme. Until someone picks one, the site follows the system setting (see public/theme.js). */
+export function useTheme() {
   const [theme, setTheme] = useState<Theme>(currentTheme);
 
   // Keep following the system while nothing has been picked.
@@ -35,9 +35,15 @@ export function ThemeToggle() {
   };
 
   const label = theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode';
+  return { theme, toggle, label, Icon: theme === 'dark' ? Sun : Moon };
+}
+
+/** Round light/dark switch for the logged-out header (signed-in builders find it in the avatar menu). */
+export function ThemeToggle() {
+  const { toggle, label, Icon } = useTheme();
   return (
-    <button className="btn btn-ghost btn-icon btn-sm theme-toggle" onClick={toggle} aria-label={label} title={label}>
-      {theme === 'dark' ? <Sun /> : <Moon />}
+    <button className="btn btn-icon theme-toggle" onClick={toggle} aria-label={label} title={label}>
+      <Icon />
     </button>
   );
 }

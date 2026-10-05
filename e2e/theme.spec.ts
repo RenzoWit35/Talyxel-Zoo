@@ -2,7 +2,13 @@ import { expect, test } from '@playwright/test';
 import { paintPostcard } from '../server/seed-images';
 import { addShape, apiUser, createPark } from './helpers';
 
-const bodyBackground = (page: import('@playwright/test').Page) => page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+type Page = import('@playwright/test').Page;
+const bodyBackground = (page: Page) => page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+/** The light/dark switch lives in the account menu. */
+async function switchTheme(page: Page, to: 'light' | 'dark') {
+  await page.getByRole('button', { name: 'Your account' }).click();
+  await page.getByRole('menuitem', { name: `Switch to ${to} mode` }).click();
+}
 
 test('follows the system dark mode, and the toggle overrides and remembers it', async ({ page, baseURL }) => {
   const user = await apiUser(baseURL!, 'night', 'Night Owl');
@@ -19,9 +25,9 @@ test('follows the system dark mode, and the toggle overrides and remembers it', 
 
   await page.emulateMedia({ colorScheme: 'dark' });
   await user.loginPage(page);
-  await page.goto('/');
+  await page.goto('/social');
   await expect(page.locator('.post-card').first()).toBeVisible();
-  expect(await bodyBackground(page)).toBe('rgb(18, 23, 20)');
+  expect(await bodyBackground(page)).toBe('rgb(16, 21, 17)');
   const name = test.info().project.name;
   await page.screenshot({ path: `test-results/screens/dark-feed-${name}.png` });
   await page.goto(`/z/${park.id}`);
@@ -31,12 +37,12 @@ test('follows the system dark mode, and the toggle overrides and remembers it', 
   await expect(page.locator('.shape-palette')).toBeVisible();
   await page.screenshot({ path: `test-results/screens/dark-planner-${name}.png` });
 
-  await page.getByRole('button', { name: 'Switch to light mode' }).click();
+  await switchTheme(page, 'light');
   expect(await page.evaluate(() => document.documentElement.dataset.theme)).toBe('light');
   await page.goto(`/u/${user.username}`);
-  expect(await bodyBackground(page)).toBe('rgb(244, 241, 232)');
-  await page.getByRole('button', { name: 'Switch to dark mode' }).click();
+  expect(await bodyBackground(page)).toBe('rgb(243, 241, 235)');
+  await switchTheme(page, 'dark');
   await page.reload();
-  expect(await bodyBackground(page)).toBe('rgb(18, 23, 20)');
+  expect(await bodyBackground(page)).toBe('rgb(16, 21, 17)');
   await page.screenshot({ path: `test-results/screens/dark-profile-${name}.png`, fullPage: true });
 });

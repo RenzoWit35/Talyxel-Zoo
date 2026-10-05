@@ -244,7 +244,7 @@
 .progress {
   display: flex;
   height: 10px;
-  border-radius: var(--radius-xs);
+  border-radius: var(--radius-pill);
   overflow: hidden;
   background: var(--bg-deep);
   gap: 2px;
@@ -398,7 +398,7 @@ kbd {
 .board-col-head .count {
   font-size: 0.75rem;
   background: var(--surface);
-  border-radius: var(--radius-xs);
+  border-radius: var(--radius-pill);
   padding: 1px 7px;
   color: var(--ink-2);
   font-weight: 650;
@@ -551,7 +551,7 @@ kbd {
   padding: 6px;
   background: color-mix(in srgb, var(--surface) 94%, transparent);
   border: 1px solid var(--line);
-  border-radius: var(--radius);
+  border-radius: var(--radius-pill);
   box-shadow: var(--shadow);
   overflow-x: auto;
   scrollbar-width: none;
@@ -575,7 +575,7 @@ kbd {
   flex: none;
   height: 32px;
   padding: 0 11px 0 8px;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-pill);
   border: 1px solid var(--line);
   background: var(--surface);
   color: var(--ink-2);

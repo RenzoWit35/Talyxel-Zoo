@@ -48,31 +48,35 @@ test('a new builder gets a welcome, a planner tour and a checklist that ticks it
   await expect(page.getByRole('dialog', { name: 'Add things to your map' })).toBeVisible();
   await page.keyboard.press('Escape');
 
-  // The checklist on the feed already ticked "Create your first park".
+  // The next-step card on Home already ticked "Create your first park".
   await page.goto('/');
-  const checklist = page.locator('.getting-started');
-  await expect(checklist).toContainText('1 of 8 done');
-  await expect(checklist.locator('.gs-step.done')).toContainText('Create your first park');
-  await expect(checklist.locator('.gs-step.next')).toContainText('Draw a habitat or a ride');
+  const checklist = page.locator('.next-step');
+  await expect(checklist).toContainText('1 of 8 steps done');
+  await expect(checklist.getByRole('heading')).toHaveText('Draw a habitat or a ride');
+  await checklist.getByRole('button', { name: 'All steps' }).click();
+  await expect(checklist.locator('li.done')).toHaveText('Create your first park');
   await page.screenshot({ path: shot('checklist') });
 
-  // "Write a post" opens the composer.
-  await checklist.locator('.gs-step', { hasText: 'Share an update' }).getByRole('link').click();
+  // "Share an update" opens the composer on the Social page.
+  await checklist.getByRole('link', { name: 'Share an update or ask a question' }).click();
+  await expect(page).toHaveURL(/\/social/);
   await expect(page.getByLabel('Your update')).toBeFocused();
   await page.getByLabel('Your update').fill('Hello park friends!');
   await page.getByRole('button', { name: 'Share update' }).click();
-  await expect(checklist).toContainText('2 of 8 done');
+  await expect(page.locator('.post-card', { hasText: 'Hello park friends!' })).toBeVisible();
+  await page.goto('/');
+  await expect(checklist).toContainText('2 of 8 steps done');
 
   // Hide it, then bring it back from the guide.
   await checklist.getByRole('button', { name: 'Hide the checklist' }).click();
-  await expect(page.locator('.getting-started')).toHaveCount(0);
+  await expect(page.locator('.next-step')).toHaveCount(0);
   await page.goto('/guide');
   await expect(page.getByRole('heading', { name: 'How Talyxel Park works' })).toBeVisible();
   await expect(page.getByRole('navigation', { name: 'Guide contents' }).getByRole('link')).toHaveCount(10);
   await page.screenshot({ path: shot('guide'), fullPage: true });
   await page.getByRole('button', { name: 'Show my checklist' }).click();
   await expect(page).toHaveURL(/\/$/);
-  await expect(page.locator('.getting-started')).toBeVisible();
+  await expect(page.locator('.next-step')).toBeVisible();
 });
 
 test('the guide is readable without an account', async ({ page }) => {
