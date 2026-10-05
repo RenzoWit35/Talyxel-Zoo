@@ -19,6 +19,8 @@ A planning board for your **Planet Zoo** zoos and **Planet Coaster** theme parks
 - **Friends and feed.** Follow other builders; when you follow each other you're friends. Your feed shows the parks they publish, the habitats, rides and photos they add, and the surveys they start, but only for published parks. Drafts stay private.
 - **Explore and people.** Browse published parks (filter by zoo or theme park, search by title, species, ride type or builder), find people, and view profiles.
 
+See [DEVELOPMENT_PLAN.md](DEVELOPMENT_PLAN.md) for the roadmap: what's done, the next phases, and how we work.
+
 ## Getting started
 
 You need Node.js 22.22 or newer. SQLite is built into Node, so there are no native modules to compile.
