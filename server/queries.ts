@@ -60,6 +60,7 @@ export interface ZooRow {
   owner_id: number;
   title: string;
   description: string;
+  principle: string;
   width: number;
   height: number;
   background_url: string | null;
@@ -341,6 +342,7 @@ export function loadZooDetail(db: DB, zoo: ZooRow, viewerId: number | undefined)
     parkType: zoo.park_type,
     title: zoo.title,
     description: zoo.description,
+    principle: zoo.principle,
     status: zoo.status,
     width: zoo.width,
     height: zoo.height,

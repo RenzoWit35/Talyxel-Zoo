@@ -170,6 +170,17 @@ export function ZooPanel({ editor, onDeleteZoo, onEditStats, onShowShortcuts }: 
             onChange={(e) => editor.updateZoo({ description: e.target.value })}
           />
         </label>
+        <label className="field">
+          <span>Design principle</span>
+          <input
+            className="input"
+            value={zoo.principle}
+            maxLength={200}
+            placeholder={meta.principlePlaceholder}
+            onChange={(e) => editor.updateZoo({ principle: e.target.value })}
+          />
+          <small className="subtle">One sentence your whole {meta.noun} is built around. It's shown on the public page.</small>
+        </label>
       </div>
 
       <div className="panel-section">

@@ -227,6 +227,10 @@ const MIGRATIONS: string[] = [
   `
   ALTER TABLE habitats ADD COLUMN reason TEXT NOT NULL DEFAULT '';
   `,
+  // v8: the one idea a whole park is built around (its "design principle").
+  `
+  ALTER TABLE zoos ADD COLUMN principle TEXT NOT NULL DEFAULT '';
+  `,
 ];
 
 export function openDb(file: string): DB {

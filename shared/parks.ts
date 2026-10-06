@@ -25,6 +25,8 @@ export interface ParkMeta {
   subjects: readonly string[];
   /** Label of the per-shape `biome` field. */
   settingLabel: string;
+  /** Example design principle for the planner's park panel. */
+  principlePlaceholder: string;
   settings: readonly Biome[];
   namePlaceholder: string;
   ideaExample: string;
@@ -49,6 +51,7 @@ export const PARK_META: Record<ParkType, ParkMeta> = {
     subjectPlaceholder: 'e.g. Bengal Tiger',
     subjects: SPECIES,
     settingLabel: 'Biome',
+    principlePlaceholder: 'e.g. Landscape first, then the animals — never the other way round.',
     settings: BIOMES,
     namePlaceholder: 'e.g. Talyxel Wildlife Park',
     ideaExample: 'Penguin pool',
@@ -71,6 +74,7 @@ export const PARK_META: Record<ParkType, ParkMeta> = {
     subjectPlaceholder: 'e.g. Wooden coaster',
     subjects: RIDE_TYPES,
     settingLabel: 'Theme',
+    principlePlaceholder: 'e.g. Every coaster is part of the skyline you see from Main Street.',
     settings: THEMES,
     namePlaceholder: 'e.g. Thunder Peak Adventure Park',
     ideaExample: 'Log flume',

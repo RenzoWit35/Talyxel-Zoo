@@ -83,14 +83,31 @@ test('adds a utility, a walk route and an area of interest from the Add palette'
 test('visitors see walk route facts and can toggle layers on a published park', async ({ page, baseURL }) => {
   const user = await apiUser(baseURL!, 'routes');
   const park = await createPark(user, { title: 'Route Park' });
-  await addShape(user, park.id, { name: 'Lion Ridge', kind: 'habitat', species: 'African Lion', points: [[20, 20], [120, 20], [120, 80], [20, 80]] });
+  const lions = await addShape(user, park.id, {
+    name: 'Lion Ridge',
+    kind: 'habitat',
+    species: 'African Lion',
+    description: 'A rocky ridge with heated stones.',
+    reason: 'The loop bends here so the lions are the first thing guests see.',
+    points: [[20, 20], [120, 20], [120, 80], [20, 80]],
+  });
+  await user.api.patch(`/api/zoos/${park.id}`, { data: { principle: 'Every habitat gets an overlook.' } });
   await addShape(user, park.id, { name: 'Power station', kind: 'utility', species: 'Power substation', points: [[200, 20], [260, 20], [260, 60], [200, 60]] });
   await addShape(user, park.id, { name: 'Lion lookout', kind: 'interest', species: 'Viewpoint', points: [[130, 120], [180, 120], [180, 170], [130, 170]] });
   await addShape(user, park.id, { name: 'Savanna loop', kind: 'route', species: 'Guest walk', points: [[10, 100], [290, 100]] });
   await user.api.post(`/api/zoos/${park.id}/publish`, { data: {} });
 
   await page.goto(`/z/${park.id}`);
-  await expect(page.getByText('of walk routes')).toBeVisible();
+  await expect(page.locator('.zoo-numbers')).toContainText('of walk routes');
+  await expect(page.getByRole('region', { name: 'Design principle' })).toContainText('Every habitat gets an overlook.');
+
+  // Opening an area shows what you see there and why it's built that way.
+  await page.goto(`/z/${park.id}?h=${lions.id}`);
+  const details = page.getByRole('region', { name: 'Lion Ridge' });
+  await expect(details).toContainText('A rocky ridge with heated stones.');
+  await expect(details.locator('.details-why')).toContainText('the lions are the first thing guests see');
+  await details.getByRole('button', { name: 'Close details' }).click();
+  await expect(details).toHaveCount(0);
   const chips = page.getByRole('group', { name: 'Show on the map' });
   await expect(chips.getByRole('button')).toHaveCount(4);
 

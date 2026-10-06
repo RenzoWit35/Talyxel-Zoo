@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { Calendar, Footprints, Images, Lock, PenLine, Plus, Ruler, Vote, X } from 'lucide-react';
+import { ArrowRight, Calendar, Footprints, Images, Leaf, Lightbulb, Lock, MousePointer2, PenLine, Plus, Route, Ruler, Scan, Star, Vote, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useParams, useSearchParams } from 'react-router';
 import { BIOME_LABELS, HABITAT_STATUSES, KIND_META, STATUS_META, type HabitatKind } from '../../shared/constants';
@@ -10,7 +10,7 @@ import { api, ApiError, errorMessage } from '../api/client';
 import { FollowButton } from '../components/FollowButton';
 import { KindIcon } from '../components/KindIcon';
 import { ParkIcon } from '../components/ParkType';
-import { PhotoGrid } from '../components/Lightbox';
+import { Lightbox } from '../components/Lightbox';
 import { StatusChip } from '../components/map/HoverCard';
 import { LayerToggles } from '../components/map/LayerToggles';
 import { MapCanvas } from '../components/map/MapCanvas';
@@ -21,52 +21,96 @@ import { NewSurveyDialog } from '../components/SurveyEditor';
 import { Avatar, PageLoader } from '../components/ui';
 import { shade } from '../lib/color';
 import { formatDate, plural } from '../lib/format';
-import { shapeFacts, shapeSize } from '../lib/shapes';
+import { shapeSize } from '../lib/shapes';
 import { NotFound } from './NotFound';
 
-function HabitatDetails({ habitat, onClose }: { habitat: Habitat; onClose: () => void }) {
+/** The selected area, floating over the map: photos, what you see and why it's built this way. */
+function HabitatDetails({ habitat, coaster, onClose }: { habitat: Habitat; coaster: boolean; onClose: () => void }) {
+  const [open, setOpen] = useState<number | null>(null);
+  const photos = habitat.photos;
+  const shown = photos.slice(0, 3);
   return (
-    <div className="habitat-details card">
-      <div className="habitat-details-head" style={{ background: `linear-gradient(135deg, ${shade(habitat.color, 0.15)}, ${shade(habitat.color, -0.25)})` }}>
-        <div className="spacer">
-          <span className="habitat-details-kind">{KIND_META[habitat.kind].label}</span>
-          <h2>{habitat.name}</h2>
-          {habitat.species && <span className="habitat-details-species">{habitat.species}</span>}
-        </div>
-        <button className="btn btn-icon btn-sm" onClick={onClose} aria-label="Close details">
+    <section className={`habitat-details card${coaster ? ' is-coaster' : ''}`} aria-labelledby="habitat-details-title">
+      <div className="habitat-details-top">
+        <span className={`chip ${coaster ? 'chip-pink' : 'chip-mint'}`}>
+          <KindIcon kind={habitat.kind} /> {KIND_META[habitat.kind].label}
+        </span>
+        <span className="spacer" />
+        <button className="habitat-details-close" onClick={onClose} aria-label="Close details" title="Close">
           <X />
         </button>
       </div>
-      <div className="habitat-details-body">
-        <div className="row row-wrap" style={{ gap: 6 }}>
-          <StatusChip status={habitat.status} />
-          {habitat.biome && <span className="chip">{BIOME_LABELS[habitat.biome]}</span>}
-        </div>
-        <div className="stat-row">
-          {shapeFacts(habitat).map((f) => (
-            <div key={f.label}>
-              <small>{f.label}</small>
-              <strong>{f.value}</strong>
-            </div>
-          ))}
-          <div>
-            <small>Photos</small>
-            <strong>{habitat.photos.length}</strong>
-          </div>
-        </div>
-        {habitat.description && <p className="habitat-details-desc">{habitat.description}</p>}
-        {habitat.photos.length > 0 ? (
-          <PhotoGrid photos={habitat.photos} title={habitat.name} max={12} />
-        ) : (
-          <p className="subtle">No photos of this one yet.</p>
-        )}
+      <div>
+        <h2 id="habitat-details-title">{habitat.name}</h2>
+        {habitat.species && <span className="habitat-details-species">{habitat.species}</span>}
       </div>
-    </div>
+      {shown.length > 0 && (
+        <div className={`details-photos n${shown.length}`}>
+          {shown.map((p, i) => (
+            <button key={p.id} onClick={() => setOpen(i)} aria-label={`Open photo ${i + 1} of ${photos.length}`}>
+              <img src={p.url} alt={p.caption} loading="lazy" />
+              {i === shown.length - 1 && photos.length > shown.length && <span className="photo-more">+{photos.length - shown.length}</span>}
+            </button>
+          ))}
+        </div>
+      )}
+      <div className="row row-wrap" style={{ gap: 6 }}>
+        <StatusChip status={habitat.status} />
+        <span className="chip">{shapeSize(habitat)}</span>
+        {habitat.biome && <span className="chip">{BIOME_LABELS[habitat.biome]}</span>}
+      </div>
+      {habitat.description && (
+        <div className="details-text">
+          <span className="details-label">What you see here</span>
+          <p>{habitat.description}</p>
+        </div>
+      )}
+      {habitat.reason && (
+        <div className="details-why">
+          <span>
+            <Lightbulb /> Why it’s built this way
+          </span>
+          <p>{habitat.reason}</p>
+        </div>
+      )}
+      {!habitat.description && !habitat.reason && !photos.length && <p className="subtle">No photos or notes for this one yet.</p>}
+      {photos.length > 0 && (
+        <button className="details-more" onClick={() => setOpen(0)}>
+          {photos.length === 1 ? 'View the photo' : `View all ${photos.length} photos`} <ArrowRight />
+        </button>
+      )}
+      {open !== null && <Lightbox photos={photos} start={open} title={habitat.name} onClose={() => setOpen(null)} />}
+    </section>
+  );
+}
+
+/** The in-game rating from the builder's latest stats: stars for zoos, a percentage for theme parks. */
+function RatingCard({ zoo }: { zoo: ZooDetail }) {
+  const rating = zoo.stats?.values.rating;
+  if (rating === undefined || rating === null) return null;
+  const isStars = zoo.parkType === 'zoo';
+  const stars = isStars ? Math.round(rating) : Math.round(rating / 20);
+  return (
+    <section className="card zoo-rating" aria-label={isStars ? 'Zoo rating' : 'Park rating'}>
+      <div className="zoo-rating-value">
+        <strong>{isStars ? rating.toLocaleString('en', { maximumFractionDigits: 1 }) : `${Math.round(rating)}%`}</strong>
+        {isStars && <span>/ 5</span>}
+      </div>
+      <div className="zoo-rating-stars" aria-hidden="true">
+        {[1, 2, 3, 4, 5].map((n) => (
+          <Star key={n} className={n <= stars ? 'on' : ''} />
+        ))}
+      </div>
+      <p>
+        {isStars ? 'Zoo rating' : 'Park rating'} in the game{zoo.stats?.gameDate ? ` · ${zoo.stats.gameDate}` : ''}
+      </p>
+    </section>
   );
 }
 
 function ZooView({ zoo }: { zoo: ZooDetail }) {
   const meta = parkMeta(zoo.parkType);
+  const coaster = zoo.parkType === 'theme_park';
   const [params, setParams] = useSearchParams();
   const { hash } = useLocation();
   const [newSurvey, setNewSurvey] = useState(false);
@@ -98,17 +142,20 @@ function ZooView({ zoo }: { zoo: ZooDetail }) {
     .sort((a, b) => HABITAT_STATUSES.indexOf(b.status) - HABITAT_STATUSES.indexOf(a.status) || b.photos.length - a.photos.length);
 
   return (
-    <div className="page zoo-page">
+    <div className={`page zoo-page${coaster ? ' is-coaster' : ''}`}>
       <header className="zoo-head">
-        <div className="spacer">
-          <div className="row row-wrap" style={{ gap: 8, marginBottom: 8 }}>
+        <div className="zoo-head-text">
+          <div className="row row-wrap" style={{ gap: 8 }}>
+            <span className={`chip ${coaster ? 'chip-pink' : 'chip-mint'}`}>
+              <ParkIcon type={zoo.parkType} size={12} /> {meta.noun}
+            </span>
             {zoo.status === 'draft' && (
               <span className="chip">
                 <Lock /> Draft — only you can see this
               </span>
             )}
             {zoo.surveys.some((s) => s.isOpen) && (
-              <button className="chip chip-accent chip-button" onClick={() => surveysRef.current?.scrollIntoView({ behavior: 'smooth' })}>
+              <button className="chip chip-cream chip-button" onClick={() => surveysRef.current?.scrollIntoView({ behavior: 'smooth' })}>
                 <Vote /> Survey open — have your say
               </button>
             )}
@@ -142,13 +189,13 @@ function ZooView({ zoo }: { zoo: ZooDetail }) {
             )}
           </div>
         </div>
-        <div className="zoo-owner card">
-          <Link to={`/u/${zoo.owner.username}`} className="row" style={{ gap: 10, color: 'inherit' }}>
+        <div className="zoo-owner">
+          <Link to={`/u/${zoo.owner.username}`} className="zoo-owner-who">
             <Avatar user={zoo.owner} size={44} />
-            <div>
+            <span>
+              <small>Designed by</small>
               <strong>{zoo.owner.displayName}</strong>
-              <div className="subtle">@{zoo.owner.username}</div>
-            </div>
+            </span>
           </Link>
           {zoo.isOwner ? (
             <Link to={`/zoos/${zoo.id}/edit`} className="btn btn-primary btn-sm">
@@ -160,7 +207,7 @@ function ZooView({ zoo }: { zoo: ZooDetail }) {
         </div>
       </header>
 
-      <div className="zoo-map-wrap card" ref={mapRef}>
+      <div className="zoo-map-wrap" ref={mapRef}>
         <MapCanvas
           width={zoo.width}
           height={zoo.height}
@@ -170,7 +217,17 @@ function ZooView({ zoo }: { zoo: ZooDetail }) {
           hiddenKinds={hiddenKinds}
           onSelect={(id) => select(id)}
         />
-        {selected && <HabitatDetails key={selected.id} habitat={selected} onClose={() => select(null)} />}
+        {!selected && (
+          <span className="map-hint">
+            <MousePointer2 /> Point at an area for its story
+          </span>
+        )}
+        {selected && <HabitatDetails key={selected.id} habitat={selected} coaster={coaster} onClose={() => select(null)} />}
+        <div className="map-layers">
+          <LayerToggles kinds={meta.kinds} habitats={zoo.habitats} hidden={hiddenKinds} onChange={setHiddenKinds} variant="chips" />
+        </div>
+      </div>
+      <div className="map-under">
         <div className="map-legend">
           {HABITAT_STATUSES.map((s) => (
             <span key={s}>
@@ -179,9 +236,53 @@ function ZooView({ zoo }: { zoo: ZooDetail }) {
             </span>
           ))}
         </div>
+        <p className="subtle map-tip">Click an area to open it · scroll or pinch to zoom · drag to pan</p>
       </div>
-      <LayerToggles kinds={meta.kinds} habitats={zoo.habitats} hidden={hiddenKinds} onChange={setHiddenKinds} variant="chips" />
-      <p className="subtle map-tip">Hover (or tap) a shape for photos and info · click to open it · scroll or pinch to zoom · drag to pan</p>
+
+      <div className="zoo-summary">
+        <section className="card zoo-numbers" aria-labelledby="zoo-numbers-title">
+          <h2 id="zoo-numbers-title">{coaster ? 'Park' : 'Zoo'} in numbers</h2>
+          <div>
+            <span>
+              <i>
+                <Scan />
+              </i>
+              <span>
+                <strong>{formatArea(counts.area)}</strong>
+                <small>{meta.featureAreaLabel}</small>
+              </span>
+            </span>
+            <span>
+              <i>
+                <KindIcon kind={meta.defaultKind} />
+              </i>
+              <span>
+                <strong>{plural(counts.species, ...meta.subjectNoun)}</strong>
+                <small>in the {meta.noun}</small>
+              </span>
+            </span>
+            <span>
+              <i>{counts.routes > 0 ? <Route /> : <Footprints />}</i>
+              <span>
+                <strong>{counts.routes > 0 ? formatLength(counts.routes) : plural(counts.animals, ...meta.featureNoun)}</strong>
+                <small>{counts.routes > 0 ? 'of walk routes' : 'planned so far'}</small>
+              </span>
+            </span>
+          </div>
+        </section>
+        {zoo.principle && (
+          <section className="zoo-principle" aria-label="Design principle">
+            <i>
+              <Leaf />
+            </i>
+            <div>
+              <small>Design principle</small>
+              <blockquote>“{zoo.principle}”</blockquote>
+            </div>
+          </section>
+        )}
+        <RatingCard zoo={zoo} />
+      </div>
 
       <StatsView stats={zoo.stats} parkType={zoo.parkType} isOwner={zoo.isOwner} onEdit={() => setStatsOpen(true)} />
 
@@ -268,7 +369,7 @@ function ZooView({ zoo }: { zoo: ZooDetail }) {
 function OwnerFollow({ username }: { username: string }) {
   const profile = useQuery({ queryKey: ['profile', username], queryFn: () => api.profile(username) });
   if (!profile.data) return null;
-  return <FollowButton username={username} isFollowing={profile.data.isFollowing} followsYou={profile.data.followsYou} size="sm" />;
+  return <FollowButton username={username} isFollowing={profile.data.isFollowing} followsYou={profile.data.followsYou} size="sm" plain />;
 }
 
 export function ZooPage() {

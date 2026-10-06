@@ -48,6 +48,7 @@ export const zooUpdateInput = z.object({
   parkType: z.enum(PARK_TYPES).optional(),
   title: required('Title', 80).optional(),
   description: text(2000).optional(),
+  principle: text(200).optional(),
   width: mapSize.optional(),
   height: mapSize.optional(),
   backgroundOpacity: z.number().min(0).max(1).optional(),

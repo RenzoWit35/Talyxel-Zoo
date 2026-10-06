@@ -65,6 +65,7 @@ interface ZooSeed {
   parkType?: ParkType;
   title: string;
   description: string;
+  principle?: string;
   width: number;
   height: number;
   habitats: HabitatSeed[];
@@ -103,6 +104,7 @@ async function createZoo(owner: Client, z: ZooSeed) {
     const withPhotos = await owner.call<Habitat>('POST', `/habitats/${created.id}/photos`, form);
     for (const [i, p] of withPhotos.photos.entries()) await owner.call('PATCH', `/photos/${p.id}`, { caption: photos[i] });
   };
+  if (z.principle) await owner.call('PATCH', `/zoos/${zoo.id}`, { principle: z.principle });
   for (const h of z.habitats.filter((x) => !x.later)) await addHabitat(h);
   if (z.publish) await owner.call('POST', `/zoos/${zoo.id}/publish`, z.publish);
   for (const h of z.habitats.filter((x) => x.later)) await addHabitat(h);
@@ -175,6 +177,7 @@ async function main() {
   // Rosa: a published savanna park with an open survey.
   const serengeti = await createZoo(users.rosa, {
     title: 'Serengeti Crossroads',
+    principle: 'Every habitat gets an overlook — and the lions get the hill.',
     description: 'A franchise-mode savanna park built around one big loop path. Every habitat gets an overlook and the lions get the hill.',
     width: 400,
     height: 260,
@@ -311,6 +314,7 @@ async function main() {
   // Talyxel: one published rainforest reserve and one private draft.
   const reserve = await createZoo(users.talyxel, {
     title: 'Talyxel Rainforest Reserve',
+    principle: 'Landscape first, then the animals — never the other way round.',
     description: 'Dense jungle walkways, a temple ruin theme and lots of verticality. My main project — feedback very welcome!',
     width: 360,
     height: 240,
@@ -386,6 +390,7 @@ async function main() {
   const thunderPeak = await createZoo(users.lotte, {
     parkType: 'theme_park',
     title: 'Thunder Peak Adventure Park',
+    principle: 'Every coaster is part of the skyline you see from Main Street.',
     description: 'Three themed lands around one main street: pirates by the bay, a western mining town and a spooky hollow that is still mostly ideas.',
     width: 360,
     height: 260,

@@ -6,7 +6,7 @@ import type { Habitat, ParkStats, ZooDetail } from '../../../shared/types';
 import { api, ApiError, type HabitatInput, type SurveyDraft } from '../../api/client';
 import { useToast } from '../../components/toast';
 
-type ZooPatch = Partial<Pick<ZooDetail, 'title' | 'description' | 'backgroundOpacity'>>;
+type ZooPatch = Partial<Pick<ZooDetail, 'title' | 'description' | 'principle' | 'backgroundOpacity'>>;
 export type SaveState = 'saved' | 'saving' | 'error';
 
 const SAVE_DELAY = 600;
@@ -201,14 +201,14 @@ export function useZooEditor(initial: ZooDetail) {
   );
 
   /** Server-confirmed changes to the park itself (type, size, background, publishing) — keep local shape edits. */
-  const applyZoo = (z: ZooDetail) => setZoo((prev) => ({ ...z, title: prev.title, description: prev.description, habitats: prev.habitats }));
+  const applyZoo = (z: ZooDetail) => setZoo((prev) => ({ ...z, title: prev.title, description: prev.description, principle: prev.principle, habitats: prev.habitats }));
 
   /** Switching type clears biomes/themes that don't exist in the new type, so take the server's shapes. */
   const setParkType = useCallback(
     async (parkType: ParkType) => {
       await flush();
       const z = await track(api.updateZoo(zooRef.current.id, { parkType }));
-      setZoo((prev) => ({ ...z, title: prev.title, description: prev.description }));
+      setZoo((prev) => ({ ...z, title: prev.title, description: prev.description, principle: prev.principle }));
     },
     [flush, track],
   );

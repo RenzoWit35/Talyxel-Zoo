@@ -103,6 +103,16 @@ describe('zoo planning', () => {
     expect((await rosa.patch(`/api/zoos/${zoo.id}`, { width: 60 })).body.width).toBe(60);
   });
 
+  it('keeps a short design principle for the park', async () => {
+    const rosa = await signUp(app, 'rosa');
+    const { zoo } = await zooWithHabitat(rosa);
+    expect(zoo.principle).toBe('');
+    const principle = 'Landscape first, then the animals — never the other way round.';
+    expect((await rosa.patch(`/api/zoos/${zoo.id}`, { principle })).body.principle).toBe(principle);
+    expect((await rosa.get(`/api/zoos/${zoo.id}`)).body.principle).toBe(principle);
+    expect((await rosa.patch(`/api/zoos/${zoo.id}`, { principle: 'x'.repeat(201) })).status).toBe(400);
+  });
+
   it('reorders the board', async () => {
     const rosa = await signUp(app, 'rosa');
     const { zoo, habitat } = await zooWithHabitat(rosa);

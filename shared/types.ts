@@ -140,6 +140,8 @@ export interface ZooDetail {
   parkType: ParkType;
   title: string;
   description: string;
+  /** The one idea the park is built around, in a sentence. */
+  principle: string;
   status: ZooStatus;
   width: number;
   height: number;

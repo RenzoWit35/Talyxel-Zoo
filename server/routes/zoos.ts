@@ -135,11 +135,12 @@ export function zooRoutes(db: DB, upload: multer.Multer, uploadDir: string) {
       }
       run(
         db,
-        `UPDATE zoos SET park_type = ?, title = ?, description = ?, width = ?, height = ?, background_opacity = ?,
+        `UPDATE zoos SET park_type = ?, title = ?, description = ?, principle = ?, width = ?, height = ?, background_opacity = ?,
            updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE id = ?`,
         parkType,
         body.title ?? zoo.title,
         body.description ?? zoo.description,
+        body.principle ?? zoo.principle,
         width,
         height,
         body.backgroundOpacity ?? zoo.background_opacity,

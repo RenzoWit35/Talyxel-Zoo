@@ -84,7 +84,7 @@ export const api = {
   createZoo: (body: { parkType: ParkType; title: string; description?: string; width: number; height: number }) => post<ZooDetail>('/zoos', body),
   updateZoo: (
     id: number,
-    body: Partial<{ parkType: ParkType; title: string; description: string; width: number; height: number; backgroundOpacity: number }>,
+    body: Partial<{ parkType: ParkType; title: string; description: string; principle: string; width: number; height: number; backgroundOpacity: number }>,
   ) =>
     patch<ZooDetail>(`/zoos/${id}`, body),
   deleteZoo: (id: number) => del<{ ok: true }>(`/zoos/${id}`),
