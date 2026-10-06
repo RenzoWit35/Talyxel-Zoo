@@ -81,7 +81,28 @@
   margin-bottom: 12px;
 }
 
-/* buttons and inputs that sit on the navy */
+/* buttons and inputs that sit on the navy: primary buttons turn lime */
+.page-header:first-child .btn-primary,
+.zoo-head .btn-primary,
+.guide-hero .btn-primary,
+.social-head .btn-primary,
+.home-hero .btn-primary,
+.planner .planner-bar .btn-primary,
+.social-me .btn-primary,
+.next-step .btn-primary {
+  --btn-bg: var(--lp-lime);
+  --btn-fg: var(--lp-navy);
+  --btn-border: var(--lp-lime);
+}
+.page-header:first-child .btn-primary:hover,
+.zoo-head .btn-primary:hover,
+.guide-hero .btn-primary:hover,
+.social-head .btn-primary:hover,
+.home-hero .btn-primary:hover,
+.planner .planner-bar .btn-primary:hover {
+  --btn-bg: #ffffff; /* same in both themes */
+  border-color: #ffffff; /* same in both themes */
+}
 .page-header:first-child .btn:not(.btn-primary),
 .zoo-head .btn:not(.btn-primary):not(.follow-plain),
 .guide-hero .btn:not(.btn-primary),

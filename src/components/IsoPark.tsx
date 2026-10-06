@@ -15,6 +15,29 @@ const W = 24; // land size
 const H = 18;
 
 const P = (x: number, y: number, z = 0): [number, number] => [(x - y) * COS * U, (x + y) * 0.5 * U - z * U];
+
+/** The drawing's view box: the land, its sides and the tallest ride. */
+export const ISO_BOX = (() => {
+  const minX = P(0, H)[0] - 8;
+  const maxX = P(W, 0)[0] + 8;
+  const minY = P(0, 0, 7)[1];
+  const maxY = P(W, H, -1.2)[1] + 6;
+  return { minX, minY, w: maxX - minX, h: maxY - minY };
+})();
+
+/** Where a world point (or a point in view-box units, with `raw`) lands, in percent of the drawing. */
+export function isoPercent(p: V3 | [number, number], raw = false) {
+  const [x, y] = raw ? (p as [number, number]) : P(...(p as V3));
+  return { left: ((x - ISO_BOX.minX) / ISO_BOX.w) * 100, top: ((y - ISO_BOX.minY) / ISO_BOX.h) * 100 };
+}
+
+export type IsoV3 = V3;
+/** A dashed leader line from something in the park to a card next to it. */
+export interface IsoCallout {
+  from: V3;
+  /** The card's corner, in view-box units. */
+  to: [number, number];
+}
 const pts = (list: V3[]) => list.map(([x, y, z]) => P(x, y, z).map((n) => n.toFixed(1)).join(',')).join(' ');
 
 function shade(hex: string, amount: number) {
@@ -265,7 +288,7 @@ function flat(key: string, list: [number, number][], fill: string, z = 0.01, ext
   return <polygon key={key} points={pts(list.map(([x, y]) => [x, y, z]))} fill={fill} {...extra} />;
 }
 
-export function IsoPark({ className }: { className?: string }) {
+export function IsoPark({ className, callouts = [] }: { className?: string; callouts?: IsoCallout[] }) {
   const savanna: [number, number][] = [
     [1.2, 1.2],
     [9.6, 1.0],
@@ -301,8 +324,22 @@ export function IsoPark({ className }: { className?: string }) {
     house('visitor', 14.0, 10.8, 2.8, 2.0, 1.4, '#f2ead8', '#60712f', 0.9),
     house('shop', 20.2, 10.8, 2.2, 1.6, 1.0, '#ffffff', '#ff4d8d', 0.8),
     house('wc', 21.4, 15.2, 1.6, 1.4, 0.9, '#e7eef0', '#3f7a8f', 0.6),
-    roundTree('d1', 15.0, 15.6, 1),
-    roundTree('d2', 16.2, 16.6, 0.8),
+    {
+      d: 15.4 + 15.6,
+      el: (() => {
+        const [qx, qy] = P(17.2, 16.6, 1.4);
+        const [bx, by] = P(17.2, 16.6, 0);
+        return (
+          <g key="idea">
+            <line x1={bx} y1={by} x2={qx} y2={qy + 6} stroke="#7a5a36" strokeWidth={1.6} />
+            <rect x={qx - 9} y={qy - 9} width={18} height={15} rx={3} fill="#dceab2" stroke="#60712f" strokeWidth={1.2} />
+            <text x={qx} y={qy + 3} textAnchor="middle" fontSize={11} fontWeight={800} fill="#0a2239">
+              ?
+            </text>
+          </g>
+        );
+      })(),
+    },
     roundTree('d3', 22.6, 13.0, 0.9),
     roundTree('d4', 23.0, 17.0, 1.1),
     roundTree('b1', 22.6, 1.2, 0.9),
@@ -314,14 +351,11 @@ export function IsoPark({ className }: { className?: string }) {
     ].map(([x, y, c], i) => guest(`g${i}`, x as number, y as number, c as string)),
   ].sort((a, b) => a.d - b.d);
 
-  // the view box covers the land, its sides and the tallest ride
-  const minX = P(0, H)[0] - 8;
-  const maxX = P(W, 0)[0] + 8;
-  const minY = P(0, 0, 7)[1];
-  const maxY = P(W, H, -1.2)[1] + 6;
+  const { minX, minY, w: vw, h: vh } = ISO_BOX;
+  const maxX = minX + vw;
 
   return (
-    <svg className={className} viewBox={`${minX} ${minY} ${maxX - minX} ${maxY - minY}`} aria-hidden="true">
+    <svg className={className} viewBox={`${minX} ${minY} ${vw} ${vh}`} aria-hidden="true">
       <defs>
         <linearGradient id="iso-grass" x1="0" y1="0" x2="1" y2="1">
           <stop offset="0" stopColor="#a9cf73" />
@@ -358,9 +392,28 @@ export function IsoPark({ className }: { className?: string }) {
         return <path d={`M${fx} ${fy} q-4 -10 -8 -2 M${fx} ${fy} q4 -10 8 -2 M${fx} ${fy} l0 -12`} stroke="#ffffff" strokeWidth={1.6} fill="none" opacity={0.9} />;
       })()}
       {flat('coaster-ground', [[13.4, 0.8], [23.2, 0.8], [23.2, 7.2], [13.4, 7.2]], '#9cc56a', 0.012)}
+      {flat('idea-plot', [[15.2, 15.4], [19.2, 15.4], [19.2, 17.6], [15.2, 17.6]], '#c9b27a', 0.02, {
+        fillOpacity: 0.55,
+        stroke: '#60712f',
+        strokeWidth: 1.6,
+        strokeDasharray: '5 4',
+      })}
 
       {/* objects, back to front */}
       {items.map((i) => i.el)}
+
+      {/* leader lines to the cards around the park */}
+      {callouts.map(({ from, to }, i) => {
+        const [fx, fy] = P(...from);
+        return (
+          <g key={`co${i}`} className="iso-callout">
+            <path d={`M${fx} ${fy} L${to[0]} ${to[1]}`} fill="none" stroke="#a8ccc9" strokeWidth={1.4} strokeDasharray="4 4" />
+            <circle cx={fx} cy={fy} r={6} fill="#a8ccc9" opacity={0.35} />
+            <circle cx={fx} cy={fy} r={3} fill="#dceab2" stroke="#0a2239" strokeWidth={1} />
+            <circle cx={to[0]} cy={to[1]} r={2.4} fill="#a8ccc9" />
+          </g>
+        );
+      })}
     </svg>
   );
 }

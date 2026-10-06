@@ -3,7 +3,7 @@ import { ArrowRight, BookOpen, ChartColumn, Heart, PenLine, RollerCoaster, Users
 import { Link } from 'react-router';
 import { api } from '../api/client';
 import { DoodleArrow, Leaves } from '../components/decor';
-import { IsoPark } from '../components/IsoPark';
+import { IsoPark, isoPercent, ISO_BOX, type IsoCallout } from '../components/IsoPark';
 import { ZooCard } from '../components/ZooCard';
 
 const FEATURES = [
@@ -28,6 +28,17 @@ const FEATURES = [
     text: 'A feed of the builders you follow, their parks from above on every profile, and a bell for new likes, answers and followers.',
   },
 ];
+
+/** Each glass card hangs off something in the park; `to` is the card corner the dashed line ends at. */
+const CALLOUTS: Record<'tag' | 'coaster' | 'poll', IsoCallout> = {
+  tag: { from: [6, 4.6, 0.8], to: [-40, -36] },
+  coaster: { from: [19.6, 6.1, 4.2], to: [132, -58] },
+  poll: { from: [17.2, 16.6, 0.3], to: [-58, 268] },
+};
+const at = (key: keyof typeof CALLOUTS) => {
+  const { left, top } = isoPercent(CALLOUTS[key].to, true);
+  return { left: `${left}%`, top: `${top}%` };
+};
 
 export function Landing() {
   const explore = useQuery({ queryKey: ['zoos', 'explore', ''], queryFn: () => api.explore() });
@@ -63,10 +74,9 @@ export function Landing() {
           </div>
 
           <div className="lp-art" aria-hidden="true">
-            <div className="lp-iso">
-              <IsoPark className="lp-iso-map" />
-            </div>
-            <div className="lp-glass lp-tag">
+            <div className="lp-iso" style={{ aspectRatio: `${ISO_BOX.w} / ${ISO_BOX.h}` }}>
+              <IsoPark className="lp-iso-map" callouts={Object.values(CALLOUTS)} />
+            <div className="lp-glass lp-tag" style={at('tag')}>
               <span className="lp-tag-dot" />
               <span>
                 <strong>Savanna Pride</strong>
@@ -74,7 +84,7 @@ export function Landing() {
               </span>
               <span className="lp-chip">Building</span>
             </div>
-            <div className="lp-glass lp-coaster">
+            <div className="lp-glass lp-coaster" style={at('coaster')}>
               <span className="lp-coaster-icon">
                 <RollerCoaster />
               </span>
@@ -86,7 +96,7 @@ export function Landing() {
                 <span style={{ width: '82%' }} />
               </span>
             </div>
-            <div className="lp-glass lp-poll">
+            <div className="lp-glass lp-poll" style={at('poll')}>
               <strong>What should I add next?</strong>
               <div className="lp-bar is-mine" style={{ ['--w' as string]: '62%' }}>
                 <span>Red Panda</span>
@@ -97,6 +107,7 @@ export function Landing() {
                 <span>38%</span>
               </div>
               <small>24 builders voted</small>
+            </div>
             </div>
           </div>
         </div>

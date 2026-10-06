@@ -101,13 +101,12 @@
 /* isometric map with floating glass cards */
 .lp-art {
   position: relative;
-  min-height: 500px;
+  padding: 70px 0 20px;
 }
 .lp-iso {
-  position: absolute;
-  inset: 0 -20px 10px -10px;
-  display: grid;
-  place-items: center;
+  position: relative;
+  width: calc(100% + 60px);
+  margin-left: -10px;
 }
 .lp-iso-map {
   width: 100%;
@@ -141,8 +140,7 @@
   font-size: 11px;
 }
 .lp-tag {
-  left: 0;
-  top: 8px;
+  transform: translate(-100%, -100%);
 }
 .lp-tag-dot {
   width: 12px;
@@ -161,8 +159,7 @@
   text-transform: uppercase;
 }
 .lp-coaster {
-  right: 0;
-  bottom: 4%;
+  transform: translate(0, -100%);
   flex-wrap: wrap;
   width: 230px;
 }
@@ -192,8 +189,7 @@
   background: var(--lp-sage);
 }
 .lp-poll {
-  left: 0;
-  bottom: 0;
+  transform: translate(-100%, 0);
   width: 220px;
   flex-direction: column;
   align-items: stretch;
@@ -328,18 +324,24 @@
     grid-template-columns: 1fr;
   }
   .lp-art {
-    min-height: 360px;
+    padding: 10px 0 0;
   }
   .lp-iso {
-    inset: 48px 0 70px 0;
+    width: 100%;
+    margin: 0;
   }
+  .lp-iso .iso-callout,
+  .lp-tag,
   .lp-coaster {
     display: none;
   }
   .lp-poll {
-    left: auto;
-    right: 0;
-    width: 190px;
+    position: relative;
+    left: auto !important;
+    top: auto !important;
+    transform: none;
+    width: 100%;
+    margin-top: 8px;
     padding: 10px 12px;
     font-size: 11px;
   }
