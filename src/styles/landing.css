@@ -1,0 +1,425 @@
+/* ---------- landing page: deep navy hero, pastel lime CTAs, sage highlights ---------- */
+.lp-hero {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 85% 20%, #a8ccc91f, transparent 55%), /* same in both themes */
+    radial-gradient(ellipse at 0% 100%, #60712f33, transparent 50%), /* same in both themes */
+    var(--lp-navy);
+  color: #ffffff; /* same in both themes */
+  padding-bottom: 96px;
+}
+.lp-hero-inner {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+  gap: 48px;
+  align-items: center;
+  padding: 72px var(--gutter) 40px;
+}
+.lp-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 22px;
+}
+.lp-pill {
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 12px;
+  border-radius: var(--radius-control);
+  background: var(--lp-olive);
+  color: var(--lp-lime);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.lp-hero h1 {
+  font-size: clamp(2.4rem, 4.8vw, 3.8rem);
+  font-weight: 800;
+  line-height: 1.04;
+  letter-spacing: -0.035em;
+  color: #ffffff; /* same in both themes */
+}
+.lp-copy > p {
+  max-width: 540px;
+  font-size: 1.08rem;
+  line-height: 1.6;
+  color: #d5dde6; /* same in both themes — crisp on navy */
+}
+.lp-actions {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 6px;
+  margin-bottom: 44px;
+}
+.lp-cta {
+  --btn-bg: var(--lp-lime);
+  --btn-fg: var(--lp-navy);
+  --btn-border: var(--lp-lime);
+  font-weight: 800;
+}
+.lp-cta:hover {
+  --btn-bg: #ffffff; /* same in both themes */
+  border-color: #ffffff; /* same in both themes */
+}
+.lp-secondary {
+  --btn-bg: transparent;
+  --btn-fg: #ffffff; /* same in both themes */
+  --btn-border: #ffffff59; /* same in both themes */
+}
+.lp-secondary:hover {
+  --btn-bg: #ffffff14; /* same in both themes */
+  border-color: #ffffff; /* same in both themes */
+}
+.lp-ghost {
+  --btn-fg: var(--lp-sage);
+}
+.lp-ghost:hover {
+  --btn-bg: #ffffff0f; /* same in both themes */
+}
+.lp-doodle {
+  position: absolute;
+  left: 150px;
+  top: 52px;
+  width: 120px;
+  height: 56px;
+  fill: none;
+  stroke: var(--lp-lime);
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transform: rotate(196deg);
+  pointer-events: none;
+}
+
+/* isometric map with floating glass cards */
+.lp-art {
+  position: relative;
+  min-height: 440px;
+  perspective: 1400px;
+}
+.lp-iso {
+  position: absolute;
+  inset: 40px 30px 60px 40px;
+  display: grid;
+  place-items: center;
+  transform: rotateX(55deg) rotateZ(-38deg);
+  transform-style: preserve-3d;
+}
+.lp-iso-map {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 3 / 2;
+  display: block;
+  border-radius: var(--radius-sm);
+  /* the slab: a stack of shadows makes the map read as a raised block */
+  box-shadow:
+    1px 1px 0 #6f8f4f, 2px 2px 0 #688849, 3px 3px 0 #618143, 4px 4px 0 #5a7a3d, 5px 5px 0 #537337, 6px 6px 0 #4c6c31, /* same in both themes */
+    7px 7px 0 #45652b, 8px 8px 0 #3e5e25, 9px 9px 0 #37571f, 10px 10px 0 #305019, /* same in both themes */
+    30px 40px 60px #00000080; /* same in both themes */
+}
+.lp-glass {
+  position: absolute;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: var(--radius-lg);
+  border: 1px solid #ffffff33; /* same in both themes */
+  background: #0a22398c; /* same in both themes */
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 18px 40px #00000059; /* same in both themes */
+  color: #ffffff; /* same in both themes */
+  font-size: 12px;
+}
+.lp-glass strong {
+  display: block;
+  font-size: 13px;
+}
+.lp-glass small {
+  display: block;
+  color: #c4d0db; /* same in both themes */
+  font-size: 11px;
+}
+.lp-tag {
+  left: 0;
+  top: 18px;
+}
+.lp-tag-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--lp-sage);
+  box-shadow: 0 0 0 4px #a8ccc940; /* same in both themes */
+}
+.lp-chip {
+  padding: 3px 8px;
+  border-radius: var(--radius-control);
+  background: var(--lp-sage);
+  color: var(--lp-navy);
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+.lp-coaster {
+  right: 0;
+  top: 46%;
+  flex-wrap: wrap;
+  width: 230px;
+}
+.lp-coaster-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius);
+  display: grid;
+  place-items: center;
+  background: var(--lp-lime);
+  color: var(--lp-navy);
+}
+.lp-coaster-icon svg {
+  width: 18px;
+  height: 18px;
+}
+.lp-progress {
+  flex: 1 1 100%;
+  height: 6px;
+  border-radius: var(--radius-control);
+  background: #ffffff26; /* same in both themes */
+  overflow: hidden;
+}
+.lp-progress span {
+  display: block;
+  height: 100%;
+  background: var(--lp-sage);
+}
+.lp-poll {
+  left: 12%;
+  bottom: 0;
+  width: 250px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
+.lp-bar {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  padding: 7px 10px;
+  border-radius: var(--radius-sm);
+  background: #ffffff14; /* same in both themes */
+  overflow: hidden;
+  font-weight: 600;
+}
+.lp-bar::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--w);
+  background: #a8ccc94d; /* same in both themes */
+}
+.lp-bar.is-mine::before {
+  background: var(--lp-sage);
+  opacity: 0.55;
+}
+.lp-bar span {
+  position: relative;
+}
+
+/* leaves in the bottom corners */
+.lp-leaves {
+  position: absolute;
+  bottom: -10px;
+  width: 240px;
+  height: 200px;
+  fill: var(--lp-olive);
+  opacity: 0.55;
+  pointer-events: none;
+}
+.lp-leaves .vein {
+  fill: none;
+  stroke: var(--lp-navy);
+  stroke-width: 2;
+  opacity: 0.6;
+}
+.lp-leaves.left {
+  left: -20px;
+}
+.lp-leaves.right {
+  right: -20px;
+  transform: scaleX(-1);
+}
+
+/* the four features, as translucent cards on the navy */
+.lp-features {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  padding: 24px var(--gutter) 0;
+}
+.lp-feature {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 22px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--lp-taupe);
+  background: #ffffff0d; /* same in both themes */
+}
+.lp-feature-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius);
+  display: grid;
+  place-items: center;
+  background: var(--lp-sage);
+  color: var(--lp-navy);
+}
+.lp-feature-icon.is-lime {
+  background: var(--lp-lime);
+}
+.lp-feature-icon svg {
+  width: 21px;
+  height: 21px;
+}
+.lp-feature h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #ffffff; /* same in both themes */
+}
+.lp-feature p {
+  font-size: 14px;
+  line-height: 1.55;
+  color: #c4d0db; /* same in both themes */
+}
+
+/* freshly published, on the light background */
+.lp-fresh .page-header p {
+  color: var(--lp-taupe);
+}
+
+/* footer with a skyline of rides */
+.lp-footer {
+  margin-top: 40px;
+}
+.lp-skyline {
+  display: block;
+  width: 100%;
+  height: 150px;
+  fill: var(--lp-navy);
+}
+.lp-skyline .track,
+.lp-skyline .wheel {
+  fill: none;
+  stroke: var(--lp-navy);
+  stroke-width: 6;
+  stroke-linecap: round;
+}
+.lp-skyline .wheel.thin {
+  stroke-width: 2;
+}
+.lp-skyline .support,
+.lp-skyline .spoke {
+  stroke: var(--lp-navy);
+  stroke-width: 3;
+}
+.lp-footer-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 18px var(--gutter) 28px;
+  background: var(--lp-navy);
+  color: #c4d0db; /* same in both themes */
+  font-size: 13px;
+}
+.lp-footer-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-display);
+  font-weight: 800;
+  color: #ffffff; /* same in both themes */
+}
+.lp-footer-logo {
+  width: 28px;
+  height: 28px;
+}
+.lp-footer-bar nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 22px;
+}
+.lp-footer-bar a {
+  color: #c4d0db; /* same in both themes */
+}
+.lp-footer-bar a:hover {
+  color: var(--lp-lime);
+}
+
+/* the header's "Start your park" uses the same lime (logged-out header only) */
+.nav-signup {
+  --btn-bg: var(--lp-lime);
+  --btn-fg: var(--lp-navy);
+  --btn-border: var(--lp-olive);
+  font-weight: 800;
+}
+.nav-signup:hover {
+  --btn-bg: var(--lp-sage);
+}
+
+@media (max-width: 1100px) {
+  .lp-features {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 900px) {
+  .lp-hero-inner {
+    grid-template-columns: 1fr;
+    padding-top: 48px;
+  }
+  .lp-art {
+    min-height: 360px;
+  }
+}
+@media (max-width: 560px) {
+  .lp-features {
+    grid-template-columns: 1fr;
+  }
+  .lp-art {
+    min-height: 360px;
+  }
+  .lp-iso {
+    inset: 56px 0 96px 0;
+  }
+  .lp-coaster {
+    display: none;
+  }
+  .lp-poll {
+    left: auto;
+    right: 0;
+    width: 190px;
+    padding: 10px 12px;
+    font-size: 11px;
+  }
+  .lp-poll small {
+    display: none;
+  }
+  .lp-doodle {
+    display: none;
+  }
+  .lp-leaves {
+    width: 150px;
+    height: 125px;
+  }
+}

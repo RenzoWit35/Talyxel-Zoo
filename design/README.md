@@ -10,6 +10,8 @@ The colours, shadows, corner radii and fonts of Talyxel Park live in `design/tok
 
 The values come from the *Parkmakers* Figma file (Home dashboard, Social, Zoo and Coaster Park Builder, public park page): Inter for interface text and Manrope for headings, `bg` #f3f1eb, `brand` #3c674f, `coaster` #ff4d8d and `navy` #1d1f4a for theme parks, and a tight corner scale: 3 px (keys), 5 px (inputs, tiles), 6 px (`radius-control`: buttons, chips, tabs), 8 px (images, inner panels) and 12 px (cards, dialogs). Use the radius that fits the element's role rather than one radius everywhere. Pages line up with the top bar using `--gutter` (40 px, 16 px on phones) instead of sitting in a narrow centred column.
 
+The public landing page has its own palette: `lp-navy` #0A2239 (hero background), `lp-lime` #DCEAB2 (primary buttons, with navy text), `lp-sage` #A8CCC9 (tags, poll bars, highlights), `lp-olive` #60712F (category pills, leaves) and `lp-taupe` #716A5C (borders on the navy, secondary text on light sections). They are the same in both themes; the logged-out header's "Start your park" uses the lime too.
+
 The park maps have their own tokens: `ground`, `ground-tuft` (grass speckles), `ground-glow` and `ground-shade` (soft patches) and `hedge` (the park edge). The decorations on shapes — trees, ripples, paving, roofs, coaster tracks — live in `src/components/map/terrain.tsx` and are shared by the planner, the park page and every thumbnail.
 
 Both theme files must define the same token names in the same order; the generator refuses otherwise. A test (`tests/tokens.test.ts`) checks that `tokens.css` is up to date, that every CSS variable the app uses is defined, and that stylesheets don't hard-code theme colours.

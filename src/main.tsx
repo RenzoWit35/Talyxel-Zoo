@@ -11,6 +11,7 @@ import './styles/stats.css';
 import './styles/feed.css';
 import './styles/tutorial.css';
 import './styles/home.css';
+import './styles/landing.css';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { StrictMode } from 'react';
