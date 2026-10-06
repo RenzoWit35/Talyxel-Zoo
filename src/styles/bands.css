@@ -1,0 +1,220 @@
+/* ---------- navy header bands: every tab opens like the landing hero ---------- */
+/* The first header on a page runs edge to edge in deep navy, with a heavy white title, light text,
+   an olive pill and leaves in the corners. */
+.page:not(.lp-fresh) > .page-header:first-child,
+.page > .zoo-head:first-child,
+.page > .guide-hero:first-child,
+.social-head,
+.home-hero {
+  --band-ink: #ffffff; /* same in both themes */
+  --band-muted: #d5dde6; /* same in both themes */
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 260 220'%3E%3Cg fill='%2360712f' fill-opacity='.55'%3E%3Cpath transform='translate(10 210) rotate(-58)' d='M0 0C30-46 96-62 150-58 128-10 70 22 0 0Z'/%3E%3Cpath transform='translate(40 214) rotate(-24)' d='M0 0C30-46 96-62 150-58 128-10 70 22 0 0Z'/%3E%3Cpath transform='translate(0 200) rotate(-88) scale(.8)' d='M0 0C30-46 96-62 150-58 128-10 70 22 0 0Z'/%3E%3C/g%3E%3C/svg%3E")
+      left -24px bottom -18px / 190px 160px no-repeat,
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 260 220'%3E%3Cg fill='%2360712f' fill-opacity='.45' transform='translate(260 0) scale(-1 1)'%3E%3Cpath transform='translate(10 210) rotate(-58)' d='M0 0C30-46 96-62 150-58 128-10 70 22 0 0Z'/%3E%3Cpath transform='translate(40 214) rotate(-24)' d='M0 0C30-46 96-62 150-58 128-10 70 22 0 0Z'/%3E%3C/g%3E%3C/svg%3E")
+      right -24px bottom -18px / 170px 144px no-repeat,
+    radial-gradient(ellipse at 85% 10%, #a8ccc91f, transparent 55%), /* same in both themes */
+    var(--lp-navy);
+  color: var(--band-ink);
+}
+.page:not(.lp-fresh) > .page-header:first-child,
+.page > .zoo-head:first-child,
+.page > .guide-hero:first-child {
+  margin: -36px calc(var(--gutter) * -1) 32px;
+  padding: 44px var(--gutter) 48px;
+}
+.page:not(.lp-fresh) > .page-header:first-child h1,
+.page > .zoo-head:first-child h1,
+.page > .guide-hero:first-child h1,
+.social-head h1,
+.home-hero h1 {
+  color: var(--band-ink);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+.page:not(.lp-fresh) > .page-header:first-child h1 {
+  font-size: clamp(2rem, 3.6vw, 2.8rem);
+}
+.page:not(.lp-fresh) > .page-header:first-child p,
+.page > .zoo-head:first-child .zoo-desc,
+.page > .guide-hero:first-child p,
+.social-head p,
+.home-hero p {
+  color: var(--band-muted);
+}
+.page > .zoo-head:first-child .zoo-facts,
+.page > .zoo-head:first-child .zoo-owner-who small {
+  color: #a9b6c4; /* same in both themes */
+}
+.page > .zoo-head:first-child .zoo-owner-who {
+  color: var(--band-ink);
+}
+
+.social-head {
+  padding-bottom: 40px;
+}
+
+/* the olive category pill (landing: "For Planet Zoo builders") */
+.lp-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 12px;
+  border-radius: var(--radius-control);
+  background: var(--lp-olive);
+  color: var(--lp-lime);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  align-self: flex-start;
+}
+.lp-pill svg {
+  width: 13px;
+  height: 13px;
+}
+.page-header .lp-pill {
+  margin-bottom: 12px;
+}
+
+/* buttons and inputs that sit on the navy */
+.page-header:first-child .btn:not(.btn-primary),
+.zoo-head .btn:not(.btn-primary):not(.follow-plain),
+.guide-hero .btn:not(.btn-primary),
+.social-head .btn:not(.btn-primary),
+.home-hero .btn:not(.btn-primary) {
+  --btn-bg: transparent;
+  --btn-fg: #ffffff; /* same in both themes */
+  --btn-border: #ffffff59; /* same in both themes */
+}
+.zoo-head .follow-plain {
+  --btn-bg: transparent;
+  --btn-border: #ffffff59; /* same in both themes */
+  color: var(--lp-lime);
+}
+.page-header:first-child .input {
+  background: #ffffff14; /* same in both themes */
+  border-color: #ffffff33; /* same in both themes */
+  color: #ffffff; /* same in both themes */
+}
+.page-header:first-child .input::placeholder {
+  color: #a9b6c4; /* same in both themes */
+}
+.page-header:first-child .input-with-icon svg {
+  color: #a9b6c4; /* same in both themes */
+}
+
+/* chips that live in bands keep their colours readable */
+.zoo-head .chip-mint,
+.social-head .chip-pink {
+  background: var(--lp-olive);
+  color: var(--lp-lime);
+}
+.zoo-head .chip-pink {
+  background: var(--coaster);
+  color: #ffffff; /* same in both themes */
+}
+.zoo-head .chip-cream,
+.home-hero .chip-cream {
+  background: var(--lp-sage);
+  color: var(--lp-navy);
+}
+.zoo-page.is-coaster > .zoo-head:first-child h1,
+.page > .zoo-head:first-child h1 {
+  color: var(--band-ink);
+}
+
+/* the home banner's circles in the landing colours */
+.home-hero .home-hero-shape.a {
+  background: var(--lp-olive);
+  opacity: 0.35;
+}
+.home-hero .home-hero-shape.b {
+  background: var(--lp-sage);
+  opacity: 0.14;
+}
+
+/* the profile banner is navy with a sage glow */
+.profile-banner {
+  background:
+    radial-gradient(ellipse at 80% 0%, #a8ccc94d, transparent 60%), /* same in both themes */
+    radial-gradient(ellipse at 10% 120%, #60712f80, transparent 55%), /* same in both themes */
+    var(--lp-navy);
+}
+
+/* ---------- the skyline footer on every page ---------- */
+.site-footer {
+  margin-top: 24px;
+}
+.lp-skyline {
+  display: block;
+  width: 100%;
+  height: 150px;
+  fill: var(--lp-navy);
+}
+.lp-skyline .track,
+.lp-skyline .wheel {
+  fill: none;
+  stroke: var(--lp-navy);
+  stroke-width: 6;
+  stroke-linecap: round;
+}
+.lp-skyline .wheel.thin {
+  stroke-width: 2;
+}
+.lp-skyline .support,
+.lp-skyline .spoke {
+  stroke: var(--lp-navy);
+  stroke-width: 3;
+}
+.site-footer-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 18px var(--gutter) 28px;
+  background: var(--lp-navy);
+  color: #c4d0db; /* same in both themes */
+  font-size: 13px;
+}
+.site-footer-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-display);
+  font-weight: 800;
+  color: #ffffff; /* same in both themes */
+}
+.site-footer-logo {
+  width: 28px;
+  height: 28px;
+}
+.site-footer-bar nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 22px;
+}
+.site-footer-bar a {
+  color: #c4d0db; /* same in both themes */
+}
+.site-footer-bar a:hover {
+  color: var(--lp-lime);
+  text-decoration: none;
+}
+
+@media (max-width: 760px) {
+  .page:not(.lp-fresh) > .page-header:first-child,
+  .page > .zoo-head:first-child,
+  .page > .guide-hero:first-child {
+    margin-top: -20px;
+    padding: 28px var(--gutter) 40px;
+  }
+  .lp-skyline {
+    height: 90px;
+  }
+}

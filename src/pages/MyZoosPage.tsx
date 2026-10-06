@@ -133,6 +133,7 @@ export function MyZoosPage() {
     <div className="page">
       <div className="page-header">
         <div>
+          <span className="lp-pill">Your planning board</span>
           <h1>My parks</h1>
           <p>Your zoo and theme park plans. Drafts are private until you publish them.</p>
         </div>

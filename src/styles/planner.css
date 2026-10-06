@@ -150,32 +150,64 @@
   font-weight: 700;
   box-shadow: var(--shadow-sm);
 }
-.planner-primary {
-  --btn-bg: var(--brand-strong);
-  --btn-border: var(--brand-strong);
-}
-.planner-primary:hover {
-  --btn-bg: var(--deep);
-}
+
 .planner-panel-toggle {
   display: none;
 }
 
-/* theme parks: navy bar with pink accents (Figma: Coaster Park Builder) */
-.planner.is-coaster .planner-bar {
-  background: var(--navy);
-  border-bottom-color: var(--navy);
+/* every park: a deep navy bar like the landing hero, with lime for zoos */
+.planner .planner-bar {
+  background: var(--lp-navy);
+  border-bottom-color: var(--lp-navy);
   color: #fff; /* same in both themes */
 }
-.planner.is-coaster .planner-back {
+.planner .planner-back {
   background: #ffffff1f; /* same in both themes */
   color: #fff; /* same in both themes */
 }
-.planner.is-coaster .planner-back:hover {
+.planner .planner-back:hover {
   background: #ffffff33; /* same in both themes */
 }
-.planner.is-coaster .planner-title:hover {
+.planner .planner-title:hover {
   border-color: #ffffff33; /* same in both themes */
+}
+.planner .planner-type {
+  background: var(--lp-olive);
+  color: var(--lp-lime);
+}
+.planner .planner-sub,
+.planner .save-state {
+  color: #a9b6c4; /* same in both themes */
+}
+.planner .planner-status.is-live {
+  color: var(--lp-lime);
+}
+.planner .planner-views {
+  background: #ffffff14; /* same in both themes */
+}
+.planner .planner-views button {
+  color: #c4d0db; /* same in both themes */
+}
+.planner .planner-views button[aria-pressed='true'] {
+  background: var(--lp-lime);
+  color: var(--lp-navy);
+  box-shadow: none;
+}
+.planner .planner-bar-end > .btn:not(.planner-primary),
+.planner .planner-actions > .btn:not(.planner-primary) {
+  --btn-bg: transparent;
+  --btn-fg: #fff; /* same in both themes */
+  --btn-border: #ffffff3d; /* same in both themes */
+}
+.planner .planner-bar-end > .btn-ghost,
+.planner .planner-actions > .btn-ghost {
+  --btn-border: transparent;
+}
+
+/* theme parks: purple-navy bar with pink accents (Figma: Coaster Park Builder) */
+.planner.is-coaster .planner-bar {
+  background: var(--navy);
+  border-bottom-color: var(--navy);
 }
 .planner.is-coaster .planner-type {
   background: var(--coaster-soft);
@@ -188,26 +220,9 @@
 .planner.is-coaster .planner-status.is-live {
   color: #ff8fb6; /* same in both themes */
 }
-.planner.is-coaster .planner-views {
-  background: #ffffff14; /* same in both themes */
-}
-.planner.is-coaster .planner-views button {
-  color: #c9ccf0; /* same in both themes */
-}
 .planner.is-coaster .planner-views button[aria-pressed='true'] {
   background: var(--coaster);
   color: #fff; /* same in both themes */
-  box-shadow: none;
-}
-.planner.is-coaster .planner-bar-end > .btn:not(.planner-primary),
-.planner.is-coaster .planner-actions > .btn:not(.planner-primary) {
-  --btn-bg: transparent;
-  --btn-fg: #fff; /* same in both themes */
-  --btn-border: #ffffff3d; /* same in both themes */
-}
-.planner.is-coaster .planner-bar-end > .btn-ghost,
-.planner.is-coaster .planner-actions > .btn-ghost {
-  --btn-border: transparent;
 }
 .planner.is-coaster .planner-primary {
   --btn-bg: var(--coaster);
@@ -260,8 +275,8 @@
   color: var(--ink);
 }
 .tool[aria-pressed='true'] {
-  background: var(--brand-strong);
-  color: var(--brand-ink);
+  background: var(--lp-navy);
+  color: var(--lp-lime);
 }
 .tool:disabled {
   opacity: 0.35;

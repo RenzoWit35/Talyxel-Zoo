@@ -151,7 +151,7 @@ export function FeedPage() {
     <div className="social">
       <header className="social-head">
         <div className="social-head-text">
-          <span className="chip chip-pink">
+          <span className="lp-pill">
             <Sprout /> Community
           </span>
           <h1>Building together is better.</h1>

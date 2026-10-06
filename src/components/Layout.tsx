@@ -6,6 +6,7 @@ import { NotificationBell } from './NotificationBell';
 import { ThemeToggle } from './ThemeToggle';
 import { LogoMark, PageLoader } from './ui';
 import { UserMenu } from './UserMenu';
+import { SiteFooter } from './decor';
 
 /** "Search builders and parks" — opens Explore with the results. */
 function HeaderSearch() {
@@ -86,6 +87,7 @@ export function Layout() {
           <Outlet />
         </Suspense>
       </main>
+      {!fullBleed && <SiteFooter />}
       {!fullBleed && (
         <nav className="mobile-tabs" aria-label="Main">
           {tabs.map((t) => (

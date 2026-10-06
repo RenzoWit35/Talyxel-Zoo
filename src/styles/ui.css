@@ -42,13 +42,14 @@
   flex: none;
 }
 .btn-primary {
-  --btn-bg: var(--brand);
-  --btn-fg: var(--brand-ink);
-  --btn-border: var(--brand);
+  --btn-bg: var(--cta);
+  --btn-fg: var(--cta-ink);
+  --btn-border: var(--cta-hover);
+  font-weight: 700;
 }
 .btn-primary:hover {
-  --btn-bg: var(--brand-strong);
-  border-color: var(--brand-strong);
+  --btn-bg: var(--cta-hover);
+  border-color: var(--cta-hover);
 }
 .btn-accent {
   --btn-bg: var(--accent);

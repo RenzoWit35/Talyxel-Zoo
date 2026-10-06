@@ -28,6 +28,7 @@ export function ExplorePage() {
     <div className="page">
       <div className="page-header">
         <div>
+          <span className="lp-pill">Community parks</span>
           <h1>Explore</h1>
           <p>Zoos and theme parks the community published, and the builders behind them.</p>
         </div>

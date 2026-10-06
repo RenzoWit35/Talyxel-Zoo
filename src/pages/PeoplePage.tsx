@@ -17,6 +17,7 @@ export function PeoplePage() {
     <div className="page">
       <div className="page-header">
         <div>
+          <span className="lp-pill">Builders</span>
           <h1>People</h1>
           <p>Follow builders to get their new habitats and surveys in your feed. Follow each other and you’re friends.</p>
         </div>

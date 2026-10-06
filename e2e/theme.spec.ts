@@ -27,7 +27,7 @@ test('follows the system dark mode, and the toggle overrides and remembers it', 
   await user.loginPage(page);
   await page.goto('/social');
   await expect(page.locator('.post-card').first()).toBeVisible();
-  expect(await bodyBackground(page)).toBe('rgb(16, 21, 17)');
+  expect(await bodyBackground(page)).toBe('rgb(7, 24, 39)');
   const name = test.info().project.name;
   await page.screenshot({ path: `test-results/screens/dark-feed-${name}.png` });
   await page.goto(`/z/${park.id}`);
@@ -43,6 +43,6 @@ test('follows the system dark mode, and the toggle overrides and remembers it', 
   expect(await bodyBackground(page)).toBe('rgb(243, 241, 235)');
   await switchTheme(page, 'dark');
   await page.reload();
-  expect(await bodyBackground(page)).toBe('rgb(16, 21, 17)');
+  expect(await bodyBackground(page)).toBe('rgb(7, 24, 39)');
   await page.screenshot({ path: `test-results/screens/dark-profile-${name}.png`, fullPage: true });
 });

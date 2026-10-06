@@ -72,7 +72,8 @@ export function GuidePage() {
     <div className="page guide">
       <header className="guide-hero">
         <div className="guide-hero-text">
-          <h1>How Talyxel Park works</h1>
+          <span className="lp-pill">The guide</span>
+            <h1>How Talyxel Park works</h1>
           <p>
             Talyxel Park is a planning board for your Planet Zoo zoos and Planet Coaster theme parks. You draw your park from above, keep every screenshot and idea
             next to the spot it belongs to, and share your progress with friends who can like, comment and vote on what you build next.

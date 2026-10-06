@@ -27,6 +27,7 @@ export function ActivityPage() {
     <div className="page page-narrow">
       <div className="page-header">
         <div>
+          <span className="lp-pill">Your notifications</span>
           <h1>Activity</h1>
           <p>Followers, likes, answers and survey suggestions — newest first.</p>
         </div>

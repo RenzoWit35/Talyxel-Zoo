@@ -184,7 +184,7 @@ export function ProfilePage() {
   return (
     <div className="page profile-page">
       <section className="profile-head card">
-        <div className="profile-banner" style={{ background: `linear-gradient(120deg, ${p.avatarColor}, #9fcf8a)` }} />
+        <div className="profile-banner" />
         <div className="profile-body">
           <Avatar user={p} size={96} />
           <div className="profile-text">
