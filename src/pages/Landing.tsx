@@ -3,9 +3,8 @@ import { ArrowRight, BookOpen, ChartColumn, Heart, PenLine, RollerCoaster, Users
 import { Link } from 'react-router';
 import { api } from '../api/client';
 import { DoodleArrow, Leaves } from '../components/decor';
+import { IsoPark } from '../components/IsoPark';
 import { ZooCard } from '../components/ZooCard';
-import { ZooThumbnail } from '../components/ZooThumbnail';
-import { DEMO_SHAPES as DEMO } from '../lib/demo';
 
 const FEATURES = [
   {
@@ -65,7 +64,7 @@ export function Landing() {
 
           <div className="lp-art" aria-hidden="true">
             <div className="lp-iso">
-              <ZooThumbnail width={300} height={200} shapes={DEMO} className="lp-iso-map" fit="meet" />
+              <IsoPark className="lp-iso-map" />
             </div>
             <div className="lp-glass lp-tag">
               <span className="lp-tag-dot" />
