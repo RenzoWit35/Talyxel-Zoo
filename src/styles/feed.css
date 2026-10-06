@@ -1,8 +1,6 @@
 /* ---------- Social (Figma: Social) ---------- */
 .social-head {
-  max-width: 1440px;
-  margin: 0 auto;
-  padding: 36px 56px 0;
+  padding: 36px var(--gutter) 0;
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
@@ -28,9 +26,7 @@
   flex: none;
 }
 .social-body {
-  max-width: 1440px;
-  margin: 0 auto;
-  padding: 28px 56px 64px;
+  padding: 28px var(--gutter) 64px;
   display: grid;
   grid-template-columns: minmax(0, 1fr) 480px;
   gap: 28px;
@@ -55,7 +51,7 @@
   padding: 4px;
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-control);
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -67,7 +63,7 @@
   border: 0;
   background: none;
   padding: 9px 18px;
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-control);
   font-size: 12px;
   color: var(--ink-2);
   cursor: pointer;
@@ -350,7 +346,7 @@
   gap: 4px;
   margin-left: 8px;
   padding: 2px 8px;
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-control);
   background: var(--brand-soft);
   color: var(--brand-strong);
   font-weight: 800;
@@ -513,7 +509,7 @@
   gap: 9px;
   max-width: calc(100% - 32px);
   padding: 8px 12px;
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-control);
   background: #17201bde; /* same in both themes */
   color: #fff; /* same in both themes */
   font-size: 10px;
@@ -538,7 +534,7 @@
   top: 16px;
   right: 16px;
   padding: 7px 10px;
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-control);
   background: #fff; /* same in both themes */
   color: #3c674f; /* same in both themes */
   font-size: 10px;
@@ -841,7 +837,7 @@
   height: 36px;
   padding: 0 14px;
   border: 1px solid var(--line);
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-control);
   background: var(--surface-2);
   font-size: 12px;
   color: var(--ink);
@@ -887,13 +883,13 @@
   .social-head {
     flex-direction: column;
     align-items: flex-start;
-    padding: 24px 16px 0;
+    padding: 24px var(--gutter) 0;
   }
   .social-head h1 {
     font-size: 30px;
   }
   .social-body {
-    padding: 20px 16px 48px;
+    padding: 20px var(--gutter) 48px;
   }
   .post-card {
     padding: 16px;

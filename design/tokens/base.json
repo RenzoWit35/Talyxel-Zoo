@@ -2,11 +2,11 @@
   "$description": "Talyxel Park — tokens shared by both themes, taken from the Parkmakers Figma design. W3C design-token format (DTCG); importable as Figma variables or with Tokens Studio. Run `npm run tokens` after changing.",
   "radius": {
     "$type": "dimension",
-    "radius-xs": { "$value": "6px", "$description": "Keys, tiny swatches" },
-    "radius-sm": { "$value": "10px", "$description": "Inputs, poll options, small icon tiles, tool buttons, comment bubbles" },
-    "radius": { "$value": "16px", "$description": "Images inside cards, quick-link icon tiles, inner panels" },
-    "radius-lg": { "$value": "24px", "$description": "Cards, dialogs, big tiles" },
-    "radius-pill": { "$value": "999px", "$description": "Buttons, chips, tabs, search, progress bars" }
+    "radius-xs": { "$value": "3px", "$description": "Keys, tiny swatches" },
+    "radius-sm": { "$value": "5px", "$description": "Inputs, poll options, small icon tiles, tool buttons, comment bubbles" },
+    "radius": { "$value": "8px", "$description": "Images inside cards, quick-link icon tiles, inner panels" },
+    "radius-lg": { "$value": "12px", "$description": "Cards, dialogs, big tiles" },
+    "radius-control": { "$value": "6px", "$description": "Buttons, chips, tabs, search, progress bars" }
   },
   "font": {
     "$type": "fontFamily",
@@ -15,6 +15,7 @@
   },
   "size": {
     "$type": "dimension",
-    "nav-h": { "$value": "72px", "$description": "Height of the top navigation" }
+    "nav-h": { "$value": "72px", "$description": "Height of the top navigation" },
+    "gutter": { "$value": "40px", "$description": "Space between the window edge and the content; pages line up with the top bar (16px on phones)" }
   }
 }

@@ -2,19 +2,64 @@
 .auth-wrap {
   min-height: calc(100vh - var(--nav-h));
   display: grid;
-  place-items: center;
-  padding: 32px 16px;
-  background:
-    radial-gradient(ellipse at 20% 10%, rgba(159, 207, 138, 0.35), transparent 50%),
-    radial-gradient(ellipse at 85% 90%, rgba(217, 129, 58, 0.16), transparent 50%);
+  grid-template-columns: minmax(0, 520px) minmax(0, 1fr);
+  gap: 48px;
+  align-items: stretch;
+  padding: 48px var(--gutter);
 }
 .auth-card {
-  width: min(420px, 100%);
+  align-self: start;
+  margin-top: 24px;
+  width: 100%;
+  max-width: 440px;
   padding: 32px 28px;
   display: flex;
   flex-direction: column;
   gap: 16px;
   box-shadow: var(--shadow);
+}
+.auth-art {
+  position: relative;
+  min-height: 420px;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--hero);
+}
+.auth-art .zoo-thumb {
+  position: absolute;
+  inset: 0;
+}
+.auth-art-caption {
+  position: absolute;
+  left: 24px;
+  bottom: 24px;
+  max-width: 360px;
+  padding: 16px 18px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+.auth-art-caption strong {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 17px;
+  color: var(--ink);
+  margin-bottom: 2px;
+}
+@media (max-width: 900px) {
+  .auth-wrap {
+    grid-template-columns: 1fr;
+    padding: 24px var(--gutter) 48px;
+  }
+  .auth-art {
+    display: none;
+  }
+  .auth-card {
+    max-width: none;
+  }
 }
 .auth-logo {
   width: 48px;
@@ -29,9 +74,7 @@
   border-bottom: 1px solid var(--line);
 }
 .hero-inner {
-  max-width: 1120px;
-  margin: 0 auto;
-  padding: 64px 20px 72px;
+  padding: 64px var(--gutter) 72px;
   display: grid;
   grid-template-columns: 1.05fr 1fr;
   gap: 48px;
@@ -260,8 +303,24 @@
 }
 
 /* ---------- people ---------- */
+.people-search {
+  display: block;
+  max-width: 520px;
+  margin-bottom: 20px;
+}
 .people-list {
-  padding: 6px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(360px, 100%), 1fr));
+  gap: 14px;
+}
+.people-list > .user-row,
+.people-list > .user-row + .user-row {
+  align-items: flex-start;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow);
 }
 .user-row {
   display: flex;
@@ -393,11 +452,7 @@
 }
 
 /* ---------- public park page (Figma: Publieke parkpagina) ---------- */
-.zoo-page {
-  max-width: 1440px;
-  padding-left: 56px;
-  padding-right: 56px;
-}
+
 .zoo-head {
   display: flex;
   gap: 24px;
@@ -495,7 +550,7 @@
   align-items: center;
   gap: 8px;
   padding: 8px 14px;
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-control);
   background: var(--surface);
   box-shadow: var(--shadow-sm);
   font-size: 10px;
@@ -520,7 +575,7 @@
   flex-wrap: nowrap;
   gap: 4px;
   padding: 4px;
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-control);
   background: var(--surface);
   box-shadow: var(--shadow);
   overflow-x: auto;
@@ -987,10 +1042,6 @@
   }
 }
 @media (max-width: 760px) {
-  .zoo-page {
-    padding-left: 16px;
-    padding-right: 16px;
-  }
   .zoo-head h1 {
     font-size: 32px;
   }
@@ -1239,7 +1290,7 @@
   gap: 6px;
   height: 30px;
   padding: 0 6px 0 9px;
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-control);
   border: 1px solid var(--line-strong);
   background: var(--surface);
   color: var(--ink-3);
@@ -1258,7 +1309,7 @@
 .layer-chip .count {
   font-size: 0.72rem;
   background: var(--bg-deep);
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-control);
   padding: 1px 7px;
 }
 .layer-chip[aria-pressed='true'] {
@@ -1412,11 +1463,11 @@
   background: var(--c);
 }
 .profile-tabs {
-  justify-content: center;
+  justify-content: flex-start;
 }
 .post-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 4px;
 }
 .post-tile {
@@ -1499,6 +1550,9 @@
   opacity: 1;
 }
 @media (max-width: 640px) {
+  .post-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
   .profile-counts > * {
     font-size: 0.78rem;
     padding: 10px 2px;

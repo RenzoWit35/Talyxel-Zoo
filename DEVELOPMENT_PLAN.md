@@ -12,6 +12,8 @@ This plan covers what's built, what comes next, and how we work. Each phase can 
 - [x] Planner: new project bar, the selected-shape panel from the design, navy and pink chrome for theme parks
 - [x] "Why it's built this way" per shape (`reason`, migration v7) and a design principle per park (`principle`, migration v8), shown on the public park page
 - [x] Public park page: big header with "Designed by", the map as a stage with a floating detail card, "in numbers", the design principle and the in-game rating
+- [x] Tighter corners (3–12 px, buttons and chips 6 px), full-width pages aligned with the top bar, People as a card grid, a split log-in screen
+- [x] Livelier maps: grass, soft patches, a hedge and a compass; trees, rocks, ripples, paving, roofs with shadows, coaster tracks and ride footprints on shapes — in the planner, on park pages and in thumbnails
 - [x] 53 API/unit tests and 29 browser tests (desktop and phone); typecheck and build are clean
 
 ### New in v0.2

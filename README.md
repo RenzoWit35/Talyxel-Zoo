@@ -23,7 +23,8 @@ A planning board and social feed for **Planet Zoo** zoos and **Planet Coaster** 
 - **Profiles.** Counts for posts, parks, followers and following; a **Parks** section with each park's whole top-down plan; a square grid of posts.
 - **Notifications.** A bell for new followers, likes, comments and survey suggestions.
 - **Tutorial for new users.** A welcome after signing up, a "next step" card on Home that ticks itself off, a coach-mark tour the first time you open the planner, and a written guide at `/guide`.
-- **Design.** The look follows the *Parkmakers* Figma design: Inter and Manrope, a warm off-white background, deep park green, and navy with coaster pink for theme parks.
+- **Design.** The look follows the *Parkmakers* Figma design: Inter and Manrope, a warm off-white background, deep park green, and navy with coaster pink for theme parks. Corners are kept small, and pages run full width, lined up with the top bar.
+- **Maps that look like parks.** Plans aren't flat coloured shapes: habitats and scenery get trees and rocks, water ripples, paths paving, buildings roofs and shadows, coaster areas a track and flat rides their footprint, all on grass with a hedge and a compass. The same look is used in thumbnails and posts.
 - **Light and dark mode**, following the system or the switch in the account menu. Colours come from [design tokens](design/README.md) that sync with Figma.
 
 See [DEVELOPMENT_PLAN.md](DEVELOPMENT_PLAN.md) for the roadmap: what's done, the next phases, and how we work.

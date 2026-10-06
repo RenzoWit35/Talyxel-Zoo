@@ -572,3 +572,32 @@
 .photo-tile:hover img {
   transform: scale(1.04);
 }
+
+/* terrain: decorations fade with idea shapes; the compass sits above the zoom buttons */
+.shape.status-idea .shape-decor {
+  opacity: 0.35;
+}
+.map-compass {
+  position: absolute;
+  right: 20px;
+  bottom: 156px;
+  width: 42px;
+  height: 42px;
+  pointer-events: none;
+  filter: drop-shadow(0 2px 6px #0f1a1226); /* same in both themes */
+}
+.map-compass circle {
+  fill: var(--surface);
+  stroke: var(--line);
+  stroke-width: 1;
+}
+.map-compass .needle-n {
+  fill: var(--brand-strong);
+}
+.map-compass .needle-s {
+  fill: var(--line-strong);
+}
+.map-compass text {
+  font: 800 6px var(--font-ui);
+  fill: var(--surface);
+}

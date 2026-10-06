@@ -3,6 +3,8 @@ import { Link, Navigate, useLocation } from 'react-router';
 import { errorMessage } from '../api/client';
 import { useAuthActions, useMe } from '../auth';
 import { LogoMark } from '../components/ui';
+import { ZooThumbnail } from '../components/ZooThumbnail';
+import { DEMO_SHAPES } from '../lib/demo';
 
 export function AuthPage({ mode }: { mode: 'login' | 'register' }) {
   const { me } = useMe();
@@ -82,6 +84,13 @@ export function AuthPage({ mode }: { mode: 'login' | 'register' }) {
           )}
         </p>
       </form>
+      <aside className="auth-art" aria-hidden="true">
+        <ZooThumbnail width={300} height={200} shapes={DEMO_SHAPES} />
+        <p className="auth-art-caption">
+          <strong>Plan it from above.</strong>
+          Every habitat, ride and walk route — with the photos, the stats and the reason it's there.
+        </p>
+      </aside>
     </div>
   );
 }

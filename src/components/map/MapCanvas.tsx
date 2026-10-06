@@ -1,5 +1,5 @@
 import { Maximize, Minus, Plus } from 'lucide-react';
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
+import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
 import { isLineKind, minPoints, type HabitatKind } from '../../../shared/constants';
 import {
   bounds,
@@ -19,6 +19,7 @@ import type { Habitat } from '../../../shared/types';
 import { shade } from '../../lib/color';
 import { drawOrder, pointsAttr } from '../../lib/shapes';
 import { HoverCard } from './HoverCard';
+import { ShapeDecor, TerrainDefs, TerrainGround, TerrainShadows, terrainUnit } from './terrain';
 
 export type Tool = 'select' | 'polygon' | 'rect' | 'line' | 'pan';
 
@@ -595,6 +596,9 @@ export function MapCanvas({
     return null;
   })();
 
+  const prefix = `m${useId().replace(/:/g, '')}`;
+  const u = terrainUnit(width, height);
+
   const shapeClass = (h: Habitat) =>
     `shape kind-${h.kind} status-${h.status}${h.id === selectedId ? ' selected' : ''}${h.id === hoveredId ? ' hovered' : ''}`;
 
@@ -628,14 +632,17 @@ export function MapCanvas({
             <pattern id="utility-hatch" width={7 * px} height={7 * px} patternUnits="userSpaceOnUse" patternTransform="rotate(-45)">
               <rect width={1.4 * px} height={7 * px} fill="rgba(20,28,36,0.28)" />
             </pattern>
+            <TerrainDefs prefix={prefix} u={u} />
           </defs>
 
           <rect x={0} y={0} width={width} height={height} className="map-ground" />
+          <TerrainGround prefix={prefix} width={width} height={height} u={u} />
           {background && <image href={background.url} x={0} y={0} width={width} height={height} preserveAspectRatio="none" opacity={background.opacity} />}
           <rect x={0} y={0} width={width} height={height} fill="url(#grid-minor)" pointerEvents="none" />
           <rect x={0} y={0} width={width} height={height} fill="url(#grid-major)" pointerEvents="none" />
           <rect x={0} y={0} width={width} height={height} className="map-border" vectorEffect="non-scaling-stroke" />
 
+          <TerrainShadows shapes={shapes} u={u} />
           <g className="map-shapes">
             {shapes.map((h) =>
               isLineKind(h.kind) ? (
@@ -665,6 +672,7 @@ export function MapCanvas({
                     vectorEffect="non-scaling-stroke"
                     strokeLinejoin="round"
                   />
+                  <ShapeDecor shape={h} u={u} prefix={prefix} />
                   {h.kind === 'utility' && <polygon points={pointsAttr(h.points)} fill="url(#utility-hatch)" pointerEvents="none" />}
                   {h.status === 'building' && <polygon points={pointsAttr(h.points)} fill="url(#building-stripes)" pointerEvents="none" />}
                 </g>
@@ -803,6 +811,12 @@ export function MapCanvas({
         <span style={{ width: scaleBar * v.scale }} />
         {formatLength(scaleBar)}
       </div>
+      <svg className="map-compass" viewBox="0 0 40 40" aria-hidden="true">
+        <circle cx="20" cy="20" r="18" />
+        <path d="M20 5 L25 21 L20 18 L15 21 Z" className="needle-n" />
+        <path d="M20 35 L15 19 L20 22 L25 19 Z" className="needle-s" />
+        <text x="20" y="13.5" textAnchor="middle">N</text>
+      </svg>
       <div className="map-zoom" onPointerDown={(e) => e.stopPropagation()}>
         <button className="btn btn-icon btn-sm" onClick={() => zoomAt(1.3)} aria-label="Zoom in" title="Zoom in">
           <Plus />

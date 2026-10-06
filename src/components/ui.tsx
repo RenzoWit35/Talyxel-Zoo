@@ -11,7 +11,7 @@ const TREES =
 export function LogoMark({ className = 'brand-mark' }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 38 38" aria-hidden="true">
-      <rect width="38" height="38" rx="10" fill="#17201b" />
+      <rect width="38" height="38" rx="7" fill="#17201b" />
       <path transform="translate(8.5 8.5)" d={TREES} fill="none" stroke="#3c674f" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );

@@ -28,10 +28,8 @@
 }
 .home-hero-inner {
   position: relative;
-  max-width: 1440px;
-  margin: 0 auto;
   min-height: 250px;
-  padding: 42px 56px;
+  padding: 42px var(--gutter);
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -79,9 +77,7 @@
 }
 
 .home-body {
-  max-width: 1440px;
-  margin: 0 auto;
-  padding: 38px 56px 64px;
+  padding: 38px var(--gutter) 64px;
   display: grid;
   grid-template-columns: minmax(0, 1fr) 330px;
   gap: 28px;
@@ -213,7 +209,7 @@
 }
 .bar {
   height: 7px;
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-control);
   background: var(--line);
   overflow: hidden;
 }
@@ -508,14 +504,14 @@
 @media (max-width: 760px) {
   .home-hero-inner {
     flex-direction: column;
-    padding: 28px 16px;
+    padding: 28px var(--gutter);
     min-height: 0;
   }
   .home-hero h1 {
     font-size: 30px;
   }
   .home-body {
-    padding: 24px 16px 48px;
+    padding: 24px var(--gutter) 48px;
   }
   .project-grid,
   .quick-tiles {

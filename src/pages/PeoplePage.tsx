@@ -14,14 +14,14 @@ export function PeoplePage() {
   const list = users.data?.filter((u) => u.id !== me?.id) ?? [];
 
   return (
-    <div className="page page-narrow">
+    <div className="page">
       <div className="page-header">
         <div>
           <h1>People</h1>
           <p>Follow builders to get their new habitats and surveys in your feed. Follow each other and you’re friends.</p>
         </div>
       </div>
-      <label className="input-with-icon" style={{ display: 'block', marginBottom: 18 }}>
+      <label className="input-with-icon people-search">
         <Search />
         <input className="input" placeholder="Search by name or @username" value={q} onChange={(e) => setQ(e.target.value)} autoFocus />
       </label>
@@ -32,7 +32,7 @@ export function PeoplePage() {
           Invite your friends to sign up and plan their zoos.
         </EmptyState>
       ) : (
-        <div className="card people-list">
+        <div className="people-list">
           {list.map((u) => (
             <UserRow key={u.id} user={u} />
           ))}

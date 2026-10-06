@@ -76,13 +76,11 @@ textarea {
 }
 
 .page {
-  max-width: 1120px;
-  margin: 0 auto;
-  padding: 32px 20px 64px;
+  padding: 36px var(--gutter) 64px;
 }
 
 .page-narrow {
-  max-width: 720px;
+  max-width: calc(760px + var(--gutter) * 2);
 }
 
 .page-header {
@@ -133,8 +131,11 @@ textarea {
   white-space: nowrap;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 760px) {
+  :root {
+    --gutter: 16px;
+  }
   .page {
-    padding: 20px 16px 48px;
+    padding: 20px var(--gutter) 48px;
   }
 }
