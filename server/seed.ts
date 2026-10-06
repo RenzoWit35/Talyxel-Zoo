@@ -52,6 +52,8 @@ interface HabitatSeed {
   biome?: Biome;
   species?: string;
   description?: string;
+  /** Why it's built this way. */
+  reason?: string;
   color?: string;
   points: Point[];
   photos?: string[]; // captions; one generated postcard each
@@ -193,6 +195,7 @@ async function main() {
         status: 'done',
         color: '#c79a3c',
         description: 'Rocky kopje with heated rocks, a log bridge viewing area and the hill everyone climbs for sunset.',
+        reason: 'The main loop bends around the kopje, so guests see the lions from below first and only reach the overlook at the end — the big view is the reward.',
         points: [[20, 14], [176, 10], [184, 108], [96, 116], [26, 96]],
         photos: ['Sunset over the kopje', 'The pride on the heated rocks', 'Glass overlook from the main loop'],
       },
@@ -277,6 +280,7 @@ async function main() {
         status: 'done',
         color: '#3e7a5a',
         description: 'Dense pine forest with a den and a stream.',
+        reason: 'The guest path only touches the edge. The pack keeps a quiet core to retreat to, and the den faces away from the crowds.',
         points: [[170, 14], [304, 14], [304, 86], [232, 92], [172, 76]],
         photos: ['Pack at dusk', 'The den', 'Stream crossing'],
       },
@@ -332,6 +336,7 @@ async function main() {
         status: 'building',
         color: '#d9733f',
         description: 'Ruined temple pieces, a deep pool and a glass wall into the river.',
+        reason: 'The temple gate frames the first look at the tigers. The glass wall sits where the canopy walk comes down, so it ends on a close-up.',
         points: [[176, 14], [344, 18], [338, 92], [250, 98], [180, 80]],
         photos: ['Temple gate', 'Pool and glass wall'],
         later: true,
@@ -404,6 +409,7 @@ async function main() {
         biome: 'western',
         status: 'done',
         description: 'Out-and-back wooden coaster through the mine buildings. Excitement 7.8, intensity 6.1.',
+        reason: 'The track is the skyline of Frontier Town. Low buildings keep it visible from Main Street, and the queue runs under the first drop.',
         points: [[196, 20], [340, 18], [338, 76], [280, 90], [200, 80]],
         photos: ['Lift hill at sunset', 'The first drop', 'Station building'],
       },
@@ -420,6 +426,7 @@ async function main() {
         biome: 'pirate',
         status: 'building',
         description: 'Inverted coaster with a dive over Skull Bay. Supports still need hiding.',
+        reason: 'The dive over the bay is the photo moment, so the Galleon sits on the other side of the water to frame it.',
         points: [[20, 20], [112, 18], [118, 74], [62, 80], [22, 66]],
         photos: ['Over the bay', 'Cobra roll'],
         later: true,

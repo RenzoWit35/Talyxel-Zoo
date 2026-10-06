@@ -159,6 +159,7 @@ export function useZooEditor(initial: ZooDetail) {
           biome: source.biome,
           species: source.species,
           description: source.description,
+          reason: source.reason,
           color: source.color,
         }),
       );

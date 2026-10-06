@@ -234,8 +234,8 @@ export function zooRoutes(db: DB, upload: multer.Multer, uploadDir: string) {
     const position = one<{ p: number | null }>(db, 'SELECT MAX(position) AS p FROM habitats WHERE zoo_id = ? AND status = ?', zoo.id, body.status)!.p;
     const { id } = run(
       db,
-      `INSERT INTO habitats (zoo_id, name, kind, status, biome, species, description, color, points, position)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO habitats (zoo_id, name, kind, status, biome, species, description, reason, color, points, position)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       zoo.id,
       body.name,
       kind,
@@ -243,6 +243,7 @@ export function zooRoutes(db: DB, upload: multer.Multer, uploadDir: string) {
       body.biome,
       body.species,
       body.description,
+      body.reason,
       color,
       JSON.stringify(normalizePoints(body.points, zoo)),
       (position ?? -1) + 1,

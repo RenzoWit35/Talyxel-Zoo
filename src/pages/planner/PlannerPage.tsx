@@ -7,6 +7,7 @@ import {
   CloudOff,
   Copy,
   ExternalLink,
+  EyeOff,
   Globe,
   Hand,
   Hexagon,
@@ -35,6 +36,7 @@ import { parkMeta } from '../../../shared/parks';
 import type { Habitat, ZooDetail } from '../../../shared/types';
 import { api, ApiError, errorMessage } from '../../api/client';
 import { LayerToggles } from '../../components/map/LayerToggles';
+import { ParkIcon } from '../../components/ParkType';
 import { MapCanvas, type Tool } from '../../components/map/MapCanvas';
 import { StatsForm } from '../../components/stats/StatsForm';
 import { NewSurveyDialog } from '../../components/SurveyEditor';
@@ -74,7 +76,7 @@ function SaveIndicator({ state }: { state: SaveState }) {
     );
   return (
     <span className="save-state">
-      <Check /> Saved
+      <Check /> Saved automatically
     </span>
   );
 }
@@ -267,80 +269,95 @@ function Planner({ initial }: { initial: ZooDetail }) {
   const ideas = zoo.habitats.filter((h) => h.status === 'idea').map((h) => h.name);
 
   return (
-    <div className="planner">
+    <div className={`planner${zoo.parkType === 'theme_park' ? ' is-coaster' : ''}`}>
       <header className="planner-bar">
-        <Link to="/zoos" className="btn btn-ghost btn-icon btn-sm" aria-label="Back to my parks" title="My parks">
-          <ArrowLeft />
-        </Link>
-        <input
-          className="planner-title"
-          value={zoo.title}
-          maxLength={80}
-          aria-label="Park name"
-          onChange={(e) => editor.updateZoo({ title: e.target.value })}
-          onBlur={(e) => !e.target.value.trim() && editor.updateZoo({ title: initial.title })}
-        />
-        {zoo.status === 'published' ? (
-          <span className="chip chip-brand">
-            <Globe /> Published
-          </span>
-        ) : (
-          <span className="chip">
-            <Lock /> Draft
-          </span>
-        )}
-        <SaveIndicator state={editor.saveState} />
-        <span className="spacer" />
-        <div className="segmented planner-views" role="tablist" aria-label="View">
-          <button aria-pressed={view === 'map'} onClick={() => setView('map')}>
+        <div className="planner-bar-start">
+          <Link to="/zoos" className="planner-back" aria-label="Back to my parks" title="My parks">
+            <ArrowLeft />
+          </Link>
+          <div className="planner-name">
+            <div className="planner-name-row">
+              <input
+                className="planner-title"
+                value={zoo.title}
+                size={Math.max(8, zoo.title.length)}
+                maxLength={80}
+                aria-label="Park name"
+                onChange={(e) => editor.updateZoo({ title: e.target.value })}
+                onBlur={(e) => !e.target.value.trim() && editor.updateZoo({ title: initial.title })}
+              />
+              <span className="chip planner-type">
+                <ParkIcon type={zoo.parkType} size={12} /> {meta.noun}
+              </span>
+            </div>
+            <span className="planner-sub">
+              {zoo.status === 'published' ? (
+                <span className="planner-status is-live">
+                  <Globe /> Published
+                </span>
+              ) : (
+                <span className="planner-status">
+                  <Lock /> Draft — only you can see it
+                </span>
+              )}
+              <SaveIndicator state={editor.saveState} />
+            </span>
+          </div>
+        </div>
+        <div className="planner-views" role="tablist" aria-label="View">
+          <button aria-pressed={view === 'map'} aria-label="Map" onClick={() => setView('map')}>
             <MapIcon /> <span>Map</span>
           </button>
-          <button aria-pressed={view === 'board'} onClick={() => setView('board')}>
+          <button aria-pressed={view === 'board'} aria-label="Board" onClick={() => setView('board')}>
             <LayoutGrid /> <span>Board</span>
           </button>
         </div>
-        <button
-          className="btn btn-ghost btn-icon btn-sm"
-          onClick={() => {
-            setView('map');
-            setTouring(true);
-          }}
-          title="Planner tour"
-          aria-label="Planner tour"
-        >
-          <CircleHelp />
-        </button>
-        <button className="btn btn-sm planner-stats-btn" data-tour="stats" onClick={() => setStatsOpen(true)} title="Park statistics">
-          <ChartColumn /> <span>Stats</span>
-        </button>
-        {zoo.status === 'published' ? (
-          <div className="row planner-actions" data-tour="publish">
-            <button className="btn btn-sm" onClick={() => setNewSurvey(true)}>
-              <Vote /> <span>New survey</span>
-            </button>
-            <Link to={`/z/${zoo.id}`} className="btn btn-sm">
-              <ExternalLink /> <span>View page</span>
-            </Link>
-            <button
-              className="btn btn-sm btn-ghost"
-              onClick={() =>
-                editor.unpublish().then(
-                  () => toast.ok('Back to draft — only you can see it now'),
-                  () => {},
-                )
-              }
-            >
-              Unpublish
-            </button>
-          </div>
-        ) : (
-          <button className="btn btn-sm btn-accent" data-tour="publish" onClick={() => setPublishing(true)}>
-            <Globe /> <span>Publish</span>
+        <div className="planner-bar-end">
+          <button
+            className="btn btn-ghost btn-icon btn-sm"
+            onClick={() => {
+              setView('map');
+              setTouring(true);
+            }}
+            title="Planner tour"
+            aria-label="Planner tour"
+          >
+            <CircleHelp />
           </button>
-        )}
-        <button className="btn btn-sm btn-icon planner-panel-toggle" data-tour="panel-toggle" aria-label="Show details panel" onClick={() => setPanelOpen((o) => !o)}>
-          <PanelRight />
-        </button>
+          <button className="btn btn-sm planner-stats-btn" data-tour="stats" aria-label="Stats" onClick={() => setStatsOpen(true)} title="Park statistics">
+            <ChartColumn /> <span>Stats</span>
+          </button>
+          {zoo.status === 'published' ? (
+            <div className="row planner-actions" data-tour="publish">
+              <button className="btn btn-sm" aria-label="New survey" onClick={() => setNewSurvey(true)}>
+                <Vote /> <span>New survey</span>
+              </button>
+              <Link to={`/z/${zoo.id}`} className="btn btn-sm btn-primary planner-primary" aria-label="View page">
+                <ExternalLink /> <span>View page</span>
+              </Link>
+              <button
+                className="btn btn-sm btn-ghost"
+                aria-label="Unpublish"
+                title="Unpublish: back to a private draft"
+                onClick={() =>
+                  editor.unpublish().then(
+                    () => toast.ok('Back to draft — only you can see it now'),
+                    () => {},
+                  )
+                }
+              >
+                <EyeOff /> <span>Unpublish</span>
+              </button>
+            </div>
+          ) : (
+            <button className="btn btn-sm btn-primary planner-primary" data-tour="publish" aria-label="Publish" onClick={() => setPublishing(true)}>
+              <Globe /> <span>Publish</span>
+            </button>
+          )}
+          <button className="btn btn-sm btn-icon planner-panel-toggle" data-tour="panel-toggle" aria-label="Show details panel" onClick={() => setPanelOpen((o) => !o)}>
+            <PanelRight />
+          </button>
+        </div>
       </header>
 
       <div className={`planner-body view-${view}`}>

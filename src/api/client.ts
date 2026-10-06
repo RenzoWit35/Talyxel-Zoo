@@ -61,7 +61,7 @@ export interface SurveyDraft {
   allowSuggestions: boolean;
 }
 
-export type HabitatInput = Partial<Pick<Habitat, 'name' | 'kind' | 'status' | 'biome' | 'species' | 'description' | 'color' | 'points'>>;
+export type HabitatInput = Partial<Pick<Habitat, 'name' | 'kind' | 'status' | 'biome' | 'species' | 'description' | 'reason' | 'color' | 'points'>>;
 
 export const api = {
   me: () => get<Me | null>('/auth/me'),

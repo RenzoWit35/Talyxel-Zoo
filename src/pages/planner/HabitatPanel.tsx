@@ -1,8 +1,9 @@
-import { Copy, ImagePlus, Link2, Loader2, Trash2, X } from 'lucide-react';
-import { useState, type DragEvent } from 'react';
+import { Clock, Copy, Fence, Hexagon, Images, ImagePlus, Lightbulb, Link2, Loader2, Mountain, Ruler, Scan, Spline, Trash2, X } from 'lucide-react';
+import { useState, type DragEvent, type ReactNode } from 'react';
 import { BIOME_LABELS, HABITAT_COLORS, HABITAT_STATUSES, isLineKind, KIND_META, LIMITS, STATUS_META } from '../../../shared/constants';
 import { parkMeta } from '../../../shared/parks';
 import type { Habitat } from '../../../shared/types';
+import { KindIcon } from '../../components/KindIcon';
 import { Lightbox } from '../../components/Lightbox';
 import { useToast } from '../../components/toast';
 import { shapeFacts } from '../../lib/shapes';
@@ -153,36 +154,84 @@ export function HabitatPanel({ habitat, editor, onClose, onDelete, onDuplicate }
   const subjectPlaceholder = kindMeta.subjects ? `e.g. ${kindMeta.subjects[0]}` : isFeature ? meta.subjectPlaceholder : 'Optional — shown under the name';
   // A line can only switch to another line type, an area to another area type.
   const kinds = meta.kinds.filter((k) => isLineKind(k) === isLine);
+  const coaster = editor.zoo.parkType === 'theme_park';
+  const [open, setOpen] = useState<number | null>(null);
+  const [size, edge] = shapeFacts(habitat);
+  const facts: { icon: ReactNode; label: string; value: string }[] = [
+    { icon: isLine ? <Ruler /> : <Scan />, ...size },
+    { icon: isLine ? <Clock /> : <Fence />, ...edge },
+    { icon: isLine ? <Spline /> : <Hexagon />, label: isLine ? 'Points' : 'Corners', value: String(habitat.points.length) },
+    { icon: <Mountain />, label: meta.settingLabel, value: habitat.biome ? BIOME_LABELS[habitat.biome] : '—' },
+  ];
   return (
-    <div className="panel-inner">
-      <div className="panel-head">
-        <span className="swatch-dot" style={{ background: habitat.color, width: 14, height: 14 }} />
-        <h3 className="spacer">{KIND_META[habitat.kind].label} details</h3>
-        <button className="btn btn-ghost btn-icon btn-sm" onClick={onClose} aria-label="Close details" title="Close (Esc)">
-          <X />
-        </button>
+    <div className={`panel-inner shape-panel${coaster ? ' is-coaster' : ''}`}>
+      <div className="shape-panel-head">
+        <h2 className="sr-only">{kindMeta.label} details</h2>
+        <div className="row">
+          <span className={`chip ${coaster ? 'chip-pink' : 'chip-mint'}`}>Selected {kindMeta.label.toLowerCase()}</span>
+          <span className="spacer" />
+          <button className="btn btn-ghost btn-icon btn-sm" onClick={onClose} aria-label="Close details" title="Close (Esc)">
+            <X />
+          </button>
+        </div>
+        <input className="shape-title" aria-label="Name" value={habitat.name} maxLength={60} onChange={(e) => set({ name: e.target.value })} />
       </div>
 
       <div className="panel-section">
-        <label className="field">
-          <span>Name</span>
-          <input className="input" value={habitat.name} maxLength={60} onChange={(e) => set({ name: e.target.value })} />
-        </label>
-        <label className="field">
-          <span>{subjectLabel}</span>
-          <input
-            className="input"
-            list="subject-list"
-            value={habitat.species}
-            maxLength={80}
-            placeholder={subjectPlaceholder}
-            onChange={(e) => set({ species: e.target.value })}
-          />
+        {habitat.photos.length > 0 && (
+          <button className="shape-cover" onClick={() => setOpen(0)} aria-label={`View photos of ${habitat.name}`}>
+            <img src={habitat.photos[0].url} alt={habitat.photos[0].caption} />
+            <span className="shape-cover-count">
+              <Images /> {habitat.photos.length === 1 ? '1 photo' : `${habitat.photos.length} photos`}
+            </span>
+          </button>
+        )}
+        <label className="shape-subject">
+          <span className="shape-subject-icon">
+            <KindIcon kind={habitat.kind} />
+          </span>
+          <span className="spacer">
+            <small>{subjectLabel}</small>
+            <input list="subject-list" value={habitat.species} maxLength={80} placeholder={subjectPlaceholder} onChange={(e) => set({ species: e.target.value })} />
+          </span>
           <datalist id="subject-list">
             {subjects.map((s) => (
               <option key={s} value={s} />
             ))}
           </datalist>
+        </label>
+        <div className="shape-facts">
+          {facts.map((fact) => (
+            <div key={fact.label}>
+              <span className="shape-fact-icon">{fact.icon}</span>
+              <span>
+                <small>{fact.label}</small>
+                <strong>{fact.value}</strong>
+              </span>
+            </div>
+          ))}
+        </div>
+        <label className="field">
+          <span>Description</span>
+          <textarea
+            className="textarea"
+            value={habitat.description}
+            maxLength={2000}
+            placeholder={meta.notesPlaceholder}
+            onChange={(e) => set({ description: e.target.value })}
+          />
+        </label>
+        <label className="shape-reason">
+          <span>
+            <Lightbulb /> Why it’s built this way
+          </span>
+          <textarea
+            value={habitat.reason}
+            maxLength={1000}
+            rows={3}
+            placeholder={isLine ? 'e.g. The route bends here so guests see the lions before the overlook.' : 'e.g. A low wall on this side keeps the view open from the main path.'}
+            onChange={(e) => set({ reason: e.target.value })}
+          />
         </label>
         <div className="field">
           <span>Status</span>
@@ -228,31 +277,6 @@ export function HabitatPanel({ habitat, editor, onClose, onDelete, onDuplicate }
             </label>
           </div>
         </div>
-        <label className="field">
-          <span>Notes</span>
-          <textarea
-            className="textarea"
-            value={habitat.description}
-            maxLength={2000}
-            placeholder={meta.notesPlaceholder}
-            onChange={(e) => set({ description: e.target.value })}
-          />
-        </label>
-      </div>
-
-      <div className="panel-section">
-        <div className="stat-row">
-          {shapeFacts(habitat).map((f) => (
-            <div key={f.label}>
-              <small>{f.label}</small>
-              <strong>{f.value}</strong>
-            </div>
-          ))}
-          <div>
-            <small>{isLine ? 'Points' : 'Corners'}</small>
-            <strong>{habitat.points.length}</strong>
-          </div>
-        </div>
         <p className="subtle">
           {isLine
             ? 'Drag the route to move it, drag the white dots to bend it, click a small dot to add a point and right-click a point to remove it. Arrows show the walking direction.'
@@ -261,6 +285,7 @@ export function HabitatPanel({ habitat, editor, onClose, onDelete, onDuplicate }
       </div>
 
       <PhotoManager habitat={habitat} editor={editor} />
+      {open !== null && <Lightbox photos={habitat.photos} start={open} title={habitat.name} onClose={() => setOpen(null)} />}
 
       <div className="panel-section panel-actions">
         <button className="btn btn-block" onClick={onDuplicate} title="Duplicate (Ctrl+D)">

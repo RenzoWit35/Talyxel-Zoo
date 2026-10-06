@@ -40,12 +40,13 @@ export function habitatRoutes(db: DB, upload: multer.Multer, uploadDir: string) 
       biome: body.biome ?? habitat.biome,
       species: body.species ?? habitat.species,
       description: body.description ?? habitat.description,
+      reason: body.reason ?? habitat.reason,
       color: body.color ?? habitat.color,
       points: body.points ? JSON.stringify(normalizePoints(body.points, zoo)) : habitat.points,
     };
     run(
       db,
-      `UPDATE habitats SET name = ?, kind = ?, status = ?, biome = ?, species = ?, description = ?, color = ?, points = ?,
+      `UPDATE habitats SET name = ?, kind = ?, status = ?, biome = ?, species = ?, description = ?, reason = ?, color = ?, points = ?,
          updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE id = ?`,
       next.name,
       next.kind,
@@ -53,6 +54,7 @@ export function habitatRoutes(db: DB, upload: multer.Multer, uploadDir: string) 
       next.biome,
       next.species,
       next.description,
+      next.reason,
       next.color,
       next.points,
       habitat.id,

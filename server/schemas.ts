@@ -68,6 +68,7 @@ export const habitatCreateInput = z.object({
   biome: setting.default(''),
   species: text(80).default(''),
   description: text(2000).default(''),
+  reason: text(1000).default(''),
   color: color.optional(),
   points,
 });
@@ -79,6 +80,7 @@ export const habitatUpdateInput = z.object({
   biome: setting.optional(),
   species: text(80).optional(),
   description: text(2000).optional(),
+  reason: text(1000).optional(),
   color: color.optional(),
   points: points.optional(),
 });

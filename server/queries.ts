@@ -186,6 +186,7 @@ export interface HabitatRow {
   biome: Biome;
   species: string;
   description: string;
+  reason: string;
   color: string;
   points: string;
   position: number;
@@ -229,6 +230,7 @@ export function toHabitat(row: HabitatRow, photos: Photo[]): Habitat {
     biome: row.biome,
     species: row.species,
     description: row.description,
+    reason: row.reason,
     color: row.color,
     points: JSON.parse(row.points) as Point[],
     position: row.position,

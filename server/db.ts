@@ -223,6 +223,10 @@ const MIGRATIONS: string[] = [
   `
   ALTER TABLE users ADD COLUMN onboarding_dismissed_at TEXT;
   `,
+  // v7: why a shape is built the way it is (shown as "design motivation").
+  `
+  ALTER TABLE habitats ADD COLUMN reason TEXT NOT NULL DEFAULT '';
+  `,
 ];
 
 export function openDb(file: string): DB {

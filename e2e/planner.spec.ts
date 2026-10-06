@@ -50,7 +50,8 @@ test('adds a utility, a walk route and an area of interest from the Add palette'
   await page.mouse.click(...at(140, -20));
   await page.keyboard.press('Enter');
   await expect(page.getByRole('heading', { name: 'Walk route details' })).toBeVisible();
-  await expect(page.locator('.planner-panel .stat-row').first()).toContainText('Walk time');
+  await expect(page.locator('.planner-panel .shape-facts')).toContainText('Walk time');
+  await page.getByLabel('Why it’s built this way').fill('Guests pass the substation without seeing it.');
   await expect(page.locator('.shape.kind-route')).toHaveCount(1);
   await closeSheet(page);
 

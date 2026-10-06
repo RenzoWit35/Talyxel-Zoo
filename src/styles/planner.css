@@ -5,26 +5,70 @@
   flex-direction: column;
   background: var(--surface-2);
 }
+/* project bar (Figma: Projectbalk) */
 .planner-bar {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
-  gap: 10px;
-  padding: 8px 14px;
+  gap: 16px;
+  padding: 10px 24px 10px 20px;
   border-bottom: 1px solid var(--line);
   background: var(--surface);
-  min-height: 56px;
+  min-height: 64px;
+  color: var(--ink);
+}
+.planner-bar-start,
+.planner-bar-end {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.planner-bar-end {
+  justify-content: flex-end;
+  gap: 8px;
+}
+.planner-back {
+  width: 36px;
+  height: 36px;
+  flex: none;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--bg);
+  color: var(--ink);
+}
+.planner-back:hover {
+  background: var(--bg-deep);
+}
+.planner-back svg {
+  width: 18px;
+  height: 18px;
+}
+.planner-name {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.planner-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
 }
 .planner-title {
   font-family: var(--font-display);
-  font-weight: 650;
-  font-size: 1.2rem;
-  letter-spacing: -0.015em;
+  font-weight: 700;
+  font-size: 18px;
+  color: inherit;
   border: 1px solid transparent;
   background: transparent;
-  border-radius: var(--radius-sm);
-  padding: 4px 8px;
+  border-radius: var(--radius-xs);
+  padding: 1px 6px;
+  margin-left: -7px;
   min-width: 80px;
-  width: min(360px, 30vw);
+  max-width: min(320px, 24vw);
+  field-sizing: content;
   text-overflow: ellipsis;
 }
 .planner-title:hover {
@@ -34,25 +78,148 @@
   outline: none;
   border-color: var(--brand);
   background: var(--surface);
+  color: var(--ink);
+}
+.planner-type {
+  flex: none;
+  background: var(--brand-soft);
+  color: var(--brand-strong);
+}
+.planner-sub {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 10px;
+  color: var(--ink-3);
+  white-space: nowrap;
+  overflow: hidden;
+}
+.planner-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.planner-status.is-live {
+  color: var(--brand);
+  font-weight: 700;
+}
+.planner-status svg,
+.save-state svg {
+  width: 12px;
+  height: 12px;
 }
 .save-state {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  font-size: 0.8rem;
+  gap: 4px;
+  font-size: 10px;
   color: var(--ink-3);
-  font-weight: 560;
   white-space: nowrap;
-}
-.save-state svg {
-  width: 14px;
-  height: 14px;
 }
 .save-state.error {
   color: var(--danger);
+  font-weight: 700;
+}
+/* Map / Board pill toggle (Figma: Ontwerpen / Voorbeeld) */
+.planner-views {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--bg);
+}
+.planner-views button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  background: none;
+  padding: 7px 16px;
+  border-radius: var(--radius-pill);
+  font-size: 12px;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+.planner-views button svg {
+  width: 15px;
+  height: 15px;
+}
+.planner-views button[aria-pressed='true'] {
+  background: var(--surface);
+  color: var(--ink);
+  font-weight: 700;
+  box-shadow: var(--shadow-sm);
+}
+.planner-primary {
+  --btn-bg: var(--brand-strong);
+  --btn-border: var(--brand-strong);
+}
+.planner-primary:hover {
+  --btn-bg: var(--deep);
 }
 .planner-panel-toggle {
   display: none;
+}
+
+/* theme parks: navy bar with pink accents (Figma: Coaster Park Builder) */
+.planner.is-coaster .planner-bar {
+  background: var(--navy);
+  border-bottom-color: var(--navy);
+  color: #fff; /* same in both themes */
+}
+.planner.is-coaster .planner-back {
+  background: #ffffff1f; /* same in both themes */
+  color: #fff; /* same in both themes */
+}
+.planner.is-coaster .planner-back:hover {
+  background: #ffffff33; /* same in both themes */
+}
+.planner.is-coaster .planner-title:hover {
+  border-color: #ffffff33; /* same in both themes */
+}
+.planner.is-coaster .planner-type {
+  background: var(--coaster-soft);
+  color: var(--coaster-ink);
+}
+.planner.is-coaster .planner-sub,
+.planner.is-coaster .save-state {
+  color: #b8bce8; /* same in both themes */
+}
+.planner.is-coaster .planner-status.is-live {
+  color: #ff8fb6; /* same in both themes */
+}
+.planner.is-coaster .planner-views {
+  background: #ffffff14; /* same in both themes */
+}
+.planner.is-coaster .planner-views button {
+  color: #c9ccf0; /* same in both themes */
+}
+.planner.is-coaster .planner-views button[aria-pressed='true'] {
+  background: var(--coaster);
+  color: #fff; /* same in both themes */
+  box-shadow: none;
+}
+.planner.is-coaster .planner-bar-end > .btn:not(.planner-primary),
+.planner.is-coaster .planner-actions > .btn:not(.planner-primary) {
+  --btn-bg: transparent;
+  --btn-fg: #fff; /* same in both themes */
+  --btn-border: #ffffff3d; /* same in both themes */
+}
+.planner.is-coaster .planner-bar-end > .btn-ghost,
+.planner.is-coaster .planner-actions > .btn-ghost {
+  --btn-border: transparent;
+}
+.planner.is-coaster .planner-primary {
+  --btn-bg: var(--coaster);
+  --btn-border: var(--coaster);
+  --btn-fg: #fff; /* same in both themes */
+}
+.planner.is-coaster .planner-primary:hover {
+  --btn-bg: var(--coaster-ink);
+}
+.planner.is-coaster .tool[aria-pressed='true'] {
+  background: var(--info);
+  color: #fff; /* same in both themes */
 }
 
 .planner-body {
@@ -93,7 +260,7 @@
   color: var(--ink);
 }
 .tool[aria-pressed='true'] {
-  background: var(--brand);
+  background: var(--brand-strong);
   color: var(--brand-ink);
 }
 .tool:disabled {
@@ -487,8 +654,20 @@ kbd {
 /* ---------- responsive ---------- */
 @media (max-width: 1100px) {
   .planner-actions span,
-  .planner-views span {
+  .planner-views span,
+  .planner-stats-btn span {
     display: none;
+  }
+}
+@media (max-width: 640px) {
+  .planner-views button {
+    padding: 7px 11px;
+  }
+  .planner-bar-end {
+    gap: 5px;
+  }
+  .planner-bar-end .btn-sm:not(.btn-icon) {
+    padding: 0 10px;
   }
 }
 @media (max-width: 900px) {
@@ -519,19 +698,22 @@ kbd {
   .planner-panel.open {
     transform: none;
   }
-  .planner-title {
-    width: 100%;
-    flex: 1;
-  }
+  /* two rows: name on top, view switch and actions below */
   .planner-bar {
+    display: flex;
     flex-wrap: wrap;
+    gap: 8px 10px;
+    padding: 8px 12px;
   }
-  .planner-bar .save-state,
-  .planner-bar > .chip {
-    display: none;
+  .planner-bar-start {
+    flex: 1 1 100%;
   }
-  .planner-bar .spacer {
-    display: none;
+  .planner-bar-end {
+    margin-left: auto;
+  }
+  .planner-title {
+    max-width: none;
+    flex: 0 1 auto;
   }
   .board {
     grid-template-columns: repeat(4, 260px);
@@ -749,4 +931,229 @@ kbd {
 }
 .panel-actions {
   flex-direction: row;
+}
+
+/* ---------- selected shape (Figma: Geselecteerd habitat / zone) ---------- */
+.shape-panel-head {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px 20px 16px;
+  border-bottom: 1px solid var(--line);
+  position: sticky;
+  top: 0;
+  background: var(--surface);
+  z-index: 2;
+}
+.shape-title {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 26px;
+  line-height: 1.2;
+  color: var(--ink);
+  width: calc(100% + 12px);
+  margin-left: -7px;
+  padding: 1px 6px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-xs);
+  background: transparent;
+  text-overflow: ellipsis;
+}
+.shape-title:hover {
+  border-color: var(--line);
+}
+.shape-title:focus {
+  outline: none;
+  border-color: var(--brand);
+}
+.shape-panel .panel-section {
+  padding: 18px 20px 20px;
+  gap: 14px;
+}
+.shape-cover {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 172px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--bg-deep);
+  cursor: zoom-in;
+}
+.shape-cover img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.shape-cover-count {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 9px;
+  border-radius: var(--radius-pill);
+  background: #17201bd9; /* same in both themes */
+  color: #fff; /* same in both themes */
+  font-size: 9px;
+  font-weight: 700;
+}
+.shape-cover-count svg {
+  width: 12px;
+  height: 12px;
+}
+.shape-subject {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  background: var(--brand-soft);
+  cursor: text;
+}
+.shape-subject:focus-within {
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+.shape-subject-icon {
+  width: 40px;
+  height: 40px;
+  flex: none;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--hero);
+  color: var(--brand-soft);
+}
+.shape-subject-icon svg {
+  width: 19px;
+  height: 19px;
+}
+.shape-subject small {
+  display: block;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+.shape-subject input {
+  width: 100%;
+  border: 0;
+  padding: 2px 0 0;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.shape-subject input:focus {
+  outline: none;
+}
+.shape-subject input::placeholder {
+  font-weight: 400;
+  color: var(--ink-3);
+}
+.shape-facts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px 16px;
+}
+.shape-facts > div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.shape-fact-icon {
+  width: 32px;
+  height: 32px;
+  flex: none;
+  border-radius: var(--radius-sm);
+  display: grid;
+  place-items: center;
+  background: var(--bg);
+  color: var(--ink);
+}
+.shape-fact-icon svg {
+  width: 16px;
+  height: 16px;
+}
+.shape-facts small {
+  display: block;
+  font-size: 8px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.shape-facts strong {
+  display: block;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* why it's built this way (Figma: Ontwerpmotivatie) */
+.shape-reason {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 14px 10px;
+  border-radius: var(--radius);
+  border: 1px solid color-mix(in srgb, var(--accent) 25%, var(--surface));
+  background: var(--accent-soft);
+}
+.shape-reason:focus-within {
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+.shape-reason > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--accent-ink);
+}
+.shape-reason svg {
+  width: 13px;
+  height: 13px;
+}
+.shape-reason textarea {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ink);
+  resize: vertical;
+  min-height: 54px;
+}
+.shape-reason textarea:focus {
+  outline: none;
+}
+.shape-reason textarea::placeholder {
+  color: var(--ink-3);
+}
+/* theme parks: lavender ride card, pink motivation box */
+.shape-panel.is-coaster .shape-subject {
+  background: var(--lavender);
+}
+.shape-panel.is-coaster .shape-subject-icon {
+  background: var(--navy);
+  color: var(--coaster);
+}
+.shape-panel.is-coaster .shape-fact-icon {
+  color: var(--info);
+}
+.shape-panel.is-coaster .shape-reason {
+  border-color: color-mix(in srgb, var(--coaster) 30%, var(--surface));
+  background: color-mix(in srgb, var(--coaster-soft) 45%, var(--surface));
+}
+.shape-panel.is-coaster .shape-reason > span {
+  color: var(--coaster-ink);
 }

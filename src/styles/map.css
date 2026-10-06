@@ -271,14 +271,31 @@
 }
 .map-zoom {
   position: absolute;
-  right: 14px;
-  bottom: 14px;
+  right: 18px;
+  bottom: 18px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  overflow: hidden;
 }
 .map-zoom .btn {
-  box-shadow: var(--shadow);
+  width: 44px;
+  height: 42px;
+  border: 0;
+  border-radius: 0;
+  --btn-bg: transparent;
+}
+.map-zoom .btn + .btn {
+  border-top: 1px solid var(--line);
+}
+.map-zoom .btn:hover {
+  --btn-bg: var(--bg);
+}
+.map-zoom .btn svg {
+  width: 17px;
+  height: 17px;
 }
 
 /* hover card */

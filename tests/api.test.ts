@@ -58,7 +58,15 @@ describe('zoo planning', () => {
     expect(off.body.points).toEqual([[0, 0], [200, 0], [200, 100]]);
 
     const patched = await rosa.patch(`/api/habitats/${habitat.id}`, { status: 'building', biome: 'grassland' });
-    expect(patched.body).toMatchObject({ status: 'building', biome: 'grassland', name: 'Lion Pride' });
+    expect(patched.body).toMatchObject({ status: 'building', biome: 'grassland', name: 'Lion Pride', reason: '' });
+
+    // Why it's built this way: a note per shape, shown on the public page.
+    const why = 'The bend slows guests down before the first view of the lions.';
+    expect((await rosa.patch(`/api/habitats/${habitat.id}`, { reason: why })).body.reason).toBe(why);
+    expect((await rosa.patch(`/api/habitats/${habitat.id}`, { reason: 'x'.repeat(1001) })).status).toBe(400);
+    const withReason = await rosa.post(`/api/zoos/${zoo.id}/habitats`, { name: 'Overlook', reason: 'Sunset view', points: [[10, 10], [30, 10], [30, 30]] });
+    expect(withReason.body.reason).toBe('Sunset view');
+    await rosa.del(`/api/habitats/${withReason.body.id}`);
 
     const mine = await rosa.get('/api/zoos/mine');
     expect(mine.body[0]).toMatchObject({ title: 'Savanna Park', habitatCount: 2, doneCount: 0, status: 'draft' });

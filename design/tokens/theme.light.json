@@ -28,6 +28,7 @@
     "cream": { "$value": "#eee5d2", "$description": "Date chip on the welcome banner" },
     "hero": { "$value": "#17201b", "$description": "Welcome banner and profile card background" },
     "deep": { "$value": "#243e31", "$description": "Dark green cards (next step, design principle)" },
+    "navy": { "$value": "#1d1f4a", "$description": "Theme-park planner bar (Figma: Neon Pier)" },
     "on-dark": { "$value": "#c8d0cb", "$description": "Body text on hero/deep" },
     "on-dark-2": { "$value": "#b8c9be", "$description": "Small text on deep" },
     "lime": { "$value": "#b9d47b", "$description": "Labels and progress on dark green" },

@@ -51,6 +51,8 @@ export interface Habitat {
   /** Species in zoos, ride type in theme parks. */
   species: string;
   description: string;
+  /** Why it's built this way — the builder's design motivation. */
+  reason: string;
   color: string;
   points: Point[];
   position: number;
