@@ -186,6 +186,23 @@
 }
 
 /* ---------- guide ---------- */
+.guide-types {
+  list-style: none;
+  margin: 0 0 14px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.guide-types li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.guide-types .park-badge {
+  min-width: 128px;
+}
 .guide-hero {
   display: grid;
   grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);

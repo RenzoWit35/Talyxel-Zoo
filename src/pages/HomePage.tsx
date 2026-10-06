@@ -22,13 +22,13 @@ import { Link, useSearchParams } from 'react-router';
 import { ONBOARDING_STEPS, type NotificationType, type ZooSummary } from '../../shared/types';
 import { api } from '../api/client';
 import { useMe } from '../auth';
+import { BuildProgress } from '../components/BuildProgress';
 import { describeNotification } from '../components/NotificationBell';
 import { STEP_COPY } from '../components/tutorial/steps';
 import { WelcomeDialog } from '../components/tutorial/WelcomeDialog';
 import { Avatar, PageLoader } from '../components/ui';
 import { ZooThumbnail } from '../components/ZooThumbnail';
 import { timeAgo } from '../lib/format';
-import { parkProgress } from '../lib/parks';
 
 function greeting(date: Date) {
   const h = date.getHours();
@@ -37,7 +37,6 @@ function greeting(date: Date) {
 
 
 function ProjectCard({ zoo }: { zoo: ZooSummary }) {
-  const progress = parkProgress(zoo);
   const coaster = zoo.parkType === 'theme_park';
   return (
     <article className="project-card card">
@@ -67,15 +66,7 @@ function ProjectCard({ zoo }: { zoo: ZooSummary }) {
             </Link>
           )}
         </div>
-        <div className="project-progress">
-          <div className="row">
-            <span className="spacer">Park layout</span>
-            <strong className={coaster ? 'is-coaster' : ''}>{progress}%</strong>
-          </div>
-          <div className={`bar${coaster ? ' is-coaster' : ''}`} role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress} aria-label={`${zoo.title} is ${progress}% built`}>
-            <span style={{ width: `${progress}%` }} />
-          </div>
-        </div>
+        <BuildProgress zoo={zoo} />
       </div>
     </article>
   );

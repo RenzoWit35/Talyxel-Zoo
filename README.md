@@ -14,15 +14,17 @@ A planning board and social feed for **Planet Zoo** zoos and **Planet Coaster** 
 
   You can switch a plan's type later from the planner's side panel, as long as it only contains shape types both share.
 - **Top-down planner.** An **Add** bar above the map picks what to draw: habitats or rides, **utilities** (power, water, staff rooms, workshops…), **walk routes** (open lines with direction arrows, length and walking time) and **areas of interest** (viewpoints, keeper talks, photo spots — shown with a pin). Draw with the freeform, rectangle or line tool, or trace over a screenshot of your park. Shapes snap to the grid and to each other's corners; drag, reshape, nudge, duplicate (Ctrl+D), copy and paste, undo and redo. A **Layers** menu hides shape types; `?` shows every shortcut. Everything autosaves.
-- **Hover cards and details.** Hover any shape to see its photos and facts; click it to open the full gallery and notes.
+- **Hover cards and details.** Hover any shape to see its photos and facts; click it to open its photos, description and **why it's built this way** — a note per shape about the thinking behind it. Each park can also state its **design principle** in one sentence.
 - **Planning board.** A kanban view (Idea → Planned → Building → Done) with drag & drop and quick ideas.
 - **Park statistics.** Type in your in-game numbers (plus any extra stats and the in-game date). Saving on a later day keeps the earlier snapshot, so the park page shows what went up or down.
 - **Publish with a survey.** Publishing makes the plan public and announces it to your followers, optionally with a survey ("What should I add next?") that visitors vote on or add suggestions to.
-- **Posts, likes and comments.** Share an **update** (up to 10 screenshots, optionally linked to a published park) or ask a **question**. Every feed card — posts and park activity — is shown Instagram-style: a square swipeable carousel (photos, the park's top-down map, or a big text card), double-tap to like, comments (answers on questions), share link, and its own page at `/p/:id`.
+- **Home and Social.** Signed-in builders land on a **Home** dashboard: recent projects with how much is built, recent activity and the next getting-started step. **Social** (`/social`) is the feed, filtered by For you, Friends, Following or Questions.
+- **Posts, likes and comments.** Share an **update** (up to 10 screenshots, optionally linked to a published park) or ask a **question**. A post leads with its title and text, then one photo, a photo grid or the park map with a location pill and how much is built. Double-click a picture to like it; comments show as bubbles (answers on questions); park surveys can be voted on right in the post; every post has its own page at `/p/:id`.
 - **Profiles.** Counts for posts, parks, followers and following; a **Parks** section with each park's whole top-down plan; a square grid of posts.
 - **Notifications.** A bell for new followers, likes, comments and survey suggestions.
-- **Tutorial for new users.** A welcome after signing up, a getting-started checklist on the feed that ticks itself off, a coach-mark tour the first time you open the planner, and a written guide at `/guide`.
-- **Light and dark mode**, following the system or the header toggle. Colours come from [design tokens](design/README.md) that sync with Figma.
+- **Tutorial for new users.** A welcome after signing up, a "next step" card on Home that ticks itself off, a coach-mark tour the first time you open the planner, and a written guide at `/guide`.
+- **Design.** The look follows the *Parkmakers* Figma design: Inter and Manrope, a warm off-white background, deep park green, and navy with coaster pink for theme parks.
+- **Light and dark mode**, following the system or the switch in the account menu. Colours come from [design tokens](design/README.md) that sync with Figma.
 
 See [DEVELOPMENT_PLAN.md](DEVELOPMENT_PLAN.md) for the roadmap: what's done, the next phases, and how we work.
 
@@ -78,17 +80,17 @@ server/            Express API
   auth.ts          scrypt passwords, cookie sessions, CSRF guard, rate limit
   routes/          auth, users (follows, posts), zoos (+ stats), habitats + photos,
                    surveys, feed, posts (likes, comments), notifications, onboarding
-  feed-items.ts    turns feed events into Instagram-style cards
+  feed-items.ts    turns feed events into post cards (with whole surveys to vote on)
   events.ts        feed events (only for published parks)
   notify.ts        notifications
   seed.ts          demo data (photos are generated, not downloaded)
 shared/            types, constants, park types (parks.ts), stats fields, geometry
 src/               React app
   components/map/  MapCanvas (SVG planner/viewer), hover card, layer toggles
-  components/feed/ post card, media carousel, composer
-  components/tutorial/  welcome dialog, checklist, coach-mark tour
+  components/feed/ post card, photo grid / park map, in-post poll, composer
+  components/tutorial/  welcome dialog, getting-started steps, coach-mark tour
   pages/planner/   planner page, palette, panels, board, tour, shortcuts
-  pages/           feed, post, explore, people, profile, park page, guide, auth
+  pages/           home, social feed, activity, post, explore, people, profile, park page, guide, auth
 design/            design tokens (synced with Figma) — see design/README.md
 scripts/tokens.ts  design tokens → CSS variables
 tests/             API, geometry and token tests

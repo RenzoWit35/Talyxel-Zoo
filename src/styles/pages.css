@@ -205,8 +205,8 @@
   box-shadow: var(--shadow-sm);
 }
 .zoo-card-badges .chip-accent {
-  background: var(--accent);
-  color: #fff;
+  background: var(--accent-soft);
+  color: var(--accent-ink);
 }
 .zoo-card-body {
   padding: 14px 16px 16px;
@@ -235,6 +235,20 @@
   color: var(--ink-2);
   margin-top: auto;
   padding-top: 4px;
+}
+.zoo-card-meta > span {
+  white-space: nowrap;
+}
+.zoo-card-meta > .zoo-card-owner {
+  min-width: 0;
+  flex: 0 1 auto;
+}
+.zoo-card-owner > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.zoo-card-body .project-progress {
+  margin-top: 4px;
 }
 .zoo-card-edit {
   float: right;

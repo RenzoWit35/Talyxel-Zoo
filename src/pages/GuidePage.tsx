@@ -135,12 +135,16 @@ export function GuidePage() {
             <p>
               Open <strong>My parks</strong> and choose <strong>New plan</strong>. Pick what you're building — each type has its own shapes, lists and statistics:
             </p>
-            <div className="row row-wrap guide-figure">
-              <ParkBadge type="zoo" />
-              <span className="subtle">habitats, exhibits, species and biomes</span>
-              <ParkBadge type="theme_park" />
-              <span className="subtle">coasters, rides, ride types and themes</span>
-            </div>
+            <ul className="guide-types">
+              <li>
+                <ParkBadge type="zoo" />
+                <span className="subtle">habitats, exhibits, species and biomes</span>
+              </li>
+              <li>
+                <ParkBadge type="theme_park" />
+                <span className="subtle">coasters, rides, ride types and themes</span>
+              </li>
+            </ul>
             <p>
               Give it a name and a size in metres — new plans start at the standard 1,000 × 990 m. Matching your in-game map keeps areas and walking times
               realistic. You can resize the map later, and you can upload
@@ -203,9 +207,13 @@ export function GuidePage() {
             <h2>Details and photos</h2>
             <p>
               Select a shape to open its details. Name it, pick its species, ride, utility or route type from the suggestions, choose a biome or theme, a colour and
-              a status, and jot down notes. Drop screenshots onto the photo area (up to 40 per shape) or paste an image link.
+              a status, and describe it. Drop screenshots onto the photo area (up to 40 per shape) or paste an image link.
             </p>
-            <p>Visitors hover a shape to see its photos and facts, and click it to open the full gallery.</p>
+            <p>
+              Use <strong>Why it’s built this way</strong> to note the thinking behind a shape — why the path bends there, why the wall is low. Visitors see it when
+              they open the shape on your park page. For the park as a whole, add a one-sentence <strong>design principle</strong> in the park panel.
+            </p>
+            <p>Visitors hover a shape to see its photos and facts, and click it to open its photos, description and the reason behind it.</p>
           </section>
 
           <section id="board">
@@ -253,11 +261,12 @@ export function GuidePage() {
           <section id="feed">
             <h2>Posts, likes and answers</h2>
             <p>
-              Your feed shows posts from you and the builders you follow, plus what happens in their published parks. Share your own with the box at the top:
+              <strong>Social</strong> shows posts from you and the builders you follow, plus what happens in their published parks. Narrow it down to friends,
+              the people you follow, or questions. Press <strong>Share an update</strong> to post your own:
             </p>
             <ul>
               <li>
-                <strong>Update</strong> — what you built, with up to 10 screenshots. Link one of your published parks and its map becomes a slide.
+                <strong>Update</strong> — what you built, with up to 10 screenshots. A short first line becomes the title. Link one of your published parks to show where it is.
               </li>
               <li>
                 <strong>Question</strong> <MessageCircleQuestion className="guide-inline-icon" /> — ask your followers for advice; their comments show as answers.
@@ -265,7 +274,8 @@ export function GuidePage() {
             </ul>
             <p>
               Like a post with <Heart className="guide-inline-icon" /> or a double-tap on its picture, comment with <MessageCircle className="guide-inline-icon" />,
-              and copy its link with <Send className="guide-inline-icon" />. Click the time on a post to open it with every comment.
+              and copy its link with <Send className="guide-inline-icon" />. Click the time on a post to open it with every comment. When a park is published with a
+              survey, you can vote right in the post.
             </p>
           </section>
 

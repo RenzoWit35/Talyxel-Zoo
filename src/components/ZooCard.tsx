@@ -2,6 +2,7 @@ import { Images, Lock, PenLine, Users, Vote } from 'lucide-react';
 import { Link } from 'react-router';
 import type { ZooSummary } from '../../shared/types';
 import { plural, timeAgo } from '../lib/format';
+import { BuildProgress } from './BuildProgress';
 import { ParkBadge } from './ParkType';
 import { Avatar } from './ui';
 import { ZooThumbnail } from './ZooThumbnail';
@@ -39,7 +40,7 @@ export function ZooCard({ zoo, editable, showOwner = true }: Props) {
         {zoo.description && <p className="zoo-card-desc">{zoo.description}</p>}
         <div className="zoo-card-meta">
           {showOwner && (
-            <span className="row">
+            <span className="row zoo-card-owner">
               <Avatar user={zoo.owner} size={22} />
               <span>{zoo.owner.displayName}</span>
             </span>
@@ -57,6 +58,7 @@ export function ZooCard({ zoo, editable, showOwner = true }: Props) {
             </span>
           )}
         </div>
+        {editable && zoo.habitatCount > 0 && <BuildProgress zoo={zoo} />}
         <div className="subtle">
           {zoo.status === 'published' && zoo.publishedAt ? `Published ${timeAgo(zoo.publishedAt)}` : `Edited ${timeAgo(zoo.updatedAt)}`}
           {editable && (

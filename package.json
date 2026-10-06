@@ -1,6 +1,6 @@
 {
   "name": "talyxel-park",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "description": "Plan your Planet Zoo and Planet Coaster parks from above, share updates and questions, and follow your friends' builds.",
   "type": "module",

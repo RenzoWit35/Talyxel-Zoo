@@ -2,7 +2,17 @@
 
 This plan covers what's built, what comes next, and how we work. Each phase can ship on its own. Sizes are rough: **S** is about a day, **M** a few days, **L** a week or more. Tick items off as they land on `main`.
 
-## Where we are (v0.2)
+## Where we are (v0.3)
+
+### New in v0.3 — the Parkmakers look
+- [x] Restyled after the *Parkmakers* Figma design: new tokens (Inter + Manrope, park green, coaster pink, navy), a top bar with a centred Home / Social / Parks / Explore switcher, search and an account menu
+- [x] Home dashboard: recent projects with build progress, quick links, recent activity, and the getting-started checklist as a "next step" card
+- [x] Social at `/social` with filters (For you, Friends, Following, Questions — `/api/feed?filter=`), a profile card, open questions and builders to follow
+- [x] Posts lead with a title and text; one photo, a photo grid or the park map with a location pill and "% built"; park surveys are votable inside the post
+- [x] Planner: new project bar, the selected-shape panel from the design, navy and pink chrome for theme parks
+- [x] "Why it's built this way" per shape (`reason`, migration v7) and a design principle per park (`principle`, migration v8), shown on the public park page
+- [x] Public park page: big header with "Designed by", the map as a stage with a floating detail card, "in numbers", the design principle and the in-game rating
+- [x] 53 API/unit tests and 29 browser tests (desktop and phone); typecheck and build are clean
 
 ### New in v0.2
 
@@ -101,7 +111,9 @@ Goal: the planner knows the games.
 | Accessibility pass: keyboard drawing, screen-reader labels for shapes, contrast | M | |
 | Mobile planner polish: larger handles, a two-finger rotate gesture | M | Viewing and basic editing work on phones; the bottom sheet hides the map while editing details |
 | PWA install and offline viewing of your own plans | M | |
-| Push the key screens to Figma | S | The Figma MCP connection needs to be authorised once; tokens already sync (see `design/README.md`) |
+| Push the key screens to Figma | S | v0.3 follows the Parkmakers Figma file; push the built screens back so design and code stay side by side. Tokens already sync (see `design/README.md`) |
+| Saved posts (the bookmark in the Figma post design) | S | Not built yet — the post footer shows "Open park" in that spot |
+| Builder ratings for parks (the "4.9 / 5 from 218 builders" card in the design) | M | The park page shows the in-game rating from the builder's own stats for now |
 
 ## Technical debt and known limits
 

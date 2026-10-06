@@ -8,6 +8,8 @@ The colours, shadows, corner radii and fonts of Talyxel Park live in `design/tok
 | `tokens/theme.light.json` | Colours and shadows for the light theme (the default) |
 | `tokens/theme.dark.json` | The same tokens for the dark theme |
 
+The values come from the *Parkmakers* Figma file (Home dashboard, Social, Zoo and Coaster Park Builder, public park page): Inter for interface text and Manrope for headings, `bg` #f3f1eb, `brand` #3c674f, `coaster` #ff4d8d and `navy` #1d1f4a for theme parks, and radii from 6 px (small controls) to 24 px (cards). Use the radius that fits the element's role rather than one radius everywhere.
+
 Both theme files must define the same token names in the same order; the generator refuses otherwise. A test (`tests/tokens.test.ts`) checks that `tokens.css` is up to date, that every CSS variable the app uses is defined, and that stylesheets don't hard-code theme colours.
 
 ## Changing the design in Figma
@@ -28,7 +30,7 @@ Use either route; both read and write these JSON files.
 
 ## Dark mode
 
-The site follows the system setting. The sun/moon button in the header picks a theme and remembers it in the browser; `public/theme.js` applies that choice before the page draws so there's no flash. In CSS, use the tokens (`var(--surface)`, `var(--ink)`, …) for anything that should change with the theme. White text and dark overlays on photos stay the same in both themes; mark such lines with `/* same in both themes */`.
+The site follows the system setting. The light/dark switch in the account menu (or the moon button in the logged-out header) picks a theme and remembers it in the browser; `public/theme.js` applies that choice before the page draws so there's no flash. In CSS, use the tokens (`var(--surface)`, `var(--ink)`, …) for anything that should change with the theme. White text and dark overlays on photos stay the same in both themes; mark such lines with `/* same in both themes */`.
 
 ## Adding a token
 
